@@ -100,8 +100,8 @@ func (p *pageCreateWallet) FuncOnShow() {
 			if err != nil {
 				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot create addresses: %s", err))
 			} else {
-				for _, address := range addresses {
-					p.Emit(handler.EventLogInfo, fmt.Sprintf("Added address: %s %s", address.Path, address.Address))
+				for _, addr := range addresses {
+					p.Emit(handler.EventLogInfo, fmt.Sprintf("Added address: %s %s", addr.Path, addr.Address))
 				}
 				p.SwitchToPage(pageNameAddresses)
 			}

@@ -49,9 +49,9 @@ func (t *Tron) getClient(nodeId uint32) *apiclient.Client {
 	}
 }
 func (t *Tron) Address(pub *ecdsa.PublicKey) string {
-	address := crypto.PubkeyToAddress(*pub).Hex()
-	address = "41" + address[2:]
-	addb, _ := hex.DecodeString(address)
+	addr := crypto.PubkeyToAddress(*pub).Hex()
+	addr = "41" + addr[2:]
+	addb, _ := hex.DecodeString(addr)
 	hash1 := s256(s256(addb))
 	secret := hash1[:4]
 	for _, v := range secret {

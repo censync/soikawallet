@@ -22,8 +22,8 @@ func (s *Wallet) setAccountLinkRPC(coinType types.CoinType, accountIndex types.A
 	}
 
 	// set for addresses
-	for index, address := range s.addresses {
-		if address.CoinType() == coinType && address.Account() == accountIndex {
+	for index, addr := range s.addresses {
+		if addr.CoinType() == coinType && addr.Account() == accountIndex {
 			s.addresses[index].nodeIndex = nodeIndex
 		}
 	}
@@ -40,12 +40,12 @@ func (s *Wallet) removeAccountLinkRPC(coinType types.CoinType, accountIndex type
 		nodeKey types.NodeIndex
 		isExist bool
 	)
-	for _, address := range s.addresses {
-		if address.CoinType() == coinType &&
-			address.Account() == accountIndex {
+	for _, addr := range s.addresses {
+		if addr.CoinType() == coinType &&
+			addr.Account() == accountIndex {
 			nodeKey = types.NodeIndex{
 				CoinType: coinType,
-				Index:    address.nodeIndex,
+				Index:    addr.nodeIndex,
 			}
 			isExist = true
 			break
@@ -73,7 +73,7 @@ func (s *Wallet) GetRPCLinkedAccountCount(dto *dto.GetRPCLinkedAccountCountDTO) 
 func (s *Wallet) setAddressNode(path *types.DerivationPath, nodeIndex uint32) error {
 	_, ok := s.addresses[path.String()]
 	if !ok {
-		return errors.New("addr is not found")
+		return errors.New("address is not found")
 	}
 
 	s.addresses[path.String()].nodeIndex = nodeIndex

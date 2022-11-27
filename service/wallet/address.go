@@ -85,7 +85,6 @@ func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err erro
 	ecKey, err := key.ECPrivKey()
 
 	if err != nil {
-		// cannot convert to btcec ECPrivKey
 		return nil, errors.New("cannot create addr key")
 	}
 
@@ -143,8 +142,8 @@ func (s *Wallet) addressKey(path *types.DerivationPath) (*hdkeychain.ExtendedKey
 }
 
 func (s *Wallet) isAccountExists(coinType types.CoinType, accountIndex types.AccountIndex) bool {
-	for _, address := range s.addresses {
-		if address.CoinType() == coinType && address.Account() == accountIndex {
+	for _, addr := range s.addresses {
+		if addr.CoinType() == coinType && addr.Account() == accountIndex {
 			return true
 		}
 	}
