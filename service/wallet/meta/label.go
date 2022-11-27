@@ -1,0 +1,73 @@
+package meta
+
+import (
+	"errors"
+	"strings"
+	"sync"
+)
+
+const (
+	AccountLabel = LabelType(1)
+	AddressLabel = LabelType(2)
+)
+
+type LabelType uint8
+
+type Labels struct {
+	mu   sync.RWMutex
+	data map[uint32]string
+}
+
+func initLabels() Labels {
+	return Labels{
+		data: map[uint32]string{},
+	}
+}
+
+func (m *Labels) Exists(label string) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	for idx := range m.data {
+		if strings.ToLower(m.data[idx]) == strings.ToLower(label) {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *Labels) Data() map[uint32]string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	return m.data
+}
+
+func (m *Labels) Add(label string) (uint32, error) {
+	var lastIndex uint32
+
+	if m.Exists(label) {
+		return 0, errors.New("label already exist")
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	for lastIndex = range m.data {
+	}
+
+	lastIndex++
+	m.data[lastIndex] = label
+	return lastIndex, nil
+}
+
+func (m *Labels) Remove(index uint32) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, ok := m.data[index]; !ok {
+		return errors.New("label not exist")
+	}
+	delete(m.data, index)
+	return nil
+}
