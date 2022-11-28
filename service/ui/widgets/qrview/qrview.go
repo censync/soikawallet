@@ -2,8 +2,6 @@ package qrview
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/base64"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"github.com/skip2/go-qrcode"
@@ -25,7 +23,7 @@ type QrView struct {
 	*tview.Flex
 }
 
-func ShowAnimation(str *string, duration int, redraw func()) *tview.TextView {
+func ShowAnimation(chunks []string, duration int, redraw func()) *tview.TextView {
 
 	labelQr := tview.NewTextView().
 		SetWordWrap(false).
@@ -37,11 +35,9 @@ func ShowAnimation(str *string, duration int, redraw func()) *tview.TextView {
 		SetBackgroundColor(tcell.ColorLightGray)
 
 	update := func() {
-		for i := 0; i < 15; i++ {
-			payload := make([]byte, frameSize)
-			rand.Read(payload)
-			b64 := base64.StdEncoding.EncodeToString(payload)
-			qrc, err := qrcode.New(b64, qrcode.Low)
+
+		for i := 0; i < len(chunks); i++ {
+			qrc, err := qrcode.New(chunks[i], qrcode.Low)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -58,19 +54,6 @@ func ShowAnimation(str *string, duration int, redraw func()) *tview.TextView {
 	go update()
 
 	return labelQr
-}
-
-func generateAnimation(data []byte) [][][]bool {
-	for iter := 0; iter < len(data); iter += frameSize {
-
-	}
-	if len(data)%frameSize > 0 {
-		// append
-	}
-	if len(data) < frameSize {
-		// append
-	}
-	return nil
 }
 
 func generateFrame(w io.Writer, code [][]bool) {

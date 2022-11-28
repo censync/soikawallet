@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/censync/soikawallet/api/dto"
+	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/wallet/internal/airgap"
 	"github.com/censync/soikawallet/service/wallet/internal/network"
 	"github.com/censync/soikawallet/service/wallet/meta"
 	"github.com/censync/soikawallet/types"
@@ -128,6 +130,20 @@ func (s *Wallet) FlushKeys(dto *dto.FlushKeysDTO) {
 			s.addresses[key].key = nil
 		}
 	}
+}
+
+func (s *Wallet) ExportMeta() (*resp.AirGapMessageResponse, error) {
+	data, err := s.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	chunks, err := airgap.NewChunks(data, 192)
+	if err != nil {
+		return nil, err
+	}
+	return &resp.AirGapMessageResponse{
+		Chunks: chunks.ChunksBase64(),
+	}, nil
 }
 
 func (s *Wallet) MarshalJSON() ([]byte, error) {

@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/api/responses"
+	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/wallet"
 	"github.com/censync/soikawallet/types"
 )
@@ -32,8 +32,8 @@ type WalletAdapter interface {
 	AddRPC(dto *dto.AddRPCDTO) (uint32, error)
 	RemoveRPC(dto *dto.RemoveRPCDTO) error
 
-	AddAddresses(dto *dto.AddAddressesDTO) ([]*responses.AddressResponse, error)
-	GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*responses.AddressResponse
+	AddAddresses(dto *dto.AddAddressesDTO) ([]*resp.AddressResponse, error)
+	GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*resp.AddressResponse
 	// GetAllAddresses() []*types.AddressResponse
 	GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error)
 
@@ -42,4 +42,7 @@ type WalletAdapter interface {
 	RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error
 	GetRPCLinkedAccountCount(dto *dto.GetRPCLinkedAccountCountDTO) int
 	GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, error)
+
+	// AirGap
+	ExportMeta() (*resp.AirGapMessageResponse, error)
 }

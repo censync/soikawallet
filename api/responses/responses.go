@@ -12,3 +12,7 @@ type AddressResponse struct {
 	CoinType          types.CoinType
 	Account           types.AccountIndex
 }
+
+type AirGapMessageResponse struct {
+	Chunks []string
+}

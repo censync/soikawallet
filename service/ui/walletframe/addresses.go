@@ -8,7 +8,6 @@ import (
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/strip_color"
 	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/util/console_qr"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"strconv"
@@ -246,20 +245,5 @@ func (p *pageAddresses) clearAddrQR() {
 }
 
 func (p *pageAddresses) showAddrQR() {
-	p.clearAddrQR()
-	if p.selectedAddress != nil {
-		strQR, err := console_qr.NewQR(p.selectedAddress.Address)
-		if err == nil {
-			p.labelQR.SetTextColor(tcell.ColorBlack).
-				SetBackgroundColor(tcell.ColorLightGray)
-
-			p.labelQR.SetText(strQR)
-		} else {
-			p.Emit(
-				handler.EventLogError,
-				fmt.Sprintf("Cannot generate QR: %s", err),
-			)
-		}
-	}
 	//p.Emit(handler.EventShowModal, modalQR)
 }

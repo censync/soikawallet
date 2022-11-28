@@ -32,6 +32,7 @@ func (m *Meta) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Version uint8                           `json:"v"`
 		Labels  map[LabelType]map[uint32]string `json:"labels"`
+		// Nodes   map[types.NodeIndex]map[string]map[string]string
 	}{
 		Version: m.version,
 		Labels: map[LabelType]map[uint32]string{
