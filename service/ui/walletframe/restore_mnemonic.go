@@ -14,6 +14,10 @@ import (
 type pageRestoreMnemonic struct {
 	*BaseFrame
 	*state.State
+
+	// ui
+	inputMnemonic *tview.TextArea
+	inputPassword *tview.InputField
 }
 
 func newPageRestoreMnemonic(state *state.State) *pageRestoreMnemonic {
@@ -27,50 +31,55 @@ func newPageRestoreMnemonic(state *state.State) *pageRestoreMnemonic {
 }
 
 func (p *pageRestoreMnemonic) FuncOnShow() {
-	inputMnemonic := tview.NewTextArea()
-	inputMnemonic.SetTitle(`Mnemonic`).
+	p.inputMnemonic = tview.NewTextArea()
+	p.inputMnemonic.SetTitle(`Mnemonic`).
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
-	inputPassword := tview.NewInputField().
+	p.inputPassword = tview.NewInputField().
 		SetMaskCharacter('*')
-	inputPassword.SetTitle(`Password`).
+	p.inputPassword.SetTitle(`Password`).
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
 
 	// env
 	envMnemonic, ok := os.LookupEnv("SOIKAWALLET_MNEMONIC")
 	if ok {
-		inputMnemonic.SetText(strings.TrimSpace(envMnemonic), true)
+		p.inputMnemonic.SetText(strings.TrimSpace(envMnemonic), true)
 	}
 
 	envMnemonicPassphrase, ok := os.LookupEnv("SOIKAWALLET_MNEMONIC_PASSPHRASE")
 	if ok {
-		inputPassword.SetText(strings.TrimSpace(envMnemonicPassphrase))
+		p.inputPassword.SetText(strings.TrimSpace(envMnemonicPassphrase))
 	}
 
 	labelNext := tview.NewForm().
 		SetHorizontal(true).
 		SetItemPadding(1).
-		AddButton(p.Tr().T("ui.button", "next"), func() {
-			err := service.API().Init(&dto.InitWalletDTO{
-				Mnemonic:   inputMnemonic.GetText(),
-				Passphrase: inputPassword.GetText(),
-			})
-			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot restore wallet: %s", err))
-			} else {
-				//p.SetWallet(wallet)
-				p.SwitchToPage(pageNameCreateWallets)
-			}
+		AddButton(p.Tr().T("ui.button", "next"), p.actionRestoreWithMnemonic).
+		AddButton(p.Tr().T("ui.button", "back"), func() {
+			p.SwitchToPage(p.Pages().GetPrevious())
 		})
 
 	layoutRestoreForm := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(inputMnemonic, 10, 1, false).
-		AddItem(inputPassword, 3, 1, false)
+		AddItem(p.inputMnemonic, 10, 1, false).
+		AddItem(p.inputPassword, 3, 1, false)
 
 	p.layout.AddItem(layoutRestoreForm, 40, 1, false).
 		AddItem(labelNext, 20, 1, false)
+}
+
+func (p *pageRestoreMnemonic) actionRestoreWithMnemonic() {
+	err := service.API().Init(&dto.InitWalletDTO{
+		Mnemonic:   p.inputMnemonic.GetText(),
+		Passphrase: p.inputPassword.GetText(),
+	})
+	if err != nil {
+		p.Emit(handler.EventLogError, fmt.Sprintf("Cannot restore wallet: %s", err))
+	} else {
+		//p.SetWallet(wallet)
+		p.SwitchToPage(pageNameCreateWallets)
+	}
 }
 
 func (p *pageRestoreMnemonic) FuncOnHide() {

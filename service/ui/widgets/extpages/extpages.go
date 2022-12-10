@@ -25,7 +25,8 @@ type ExtPages struct {
 
 	changed func()
 
-	current *ExtPage
+	previous string
+	current  *ExtPage
 }
 
 func NewPage(name string, item tview.Primitive, resize, visible bool, onShow, onHide, onDraw func()) *ExtPage {
@@ -131,6 +132,9 @@ func (p *ExtPages) AddPage(page *ExtPage) *ExtPages {
 func (p *ExtPages) RemovePage(name string) *ExtPages {
 	var isVisible bool
 	hasFocus := p.HasFocus()
+	if p.previous == name {
+		p.previous = ``
+	}
 	for index, page := range p.pages {
 		if page.Name() == name {
 			isVisible = page.Visible()
@@ -159,6 +163,14 @@ func (p *ExtPages) RemovePage(name string) *ExtPages {
 	return p
 }
 
+func (p *ExtPages) GetPrevious() string {
+	return p.previous
+}
+
+func (p *ExtPages) IsPreviousExists() bool {
+	return p.previous != ""
+}
+
 func (p *ExtPages) HasPage(name string) bool {
 	for _, page := range p.pages {
 		if page.Name() == name {
@@ -185,6 +197,9 @@ func (p *ExtPages) HidePage(name string) *ExtPages {
 }
 
 func (p *ExtPages) SwitchToPage(name string, params ...interface{}) *ExtPages {
+	if p.current != nil && p.current.name != name {
+		p.previous = p.current.name
+	}
 	for id, page := range p.pages {
 		if page.Name() == name {
 			if len(params) > 0 {

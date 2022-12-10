@@ -13,6 +13,7 @@ var english = i18n.Dictionary{
 		"qr_show_hq":        "Show HQ",
 		"finish":            "Finish",
 		"next":              "Next",
+		"back":              "Back",
 		"generate_mnemonic": "Generate mnemonic",
 		"copy_to_clipboard": "Copy",
 		"create":            "Create",

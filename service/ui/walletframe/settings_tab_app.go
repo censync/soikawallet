@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/service/ui/handler"
 	"github.com/rivo/tview"
-	"io/ioutil"
+	"os"
 )
 
 func (p *pageSettings) tabApp() *tview.Flex {
@@ -27,7 +27,7 @@ func (p *pageSettings) tabApp() *tview.Flex {
 				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot marshal config: %s", err))
 				return
 			}
-			err = ioutil.WriteFile("config.json", data, 644)
+			err = os.WriteFile("config.json", data, 644)
 			if err != nil {
 				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot save file: %s", err))
 				return

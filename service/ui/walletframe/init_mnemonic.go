@@ -58,8 +58,11 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		})
 
 	labelNext := tview.NewForm().
-		SetHorizontal(true).
-		SetItemPadding(1).
+		SetHorizontal(false).
+		SetItemPadding(2).
+		AddButton(p.Tr().T("ui.button", "back"), func() {
+			p.SwitchToPage(p.Pages().GetPrevious())
+		}).
 		AddButton(p.Tr().T("ui.button", "next"), func() {
 			err := service.API().Init(&dto.InitWalletDTO{
 				Mnemonic:   p.inputMnemonic.GetText(),
