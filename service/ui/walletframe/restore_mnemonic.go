@@ -55,10 +55,10 @@ func (p *pageRestoreMnemonic) FuncOnShow() {
 	labelNext := tview.NewForm().
 		SetHorizontal(true).
 		SetItemPadding(1).
-		AddButton(p.Tr().T("ui.button", "next"), p.actionRestoreWithMnemonic).
 		AddButton(p.Tr().T("ui.button", "back"), func() {
 			p.SwitchToPage(p.Pages().GetPrevious())
-		})
+		}).
+		AddButton(p.Tr().T("ui.button", "next"), p.actionRestoreWithMnemonic)
 
 	layoutRestoreForm := tview.NewFlex().
 		SetDirection(tview.FlexRow).

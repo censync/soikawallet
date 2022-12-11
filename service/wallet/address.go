@@ -214,6 +214,7 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 }
 
 func (s *Wallet) GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error) {
+	result := map[string]float64{}
 	addrPath, err := types.ParsePath(dto.DerivationPath)
 	if err != nil {
 		return nil, err
@@ -237,7 +238,21 @@ func (s *Wallet) GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (tok
 	if err != nil {
 		return nil, err
 	}
-	return map[string]float64{
-		s.getRPCProvider(addr.CoinType()).Currency(): balance,
-	}, nil
+
+	result[provider.Currency()] = balance
+
+	for _, token := range provider.AllTokens() {
+		humanBalance, err := provider.GetERC20TokenBalance(ctx, token.Contract(), token.Decimals())
+		if err != nil {
+			return nil, err
+		}
+		floatBalance, _ := humanBalance.Float64()
+
+		// Show only non-zero balances
+		if floatBalance != 0 {
+			result[token.Symbol()] = floatBalance
+		}
+	}
+
+	return result, nil
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/censync/soikawallet/service/wallet/internal/oracle/chainlink"
+	"github.com/censync/soikawallet/service/wallet/internal/token/erc20"
 	"github.com/censync/soikawallet/types"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -74,8 +75,54 @@ func (e *EVM) GetBalance(ctx *types.RPCContext) (float64, error) {
 	return float64(balance.Uint64()) / float64(wei), nil
 }
 
-func (e *EVM) GetTokenBalance(ctx types.RPCContext, tokenType uint32, contract string) string {
-	return ``
+func (e *EVM) GetERC20TokenBalance(ctx *types.RPCContext, contract string, decimals int) (*big.Float, error) {
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return nil, err
+	}
+	instance, err := erc20.NewErc20(common.HexToAddress(contract), client)
+	if err != nil {
+		return nil, err
+	}
+
+	balance, err := instance.BalanceOf(&bind.CallOpts{}, common.HexToAddress(ctx.CurrentAccount()))
+
+	if err != nil {
+		return nil, err
+	}
+
+	floatBalance := new(big.Float)
+	floatBalance.SetString(balance.String())
+	humanBalance := new(big.Float).Quo(floatBalance, big.NewFloat(math.Pow10(decimals)))
+
+	return humanBalance, nil
+}
+
+func (e *EVM) GetERC20Token(ctx *types.RPCContext, contract string) (*types.TokenConfig, error) {
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return nil, err
+	}
+	instance, err := erc20.NewErc20(common.HexToAddress(contract), client)
+	if err != nil {
+		return nil, err
+	}
+	name, err := instance.Name(&bind.CallOpts{})
+	if err != nil {
+		return nil, err
+	}
+	symbol, err := instance.Symbol(&bind.CallOpts{})
+	if err != nil {
+		return nil, err
+	}
+
+	decimals, err := instance.Decimals(&bind.CallOpts{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return types.NewTokenConfig(name, symbol, contract, int(decimals)), nil
 }
 
 func (e *EVM) getGasPrice(ctx *types.RPCContext) (*big.Int, error) {

@@ -3,6 +3,9 @@ package types
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
+	"fmt"
+	"math/big"
 )
 
 const (
@@ -81,9 +84,35 @@ func (r *RPC) IsDefault() bool {
 }
 
 type TokenConfig struct {
-	currency  string
+	name      string
+	symbol    string
 	contract  string
+	decimals  int
 	isBuiltin bool
+}
+
+func (t TokenConfig) Name() string {
+	return t.name
+}
+
+func (t TokenConfig) Symbol() string {
+	return t.symbol
+}
+
+func (t TokenConfig) Contract() string {
+	return t.contract
+}
+
+func (t TokenConfig) Decimals() int {
+	return t.decimals
+}
+
+func (t TokenConfig) IsBuiltin() bool {
+	return t.isBuiltin
+}
+
+func NewTokenConfig(name string, symbol string, contract string, decimals int) *TokenConfig {
+	return &TokenConfig{name: name, symbol: symbol, contract: contract, decimals: decimals, isBuiltin: false}
 }
 
 type RPCAdapter interface {
@@ -96,6 +125,7 @@ type RPCAdapter interface {
 	AllRPC() map[uint32]*RPC
 	AddRPC(title, endpoint string) (uint32, error)
 	RemoveRPC(index uint32) error
+	AllTokens() map[string]*TokenConfig
 }
 
 type NetworkAdapter interface {
@@ -105,6 +135,7 @@ type NetworkAdapter interface {
 
 	// node methods
 	GetBalance(ctx *RPCContext) (float64, error)
+	GetERC20TokenBalance(ctx *RPCContext, contract string, decimals int) (*big.Float, error)
 	TxSendBase(ctx *RPCContext, to string, key *ecdsa.PrivateKey) (string, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
 
@@ -133,13 +164,30 @@ func (n *BaseNetwork) SetDefaultRPC(defaultEndpoint, defaultExplorer string) *Ba
 	return n
 }
 
-func (n *BaseNetwork) SetBuiltinToken(currency, contract string) *BaseNetwork {
+func (n *BaseNetwork) SetBuiltinToken(name, symbol, contract string, decimals int) *BaseNetwork {
+	if _, ok := n.tokens[contract]; ok {
+		panic(fmt.Sprintf("token \"%s\" contract \"%s\" already exist", symbol, contract))
+	}
 	n.tokens[contract] = &TokenConfig{
-		currency:  currency,
+		name:      name,
+		symbol:    symbol,
 		contract:  contract,
+		decimals:  decimals,
 		isBuiltin: true,
 	}
 	return n
+}
+
+func (n *BaseNetwork) AddToken(symbol, contract string) error {
+	if _, ok := n.tokens[contract]; ok {
+		return errors.New(fmt.Sprintf("token \"%s\" contract \"%s\" already exist", symbol, contract))
+	}
+	n.tokens[contract] = &TokenConfig{
+		symbol:    symbol,
+		contract:  contract,
+		isBuiltin: false,
+	}
+	return nil
 }
 
 func (n *BaseNetwork) Name() string {
@@ -168,4 +216,8 @@ func (n *BaseNetwork) RemoveRPC(index uint32) error {
 
 func (n *BaseNetwork) AddRPC(title, endpoint string) (uint32, error) {
 	return n.rpc.Add(title, endpoint)
+}
+
+func (n *BaseNetwork) AllTokens() map[string]*TokenConfig {
+	return n.tokens
 }

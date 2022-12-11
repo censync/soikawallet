@@ -13,6 +13,12 @@ import (
 	"strconv"
 )
 
+const (
+	addrTreeLevelChain   = 1
+	addrTreeLevelAccount = 2
+	addrTreeLevelAddr    = 3
+)
+
 type pageAddresses struct {
 	*BaseFrame
 	*state.State
@@ -23,7 +29,7 @@ type pageAddresses struct {
 	layoutSelected *tview.Flex
 	labelQR        *tview.TextView
 
-	//
+	// var
 	selectedAddress *resp.AddressResponse
 }
 
@@ -70,6 +76,17 @@ func (p *pageAddresses) Layout() *tview.Flex {
 	layoutAddressesTree := tview.NewTreeView().
 		SetRoot(p.addrTree).SetTopLevel(1)
 
+	// double click for address operations
+	layoutAddressesTree.SetMouseCapture(func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
+		if action == tview.MouseLeftDoubleClick && p.selectedAddress != nil {
+			if layoutAddressesTree.GetCurrentNode().GetLevel() == addrTreeLevelAddr {
+				p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
+			}
+			return action, nil
+		}
+		return action, event
+	})
+
 	layoutAddressesTree.SetBorder(true)
 
 	layoutAddressesTree.SetSelectedFunc(func(node *tview.TreeNode) {
@@ -90,7 +107,9 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		//AddFormItem(viewSelectedPath).
 		//AddFormItem(viewSelectedAddr).
 		AddButton("Send", func() {
-			p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
+			if p.selectedAddress != nil {
+				p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
+			}
 		}).
 		AddButton("Refresh", p.actionUpdateAddresses)
 
@@ -208,7 +227,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 						)
 					} else {
 						for key, value := range balances {
-							balancesStr += fmt.Sprintf("$%s - %f", key, value)
+							balancesStr += fmt.Sprintf("$%s - %f ", key, value)
 						}
 					}
 
@@ -221,6 +240,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 			}
 			p.addrTree.AddChild(coinNode)
 		}
+		p.Emit(handler.EventDrawForce, nil)
 	}
 }
 

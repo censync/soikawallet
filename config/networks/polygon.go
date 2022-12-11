@@ -12,15 +12,23 @@ var Polygon = types.NewNetwork(
 	`https://rpc.soikawallet.app:8431/polygon`, // https://polygon-rpc.com
 	`https://polygonscan.com/`,                 // /block/ /address/ /tx/
 ).SetBuiltinToken(
+	`(PoS) Tether USD`,
 	`USDT`,
 	`0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
+	6,
 ).SetBuiltinToken(
+	`USD Coin (PoS)`,
 	`USDC`,
 	`0x2791bca1f2de4661ed88a30c99a7a9449aa84174`,
+	6,
 ).SetBuiltinToken(
+	`(PoS) Binance USD`,
 	`BUSD`,
-	`0x9C9e5fD8bbc25984B178FdCE6117Defa39d2db39`,
+	`0xdAb529f40E671A1D4bF91361c21bf9f0C9712ab7`,
+	18,
 ).SetBuiltinToken(
+	`(PoS) Dai Stablecoin`,
 	`DAI`,
 	`0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063`,
+	18,
 )
