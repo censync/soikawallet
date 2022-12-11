@@ -36,6 +36,7 @@ func newPageNodeInfo(state *state.State) *pageNodeInfo {
 func (p *pageNodeInfo) FuncOnShow() {
 	inputSelectNetwork := tview.NewDropDown().
 		SetLabel("Select network").
+		SetFieldWidth(10).
 		SetOptions(types.GetCoinNames(), func(text string, index int) {
 			p.selectedChain = types.GetCoinByName(text)
 		}).

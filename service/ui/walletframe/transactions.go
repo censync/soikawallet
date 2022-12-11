@@ -30,7 +30,6 @@ func newPageTransactions(state *state.State) *pageTransactions {
 }
 
 func (p *pageTransactions) FuncOnShow() {
-	p.selectedTx = `0x11ac080ae5cccca088137163a8686b81f323e1bdffc81ae72047c3202ab612e3`
 
 	layoutReceipt := tview.NewFlex().
 		SetDirection(tview.FlexRow)
@@ -66,11 +65,12 @@ func (p *pageTransactions) FuncOnShow() {
 		AddItem(receiptView, 0, 1, false)
 
 	p.layout.AddItem(nil, 0, 1, false).
-		AddItem(layoutReceipt, 0, 3, false).
+		AddItem(layoutReceipt, 0, 4, false).
 		AddItem(nil, 0, 1, false)
 
 }
 
 func (p *pageTransactions) FuncOnHide() {
+	p.selectedTx = ``
 	p.layout.Clear()
 }

@@ -8,15 +8,13 @@ import (
 	"regexp"
 )
 
-const addressPoolGap = 5
-
 type pageCreateWallet struct {
 	*BaseFrame
 	*state.State
 
 	// ui
 	// wizard
-	layoutCreateWalletsForm *tview.Flex
+	layoutAddrEntriesForm *tview.Flex
 	// bulk
 	inputDerivationPaths *tview.TextArea
 
@@ -25,7 +23,9 @@ type pageCreateWallet struct {
 	selectedChain       types.CoinType
 	selectedCharge      uint8
 	selectedUseHardened bool
-
+	addrPoolGap         int
+	accountStartIndex   int
+	addrStartIndex      int
 	// bulk
 	rxAddressPath *regexp.Regexp
 }
@@ -37,6 +37,7 @@ func newPageCreateWallet(state *state.State) *pageCreateWallet {
 	return &pageCreateWallet{
 		State:         state,
 		BaseFrame:     &BaseFrame{layout: layout},
+		addrPoolGap:   defaultAddrPoolGap,
 		rxAddressPath: regexp.MustCompile(`(m/44[Hh']/[0-9]+[Hh']/[0-9]+[Hh']/[0|1]/[0-9]+[Hh']*)`),
 	}
 }

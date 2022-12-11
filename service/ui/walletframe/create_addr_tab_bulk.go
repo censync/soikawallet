@@ -14,9 +14,11 @@ func (p *pageCreateWallet) tabBulk() *tview.Flex {
 		SetDirection(tview.FlexColumn)
 
 	p.inputDerivationPaths = tview.NewTextArea()
-	p.inputDerivationPaths.SetTitle(`Derivation list: [ m/purpose'/coin_type'/account'/change/address_index ]`).
+	p.inputDerivationPaths.SetTitle(`Derivation addresses list`).
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
+	p.inputDerivationPaths.
+		SetPlaceholder("m/44'/60'/0'/0/0\nm/44'/60'/0'/0/1\nm/44'/60'/0'/0/2")
 
 	labelButtons := tview.NewForm().
 		SetHorizontal(true).

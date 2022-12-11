@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	rxAddressPath = regexp.MustCompile(`^m/44[Hh\']/([0-9]+)[Hh\']/([0-9]+)[Hh\']/(0|1)/([0-9]+)([Hh\'])?$`)
+	rxAddressPath = regexp.MustCompile(`^m/44[Hh']/([0-9]+)[Hh']/([0-9]+)[Hh']/(0|1)/([0-9]+)([Hh'])?$`)
 )
 
 type DerivationPath struct {

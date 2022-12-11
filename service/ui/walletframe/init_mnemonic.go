@@ -46,16 +46,28 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
 
-	formMnemonicConfig := tview.NewForm().
-		SetHorizontal(true).
-		AddDropDown("Entropy", seed.EntropyList(), 0, func(option string, optionIndex int) {
+	inputDropDownEntropy := tview.NewDropDown().
+		SetLabel("Entropy").
+		SetFieldWidth(5).
+		SetOptions(seed.EntropyList(), func(option string, optionIndex int) {
 			p.selectedMnemonicEntropy, _ = strconv.Atoi(option)
 			p.updateMnemonicConfig()
 		}).
-		AddDropDown("Language", []string{"english"}, 0, func(option string, optionIndex int) {
+		SetCurrentOption(len(seed.EntropyList()) - 1)
+
+	inputDropDownLanguage := tview.NewDropDown().
+		SetLabel("Language").
+		SetFieldWidth(10).
+		SetOptions([]string{"english"}, func(option string, optionIndex int) {
 			p.selectedMnemonicLanguage = option
 			p.updateMnemonicConfig()
-		})
+		}).
+		SetCurrentOption(0)
+
+	formMnemonicConfig := tview.NewForm().
+		SetHorizontal(true).
+		AddFormItem(inputDropDownEntropy).
+		AddFormItem(inputDropDownLanguage)
 
 	labelNext := tview.NewForm().
 		SetHorizontal(false).

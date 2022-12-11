@@ -72,58 +72,6 @@ func (p *pageAddresses) Layout() *tview.Flex {
 
 	layoutAddressesTree.SetBorder(true)
 
-	actionRefresh := func() {
-		p.selectedAddress = nil
-		p.addrTree.ClearChildren()
-		p.clearLayoutSelected()
-
-		if p.API() != nil {
-			for _, coin := range types.GetCoinTypes() {
-				accounts := p.API().GetAccountsByCoin(&dto.GetAccountsByCoinDTO{
-					CoinType: uint32(coin),
-				})
-
-				if len(accounts) == 0 {
-					continue
-				}
-
-				coinNode := tview.NewTreeNode(types.GetCoinNameByIndex(coin))
-
-				for _, accountIndex := range accounts {
-					accountNode := tview.NewTreeNode(strconv.Itoa(int(accountIndex)))
-					stripColor := strip_color.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
-					for _, address := range p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
-						CoinType:     uint32(coin),
-						AccountIndex: uint32(accountIndex),
-					}) {
-						balancesStr := ""
-						balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensByPathDTO{
-							DerivationPath: address.Path,
-						})
-
-						if err != nil {
-							p.Emit(
-								handler.EventLogError,
-								fmt.Sprintf("Cannot get data for %s: %s", address.Path, err),
-							)
-						} else {
-							for key, value := range balances {
-								balancesStr += fmt.Sprintf("$%s - %f", key, value)
-							}
-						}
-
-						addressNode := tview.NewTreeNode(fmt.Sprintf("%d - %s | %s", address.AddressIndex.Index, address.Address, balancesStr))
-						addressNode.SetReference(address)
-						addressNode.SetColor(stripColor.Next())
-						accountNode.AddChild(addressNode)
-					}
-					coinNode.AddChild(accountNode)
-				}
-				p.addrTree.AddChild(coinNode)
-			}
-		}
-	}
-
 	layoutAddressesTree.SetSelectedFunc(func(node *tview.TreeNode) {
 		p.clearLayoutSelected()
 
@@ -144,7 +92,7 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		AddButton("Send", func() {
 			p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
 		}).
-		AddButton("Refresh", actionRefresh)
+		AddButton("Refresh", p.actionUpdateAddresses)
 
 	formDetails.SetBorderPadding(0, 0, 1, 0)
 
@@ -222,6 +170,58 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		AddItem(p.layoutDetails, 55, 1, false)
 
 	return p.layout
+}
+
+func (p *pageAddresses) actionUpdateAddresses() {
+	p.selectedAddress = nil
+	p.addrTree.ClearChildren()
+	p.clearLayoutSelected()
+
+	if p.API() != nil {
+		for _, coin := range types.GetCoinTypes() {
+			accounts := p.API().GetAccountsByCoin(&dto.GetAccountsByCoinDTO{
+				CoinType: uint32(coin),
+			})
+
+			if len(accounts) == 0 {
+				continue
+			}
+
+			coinNode := tview.NewTreeNode(types.GetCoinNameByIndex(coin))
+
+			for _, accountIndex := range accounts {
+				accountNode := tview.NewTreeNode(strconv.Itoa(int(accountIndex)))
+				stripColor := strip_color.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
+				for _, address := range p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
+					CoinType:     uint32(coin),
+					AccountIndex: uint32(accountIndex),
+				}) {
+					balancesStr := ""
+					balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensByPathDTO{
+						DerivationPath: address.Path,
+					})
+
+					if err != nil {
+						p.Emit(
+							handler.EventLogError,
+							fmt.Sprintf("Cannot get data for %s: %s", address.Path, err),
+						)
+					} else {
+						for key, value := range balances {
+							balancesStr += fmt.Sprintf("$%s - %f", key, value)
+						}
+					}
+
+					addressNode := tview.NewTreeNode(fmt.Sprintf("%d - %s | %s", address.AddressIndex.Index, address.Address, balancesStr))
+					addressNode.SetReference(address)
+					addressNode.SetColor(stripColor.Next())
+					accountNode.AddChild(addressNode)
+				}
+				coinNode.AddChild(accountNode)
+			}
+			p.addrTree.AddChild(coinNode)
+		}
+	}
 }
 
 func (p *pageAddresses) clearLayoutSelected() {

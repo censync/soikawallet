@@ -2,6 +2,7 @@ package seed
 
 import (
 	"errors"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -27,6 +28,7 @@ func EntropyList() []string {
 	for _, entropy := range mnemonicCount {
 		result = append(result, strconv.Itoa(entropy))
 	}
+	sort.Strings(result)
 	return result
 }
 

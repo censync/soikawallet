@@ -91,7 +91,7 @@ func (f *WalletFrame) Layout() *tview.Flex {
 	layoutMenu := tview.NewForm().
 		SetHorizontal(true).
 		SetItemPadding(1).
-		AddButton("[yellow][F1] [white]QR Page    ", func() {
+		AddButton("[yellow][F1] [white]QR Page     ", func() {
 			f.state.SwitchToPage(pageNameQR)
 			// t.events <- pageQR
 		}).

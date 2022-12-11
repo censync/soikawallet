@@ -46,7 +46,6 @@ func (s *Wallet) setAccountLinkRPC(coinType types.CoinType, accountIndex types.A
 	return nil
 }
 
-// RemoveRPCLinkedAccountDTO
 func (s *Wallet) RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error {
 	return s.removeAccountLinkRPC(types.CoinType(dto.CoinType), types.AccountIndex(dto.AccountIndex))
 }

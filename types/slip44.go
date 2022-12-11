@@ -1,5 +1,7 @@
 package types
 
+import "sort"
+
 const (
 	Ethereum = CoinType(60)
 	Tron     = CoinType(195)
@@ -24,6 +26,7 @@ func init() {
 		registeredCoinsTypes = append(registeredCoinsTypes, coinType)
 		registeredCoinsNames = append(registeredCoinsNames, name)
 	}
+	sort.Strings(registeredCoinsNames)
 }
 
 func GetCoins() map[string]CoinType {
