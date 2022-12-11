@@ -24,8 +24,8 @@ func init() {
 	}
 }
 
-func IsClipBoardAvailable() bool {
-	return selectedTool != -1
+func Clear() {
+	CopyToClipboard(``)
 }
 
 func CopyToClipboard(str string) error {

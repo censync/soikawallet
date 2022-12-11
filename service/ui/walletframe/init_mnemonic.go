@@ -10,6 +10,7 @@ import (
 	"github.com/censync/soikawallet/util/seed"
 	"github.com/rivo/tview"
 	"strconv"
+	"strings"
 )
 
 type pageInitMnemonic struct {
@@ -17,11 +18,12 @@ type pageInitMnemonic struct {
 	*state.State
 
 	// ui
-	inputMnemonic *tview.TextArea
+	inputMnemonic *tview.Form
 
 	// vars
 	selectedMnemonicEntropy  int
 	selectedMnemonicLanguage string
+	mnemonic                 string
 }
 
 func newPageInitMnemonic(state *state.State) *pageInitMnemonic {
@@ -35,14 +37,17 @@ func newPageInitMnemonic(state *state.State) *pageInitMnemonic {
 }
 
 func (p *pageInitMnemonic) FuncOnShow() {
-	p.inputMnemonic = tview.NewTextArea()
+	p.inputMnemonic = tview.NewForm().
+		SetHorizontal(true)
 
-	p.inputMnemonic.SetBorder(true).
-		SetTitle("Please, save the mnemonic")
+	p.inputMnemonic.SetItemPadding(4).
+		SetBorder(true).
+		SetTitle(" Mnemonic ").
+		SetTitleAlign(tview.AlignLeft)
 
 	inputPassword := tview.NewInputField().
 		SetMaskCharacter('*')
-	inputPassword.SetTitle(`Password`).
+	inputPassword.SetTitle(` Password `).
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
 
@@ -51,7 +56,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		SetFieldWidth(5).
 		SetOptions(seed.EntropyList(), func(option string, optionIndex int) {
 			p.selectedMnemonicEntropy, _ = strconv.Atoi(option)
-			p.updateMnemonicConfig()
+			p.actionMnemonicUpdate()
 		}).
 		SetCurrentOption(len(seed.EntropyList()) - 1)
 
@@ -59,8 +64,10 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		SetLabel("Language").
 		SetFieldWidth(10).
 		SetOptions([]string{"english"}, func(option string, optionIndex int) {
-			p.selectedMnemonicLanguage = option
-			p.updateMnemonicConfig()
+			if p.selectedMnemonicLanguage != option {
+				p.selectedMnemonicLanguage = option
+				p.actionMnemonicUpdate()
+			}
 		}).
 		SetCurrentOption(0)
 
@@ -77,13 +84,14 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		}).
 		AddButton(p.Tr().T("ui.button", "next"), func() {
 			err := service.API().Init(&dto.InitWalletDTO{
-				Mnemonic:   p.inputMnemonic.GetText(),
+				Mnemonic:   p.mnemonic,
 				Passphrase: inputPassword.GetText(),
 			})
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot init walletInstance: %s", err))
+				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot init wallet: %s", err))
 			} else {
 				//p.SetWallet(walletInstance)
+				clipboard.Clear()
 				p.SwitchToPage(pageNameCreateWallets)
 			}
 		})
@@ -92,10 +100,10 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		SetHorizontal(true).
 		SetItemPadding(1).
 		AddButton(p.Tr().T("ui.button", "generate_mnemonic"), func() {
-			p.updateMnemonicConfig()
+			p.actionMnemonicUpdate()
 		}).
 		AddButton(p.Tr().T("ui.button", "copy_to_clipboard"), func() {
-			err := clipboard.CopyToClipboard(p.inputMnemonic.GetText())
+			err := clipboard.CopyToClipboard(p.mnemonic)
 			if err != nil {
 				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot generate mnemonic: %s", err))
 			}
@@ -103,31 +111,49 @@ func (p *pageInitMnemonic) FuncOnShow() {
 
 	layoutMnemonicForm := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(p.inputMnemonic, 10, 1, false).
+		AddItem(p.inputMnemonic, 15, 1, false).
 		AddItem(inputPassword, 3, 1, false).
 		AddItem(formMnemonicConfig, 3, 1, false).
 		AddItem(labelButtons, 3, 1, false)
 
-	p.layout.AddItem(layoutMnemonicForm, 40, 1, false).
+	p.layout.AddItem(layoutMnemonicForm, 90, 1, false).
 		AddItem(labelNext, 20, 1, false)
 
 }
 
-func (p *pageInitMnemonic) FuncOnHide() {
-	p.layout.Clear()
-}
+func (p *pageInitMnemonic) actionMnemonicUpdate() {
+	var err error
+	//p.inputMnemonic.SetText(``, false)
+	p.inputMnemonic.Clear(false)
 
-func (p *pageInitMnemonic) updateMnemonicConfig() {
-	p.inputMnemonic.SetText(``, false)
-
-	mnemonic, err := service.API().GenerateMnemonic(&dto.GenerateMnemonicDTO{
+	p.mnemonic, err = service.API().GenerateMnemonic(&dto.GenerateMnemonicDTO{
 		BitSize:  p.selectedMnemonicEntropy,
 		Language: p.selectedMnemonicLanguage,
 	})
 
 	if err != nil {
 		p.Emit(handler.EventLogError, fmt.Sprintf("Cannot generate mnemonic: %s", err))
-	} else {
-		p.inputMnemonic.SetText(mnemonic, false)
+		return
 	}
+
+	//p.inputMnemonic.SetText(mnemonic, false)
+
+	mnemonicList := strings.Split(p.mnemonic, ` `)
+
+	for index := range mnemonicList {
+		mnemonicInput := tview.NewInputField().
+			SetFieldWidth(15).
+			SetAcceptanceFunc(func(textToCheck string, lastChar rune) bool {
+				return false
+			}).
+			SetLabel(fmt.Sprintf("%2d.", index+1)).
+			SetText(mnemonicList[index])
+
+		p.inputMnemonic.AddFormItem(mnemonicInput)
+	}
+}
+
+func (p *pageInitMnemonic) FuncOnHide() {
+	p.mnemonic = ``
+	p.layout.Clear()
 }
