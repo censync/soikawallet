@@ -6,6 +6,7 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/ui/handler"
 	"github.com/censync/soikawallet/service/ui/state"
+	"github.com/censync/soikawallet/service/ui/widgets/spinner"
 	"github.com/censync/soikawallet/service/ui/widgets/strip_color"
 	"github.com/censync/soikawallet/types"
 	"github.com/gdamore/tcell/v2"
@@ -14,9 +15,9 @@ import (
 )
 
 const (
-	addrTreeLevelChain   = 1
-	addrTreeLevelAccount = 2
-	addrTreeLevelAddr    = 3
+	addrNodeLevelChain   = 1
+	addrNodeLevelAccount = 2
+	addrNodeLevelAddr    = 3
 )
 
 type pageAddresses struct {
@@ -31,6 +32,13 @@ type pageAddresses struct {
 
 	// var
 	selectedAddress *resp.AddressResponse
+	isUpdating      bool
+	balanceSpinner  *spinner.Spinner
+}
+
+type addrNodeViewEntry struct {
+	addr     *resp.AddressResponse
+	balances *int // *resp.AddressTokensBalanceListResponse
 }
 
 func newPageAddresses(state *state.State) *pageAddresses {
@@ -38,8 +46,9 @@ func newPageAddresses(state *state.State) *pageAddresses {
 		SetDirection(tview.FlexColumn)
 
 	return &pageAddresses{
-		State:     state,
-		BaseFrame: &BaseFrame{layout: layout},
+		State:          state,
+		BaseFrame:      &BaseFrame{layout: layout},
+		balanceSpinner: spinner.NewSpinner(spinner.SpinThree, 180),
 	}
 }
 
@@ -78,11 +87,13 @@ func (p *pageAddresses) Layout() *tview.Flex {
 
 	// double click for address operations
 	layoutAddressesTree.SetMouseCapture(func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
-		if action == tview.MouseLeftDoubleClick && p.selectedAddress != nil {
-			if layoutAddressesTree.GetCurrentNode().GetLevel() == addrTreeLevelAddr {
-				p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
+		if layoutAddressesTree.InRect(event.Position()) {
+			if action == tview.MouseLeftDoubleClick && p.selectedAddress != nil {
+				if layoutAddressesTree.GetCurrentNode().GetLevel() == addrNodeLevelAddr {
+					p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
+				}
+				return action, nil
 			}
-			return action, nil
 		}
 		return action, event
 	})
@@ -111,7 +122,9 @@ func (p *pageAddresses) Layout() *tview.Flex {
 				p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
 			}
 		}).
-		AddButton("Refresh", p.actionUpdateAddresses)
+		AddButton("Refresh", func() {
+			go p.actionUpdateAddresses()
+		})
 
 	formDetails.SetBorderPadding(0, 0, 1, 0)
 
@@ -191,10 +204,36 @@ func (p *pageAddresses) Layout() *tview.Flex {
 	return p.layout
 }
 
+func (p *pageAddresses) FuncOnShow() {
+	go p.actionUpdateAddresses()
+}
+
 func (p *pageAddresses) actionUpdateAddresses() {
 	p.selectedAddress = nil
 	p.addrTree.ClearChildren()
 	p.clearLayoutSelected()
+	if p.isUpdating {
+		p.Emit(
+			handler.EventLog,
+			fmt.Sprintf("Update in process"),
+		)
+		return
+	}
+	p.isUpdating = true
+	defer func() {
+		p.Emit(
+			handler.EventLog,
+			fmt.Sprintf("Update finished"),
+		)
+		p.isUpdating = false
+		p.balanceSpinner.Start(p.actionTreeSpinnersUpdateFrame)
+		p.actionUpdateBalances()
+	}()
+
+	p.Emit(
+		handler.EventLog,
+		fmt.Sprintf("Update started"),
+	)
 
 	if p.API() != nil {
 		for _, coin := range types.GetCoinTypes() {
@@ -215,7 +254,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 					CoinType:     uint32(coin),
 					AccountIndex: uint32(accountIndex),
 				}) {
-					balancesStr := ""
+					/* balancesStr := ""
 					balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensByPathDTO{
 						DerivationPath: address.Path,
 					})
@@ -231,8 +270,11 @@ func (p *pageAddresses) actionUpdateAddresses() {
 						}
 					}
 
-					addressNode := tview.NewTreeNode(fmt.Sprintf("%d - %s | %s", address.AddressIndex.Index, address.Address, balancesStr))
-					addressNode.SetReference(address)
+					addressNode := exttree.NewTreeNode(fmt.Sprintf("%d - %s | %s", address.AddressIndex.Index, address.Address, balancesStr))*/
+					addressNode := tview.NewTreeNode(fmt.Sprintf("%d - %s", address.AddressIndex.Index, address.Address))
+					addressNode.SetReference(&addrNodeViewEntry{
+						addr: address,
+					})
 					addressNode.SetColor(stripColor.Next())
 					accountNode.AddChild(addressNode)
 				}
@@ -241,6 +283,70 @@ func (p *pageAddresses) actionUpdateAddresses() {
 			p.addrTree.AddChild(coinNode)
 		}
 		p.Emit(handler.EventDrawForce, nil)
+	}
+}
+
+func (p *pageAddresses) actionUpdateBalances() {
+	for _, coinTree := range p.addrTree.GetChildren() {
+		for _, accountTree := range coinTree.GetChildren() {
+			for _, addrTree := range accountTree.GetChildren() {
+				if addrTree.GetReference() != nil {
+					addrView := addrTree.GetReference().(*addrNodeViewEntry)
+					if addrView.balances == nil {
+						balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensByPathDTO{
+							DerivationPath: addrView.addr.Path,
+						})
+						//p.Emit(handler.EventLog, "actionUpdateBalances get data")
+						if err != nil {
+							p.Emit(
+								handler.EventLogError,
+								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Path, err),
+							)
+						} else {
+							balancesStr := ""
+							for key, value := range balances {
+								balancesStr += fmt.Sprintf("$%s - %f ", key, value)
+							}
+							addrTree.SetText(fmt.Sprintf(
+								"%d - %s | %s",
+								addrView.addr.AddressIndex.Index,
+								addrView.addr.Address,
+								balancesStr,
+							))
+							x := 22
+							addrView.balances = &x
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func (p *pageAddresses) actionTreeSpinnersUpdateFrame(frame string) {
+	var isSpinnable bool
+	for _, coinTree := range p.addrTree.GetChildren() {
+		for _, accountTree := range coinTree.GetChildren() {
+			for _, addrTree := range accountTree.GetChildren() {
+				if addrTree.GetReference() != nil {
+					addrView := addrTree.GetReference().(*addrNodeViewEntry)
+					if addrView.balances == nil {
+						isSpinnable = true
+						// TODO: mutex or duplicate view required
+						addrTree.SetText(fmt.Sprintf(
+							"%d - %s | %s",
+							addrView.addr.AddressIndex.Index,
+							addrView.addr.Address,
+							frame,
+						))
+					}
+				}
+			}
+		}
+	}
+	p.Emit(handler.EventDrawForce, nil)
+	if !isSpinnable {
+		p.balanceSpinner.Stop()
 	}
 }
 

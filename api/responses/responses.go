@@ -16,3 +16,14 @@ type AddressResponse struct {
 type AirGapMessageResponse struct {
 	Chunks []string
 }
+
+type AddressTokenBalanceEntry struct {
+	Name     string
+	Symbol   string
+	Contract string
+	Balance  float64
+}
+
+type AddressTokensBalanceListResponse struct {
+	Tokens map[uint32]*AddressTokenBalanceEntry
+}
