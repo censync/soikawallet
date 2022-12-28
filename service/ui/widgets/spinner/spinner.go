@@ -29,13 +29,14 @@ func NewSpinner(spinnerType int, interval time.Duration) *Spinner {
 }
 
 func (s *Spinner) Start(callback func(string)) {
-	s.spinnerDone = make(chan struct{})
-	ticker := time.NewTicker(s.interval * time.Millisecond)
 	if !s.isStarted {
 		s.isStarted = true
 	} else {
 		return
 	}
+
+	s.spinnerDone = make(chan struct{})
+	ticker := time.NewTicker(s.interval * time.Millisecond)
 
 	go func() {
 		frameId := 0
