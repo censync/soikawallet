@@ -18,6 +18,7 @@ type Spinner struct {
 	spinnerType int
 	interval    time.Duration
 	spinnerDone chan struct{}
+	isStarted   bool
 }
 
 func NewSpinner(spinnerType int, interval time.Duration) *Spinner {
@@ -30,6 +31,11 @@ func NewSpinner(spinnerType int, interval time.Duration) *Spinner {
 func (s *Spinner) Start(callback func(string)) {
 	s.spinnerDone = make(chan struct{})
 	ticker := time.NewTicker(s.interval * time.Millisecond)
+	if !s.isStarted {
+		s.isStarted = true
+	} else {
+		return
+	}
 
 	go func() {
 		frameId := 0
@@ -40,6 +46,7 @@ func (s *Spinner) Start(callback func(string)) {
 				callback(frame)
 				frameId++
 			case <-s.spinnerDone:
+				s.isStarted = false
 				ticker.Stop()
 				close(s.spinnerDone)
 				return

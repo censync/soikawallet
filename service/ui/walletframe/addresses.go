@@ -105,7 +105,9 @@ func (p *pageAddresses) Layout() *tview.Flex {
 
 		reference := node.GetReference()
 		if reference != nil {
-			p.selectedAddress = reference.(*resp.AddressResponse)
+			if addressEntry, ok := reference.(*addrNodeViewEntry); ok {
+				p.selectedAddress = addressEntry.addr
+			}
 		}
 		if p.selectedAddress != nil {
 			p.updateLayoutDetails()
@@ -221,19 +223,11 @@ func (p *pageAddresses) actionUpdateAddresses() {
 	}
 	p.isUpdating = true
 	defer func() {
-		p.Emit(
-			handler.EventLog,
-			fmt.Sprintf("Update finished"),
-		)
+		// mutex isn't required for one writer
 		p.isUpdating = false
 		p.balanceSpinner.Start(p.actionTreeSpinnersUpdateFrame)
 		p.actionUpdateBalances()
 	}()
-
-	p.Emit(
-		handler.EventLog,
-		fmt.Sprintf("Update started"),
-	)
 
 	if p.API() != nil {
 		for _, coin := range types.GetCoinTypes() {
