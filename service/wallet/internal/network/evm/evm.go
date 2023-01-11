@@ -75,7 +75,7 @@ func (e *EVM) GetBalance(ctx *types.RPCContext) (float64, error) {
 	return float64(balance.Uint64()) / float64(wei), nil
 }
 
-func (e *EVM) GetERC20TokenBalance(ctx *types.RPCContext, contract string, decimals int) (*big.Float, error) {
+func (e *EVM) GetTokenBalance(ctx *types.RPCContext, contract string, decimals int) (*big.Float, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
@@ -379,7 +379,7 @@ func (e *EVM) GetRPCInfo(ctx *types.RPCContext) (map[string]interface{}, error) 
 	return result, nil
 }
 
-func (e *EVM) isContractAddr(ctx *types.RPCContext, addr string) (bool, error) {
+func (e *EVM) IsContractAddr(ctx *types.RPCContext, addr string) (bool, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
 		return false, err
@@ -398,7 +398,7 @@ func (e *EVM) GetPrice(ctx *types.RPCContext, contract string) (float64, error) 
 		return 0, err
 	}
 
-	isContract, err := e.isContractAddr(ctx, contract)
+	isContract, err := e.IsContractAddr(ctx, contract)
 	if err != nil {
 		return 0, err
 	}

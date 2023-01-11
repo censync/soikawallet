@@ -1,8 +1,9 @@
 package dto
 
 type InitWalletDTO struct {
-	Mnemonic   string
-	Passphrase string
+	Mnemonic        string
+	Passphrase      string
+	SkipPrefixCheck bool
 }
 
 type GenerateMnemonicDTO struct {
@@ -34,6 +35,10 @@ type GetAddressesByAccountDTO struct {
 }
 
 type GetAddressTokensByPathDTO struct {
+	DerivationPath string
+}
+
+type GetAddressTokensBalanceByPathDTO struct {
 	DerivationPath string
 }
 

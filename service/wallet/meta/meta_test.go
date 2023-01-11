@@ -2,7 +2,6 @@ package meta
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 )
 
@@ -20,7 +19,7 @@ func TestMeta_MarshalJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println(string(str), err)
+	//fmt.Println(string(str), err)
 
 	meta2 := &Meta{}
 	err = json.Unmarshal(str, &meta2)

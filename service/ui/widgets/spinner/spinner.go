@@ -17,7 +17,7 @@ var frames = [][]string{
 type Spinner struct {
 	spinnerType int
 	interval    time.Duration
-	spinnerDone chan struct{}
+	spinnerDone chan bool
 	isStarted   bool
 }
 
@@ -35,7 +35,7 @@ func (s *Spinner) Start(callback func(string)) {
 		return
 	}
 
-	s.spinnerDone = make(chan struct{})
+	s.spinnerDone = make(chan bool, 1)
 	ticker := time.NewTicker(s.interval * time.Millisecond)
 
 	go func() {
@@ -57,5 +57,5 @@ func (s *Spinner) Start(callback func(string)) {
 }
 
 func (s *Spinner) Stop() {
-	<-s.spinnerDone
+	s.spinnerDone <- true
 }

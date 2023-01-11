@@ -7,6 +7,8 @@ import (
 
 type FormTextView struct {
 	*tview.TextView
+	label *tview.TextView
+
 	width  int
 	height int
 }
@@ -14,6 +16,7 @@ type FormTextView struct {
 func NewFormTextView(value string) *FormTextView {
 	formTextView := &FormTextView{TextView: tview.NewTextView()}
 	formTextView.SetText(value)
+	formTextView.SetDynamicColors(true)
 	_, _, formTextView.width, formTextView.height = formTextView.TextView.GetRect()
 	return formTextView
 }

@@ -15,10 +15,13 @@ import (
 )
 
 func (s *Wallet) Init(dto *dto.InitWalletDTO) error {
+	var err error
 	dto.Mnemonic = strings.TrimSpace(dto.Mnemonic)
 	dto.Passphrase = strings.TrimSpace(dto.Passphrase)
 
-	err := seed.Check(dto.Mnemonic)
+	if !dto.SkipPrefixCheck {
+		err = seed.Check(dto.Mnemonic)
+	}
 
 	if err != nil {
 		return err
@@ -26,11 +29,7 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) error {
 
 	rootSeed := pbkdf2.Key([]byte(dto.Mnemonic), []byte("mnemonic"+dto.Passphrase), 2048, 64, sha512.New)
 
-	masterKey, err := hdkeychain.NewMaster(rootSeed, &chaincfg.MainNetParams)
-
-	if err != nil {
-		return errors.New("cannot initialize master key")
-	}
+	masterKey, err := generateKeyFromSeed(&rootSeed)
 
 	bip44Key, err := masterKey.Derive(hardenedKeyStart + 44)
 	if err != nil {
@@ -46,8 +45,18 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) error {
 	return nil
 }
 
+// Separated for vectors testing
+func generateKeyFromSeed(seed *[]byte) (*hdkeychain.ExtendedKey, error) {
+	key, err := hdkeychain.NewMaster(*seed, &chaincfg.MainNetParams)
+
+	if err != nil {
+		return nil, errors.New("cannot initialize master key")
+	}
+	return key, nil
+}
+
 func (s *Wallet) GenerateMnemonic(dto *dto.GenerateMnemonicDTO) (string, error) {
-	for attempts := 100; attempts > 0; attempts-- {
+	for attempts := 200; attempts > 0; attempts-- {
 		entropy, err := bip39.NewEntropy(dto.BitSize)
 		if err != nil {
 			//log.Printf("Cannot initialize entropy for mnemonic: %s\n", err)

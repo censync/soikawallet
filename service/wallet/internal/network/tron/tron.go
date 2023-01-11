@@ -8,6 +8,7 @@ import (
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/soikawallet/util/apiclient"
 	"github.com/ethereum/go-ethereum/crypto"
+	"math/big"
 	"net"
 	"net/http"
 	"time"
@@ -103,6 +104,10 @@ func (t *Tron) GetBalance(ctx *types.RPCContext) (float64, error) {
 	}
 
 	return float64(res.Balance) / float64(unit), nil
+}
+
+func (t *Tron) GetTokenBalance(ctx *types.RPCContext, contract string, decimals int) (*big.Float, error) {
+	return new(big.Float), nil
 }
 
 // gettransactioninfobyid

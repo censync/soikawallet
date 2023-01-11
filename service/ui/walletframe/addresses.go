@@ -211,23 +211,19 @@ func (p *pageAddresses) FuncOnShow() {
 }
 
 func (p *pageAddresses) actionUpdateAddresses() {
-	p.selectedAddress = nil
-	p.addrTree.ClearChildren()
-	p.clearLayoutSelected()
 	if p.isUpdating {
 		p.Emit(
 			handler.EventLog,
-			fmt.Sprintf("Update in process"),
+			fmt.Sprintf("Updating in process"),
 		)
 		return
 	}
+
 	p.isUpdating = true
-	defer func() {
-		// mutex isn't required for one writer
-		p.isUpdating = false
-		p.balanceSpinner.Start(p.actionTreeSpinnersUpdateFrame)
-		p.actionUpdateBalances()
-	}()
+
+	p.selectedAddress = nil
+	p.addrTree.ClearChildren()
+	p.clearLayoutSelected()
 
 	if p.API() != nil {
 		for _, coin := range types.GetCoinTypes() {
@@ -249,7 +245,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 					AccountIndex: uint32(accountIndex),
 				}) {
 					/* balancesStr := ""
-					balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensByPathDTO{
+					balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensBalanceByPathDTO{
 						DerivationPath: address.Path,
 					})
 
@@ -277,6 +273,9 @@ func (p *pageAddresses) actionUpdateAddresses() {
 			p.addrTree.AddChild(coinNode)
 		}
 		p.Emit(handler.EventDrawForce, nil)
+
+		p.balanceSpinner.Start(p.actionTreeSpinnersUpdateFrame)
+		p.actionUpdateBalances()
 	}
 }
 
@@ -340,6 +339,7 @@ func (p *pageAddresses) actionTreeSpinnersUpdateFrame(frame string) {
 	}
 	p.Emit(handler.EventDrawForce, nil)
 	if !isSpinnable {
+		p.isUpdating = false
 		p.balanceSpinner.Stop()
 	}
 }

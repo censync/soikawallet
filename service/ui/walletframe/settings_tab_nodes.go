@@ -57,7 +57,7 @@ func (p *pageSettings) tabNodes() *tview.Flex {
 	inputRPC := tview.NewInputField().SetLabel("RPC")
 
 	btnAdd := tview.NewButton("Add").SetSelectedFunc(func() {
-		_, err := p.API().AddRPC(&dto.AddRPCDTO{
+		err := p.API().AddRPC(&dto.AddRPCDTO{
 			CoinType: 60,
 			Title:    inputTitle.GetText(),
 			Endpoint: inputRPC.GetText(),

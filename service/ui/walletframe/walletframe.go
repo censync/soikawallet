@@ -18,6 +18,7 @@ const (
 	pageNameAddresses        = `addresses`
 	pageNameTransaction      = `transaction`
 	pageNameOperationTx      = `operation_tx`
+	pageNameTokenAdd         = `token_add`
 	pageNameNodeInfo         = `node_info`
 	pageNameSettings         = `settings`
 	pageNameQR               = `qr`
@@ -65,6 +66,7 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 		pageNameAddresses:        newPageAddresses(f.state),
 		pageNameTransaction:      newPageTransactions(f.state),
 		pageNameOperationTx:      newPageOperationTx(f.state),
+		pageNameTokenAdd:         newPageTokenAdd(f.state),
 		pageNameNodeInfo:         newPageNodeInfo(f.state),
 		pageNameSettings:         newPageSettings(f.state),
 		pageNameQR:               newPageQr(f.state),

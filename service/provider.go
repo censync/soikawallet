@@ -29,15 +29,21 @@ type WalletAdapter interface {
 	RemoveLabel(dto *dto.RemoveLabelDTO) error
 
 	AllRPC(dto *dto.GetRPCListByCoinDTO) map[uint32]*types.RPC
-	AddRPC(dto *dto.AddRPCDTO) (uint32, error)
+	AddRPC(dto *dto.AddRPCDTO) error
 	RemoveRPC(dto *dto.RemoveRPCDTO) error
 
 	AddAddresses(dto *dto.AddAddressesDTO) ([]*resp.AddressResponse, error)
 	GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*resp.AddressResponse
 	// GetAllAddresses() []*types.AddressResponse
-	GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error)
+	GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (map[string]float64, error)
 
-	// Nodes
+	// Tokens
+	AddToken(dto *dto.AddTokenDTO) error
+	GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error)
+	GetTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error)
+	GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error)
+
+	// nodes
 	AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error
 	RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error
 	GetRPCLinkedAccountCount(dto *dto.GetRPCLinkedAccountCountDTO) int

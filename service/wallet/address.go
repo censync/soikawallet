@@ -67,28 +67,28 @@ func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err erro
 
 	// Create addr
 
-	deriveKey, err := s.addressKey(path)
+	chargeDeriveKey, err := s.chargeDeriveKey(path)
 	var (
 		key *hdkeychain.ExtendedKey
 	)
 
 	if path.IsHardenedAddress() {
-		key, err = deriveKey.Derive(hardenedKeyStart + path.AddressIndex().Index)
+		key, err = chargeDeriveKey.Derive(hardenedKeyStart + path.AddressIndex().Index)
 	} else {
-		key, err = deriveKey.Derive(path.AddressIndex().Index)
+		key, err = chargeDeriveKey.Derive(path.AddressIndex().Index)
 	}
 
 	if err != nil {
 		return nil, errors.New("cannot create addr key")
 	}
 
-	ecKey, err := key.ECPrivKey()
+	ecAddrKey, err := key.ECPrivKey()
 
 	if err != nil {
 		return nil, errors.New("cannot create addr key")
 	}
 
-	pubKey := ecKey.ToECDSA().Public().(*ecdsa.PublicKey)
+	pubKey := ecAddrKey.ToECDSA().Public().(*ecdsa.PublicKey)
 
 	ctx := types.NewRPCContext(path.Coin(), 0)
 	provider, err := s.getNetworkProvider(ctx)
@@ -99,7 +99,7 @@ func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err erro
 
 	addr = &address{
 		path: path,
-		key:  types.NewProtectedKey(ecKey.ToECDSA()),
+		key:  types.NewProtectedKey(ecAddrKey.ToECDSA()),
 		pub:  pubKey,
 		addr: provider.Address(pubKey), // TODO: Move addr marshaller from provider
 	}
@@ -110,14 +110,14 @@ func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err erro
 }
 
 func (s *Wallet) address(path *types.DerivationPath) (*address, error) {
-	address, ok := s.addresses[path.String()]
+	addr, ok := s.addresses[path.String()]
 	if !ok {
 		return nil, errors.New("addr is not found")
 	}
-	return address, nil
+	return addr, nil
 }
 
-func (s *Wallet) addressKey(path *types.DerivationPath) (*hdkeychain.ExtendedKey, error) {
+func (s *Wallet) chargeDeriveKey(path *types.DerivationPath) (*hdkeychain.ExtendedKey, error) {
 	if s.bip44Key == nil {
 		return nil, errors.New("BIP-44 key is not set")
 	}
@@ -242,7 +242,7 @@ func (s *Wallet) GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (tok
 	result[provider.Currency()] = balance
 
 	for _, token := range provider.AllTokens() {
-		humanBalance, err := provider.GetERC20TokenBalance(ctx, token.Contract(), token.Decimals())
+		humanBalance, err := provider.GetTokenBalance(ctx, token.Contract(), token.Decimals())
 		if err != nil {
 			return nil, err
 		}

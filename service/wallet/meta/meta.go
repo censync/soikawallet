@@ -3,7 +3,6 @@ package meta
 import (
 	"encoding/json"
 	"errors"
-	"github.com/censync/soikawallet/types"
 )
 
 const (
@@ -11,28 +10,35 @@ const (
 )
 
 type Meta struct {
-	version             uint8
-	labelsAccount       Labels
-	labelsAddress       Labels
-	nodesAccountsLinks  map[types.NodeIndex][]types.AccountIndex
-	labelsAccountsLinks map[uint32]types.AccountIndex
-	// addressLabels map[NodeIndex][]types.AddressIndex
+	version       uint8
+	labelsAccount Labels
+	labelsAddress Labels
+	//nodesAccountsLinks map[types.NodeIndex][]types.AccountIndex
+	// labelsAccountsLinks map[uint32]types.AccountIndex // TODO: check for coins index
+	// addressLabels map[NodeIndex][]types.
+	nodes
+	// tokensRegistry map[types.CoinType]map[uint32]types.TokenConfig
+	// addressTokens  map[string][]uint32
 }
 
 func InitMeta() *Meta {
-	return &Meta{
-		version:            metaSettingsVersion,
-		labelsAccount:      initLabels(),
-		labelsAddress:      initLabels(),
-		nodesAccountsLinks: map[types.NodeIndex][]types.AccountIndex{},
+	instance := &Meta{
+		version:       metaSettingsVersion,
+		labelsAccount: initLabels(),
+		labelsAddress: initLabels(),
+		//nodesAccountsLinks: map[types.NodeIndex][]types.AccountIndex{},
 	}
+
+	instance.initNodes()
+
+	return instance
 }
 
 func (m *Meta) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Version uint8                           `json:"v"`
 		Labels  map[LabelType]map[uint32]string `json:"labels"`
-		// Nodes   map[types.NodeIndex]map[string]map[string]string
+		// nodes   map[types.NodeIndex]map[string]map[string]string
 	}{
 		Version: m.version,
 		Labels: map[LabelType]map[uint32]string{
@@ -99,50 +105,3 @@ func (m *Meta) RemoveAddressLabel(index uint32) error {
 }
 
 // Linked Labels
-
-// Linked nodes
-
-func (m *Meta) GetRPCAccountLinks(nodeKey types.NodeIndex) []types.AccountIndex {
-	return m.nodesAccountsLinks[nodeKey]
-}
-
-func (m *Meta) GetRPCAccountLinksCount(coinType types.CoinType, nodeIndex uint32) int {
-	return len(m.nodesAccountsLinks[types.NodeIndex{
-		CoinType: coinType,
-		Index:    nodeIndex,
-	}])
-}
-
-func (m *Meta) IsRPCAccountLinkExists(nodeIndex types.NodeIndex, accountIndex types.AccountIndex) bool {
-	accounts := m.GetRPCAccountLinks(nodeIndex)
-
-	if accounts != nil {
-		for _, index := range accounts {
-			if index == accountIndex {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func (m *Meta) SetRPCAccountLink(coinType types.CoinType, accountIndex types.AccountIndex, nodeIndex uint32) error {
-	nodeKey := types.NodeIndex{
-		CoinType: coinType,
-		Index:    nodeIndex,
-	}
-
-	if m.IsRPCAccountLinkExists(nodeKey, accountIndex) {
-		return errors.New("already enabled")
-	}
-	m.nodesAccountsLinks[nodeKey] = append(m.nodesAccountsLinks[nodeKey], accountIndex)
-	return nil
-}
-
-func (m *Meta) RemoveRPCAccountLink(nodeKey types.NodeIndex, accountIndex types.AccountIndex) {
-	for index := range m.nodesAccountsLinks[nodeKey] {
-		if m.nodesAccountsLinks[nodeKey][index] == accountIndex {
-			m.nodesAccountsLinks[nodeKey] = append(m.nodesAccountsLinks[nodeKey][:index], m.nodesAccountsLinks[nodeKey][index+1:]...)
-		}
-	}
-}

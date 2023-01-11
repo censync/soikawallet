@@ -17,6 +17,10 @@ type pageOperationTx struct {
 
 	// ui
 	layoutTokensTreeView *tview.TreeView
+
+	// vars
+	availableTokens *responses.AddressTokensListResponse
+	tokensList      []string
 }
 
 func newPageOperationTx(state *state.State) *pageOperationTx {
@@ -30,6 +34,7 @@ func newPageOperationTx(state *state.State) *pageOperationTx {
 }
 
 func (p *pageOperationTx) FuncOnShow() {
+	var err error
 	if p.Params() == nil || len(p.Params()) != 1 {
 		p.Emit(
 			handler.EventLogError,
@@ -39,6 +44,25 @@ func (p *pageOperationTx) FuncOnShow() {
 	}
 
 	p.selectedAddr = p.Params()[0].(*responses.AddressResponse)
+
+	p.availableTokens, err = p.API().GetTokensByNetwork(&dto.GetTokensByNetworkDTO{
+		CoinType: uint32(p.selectedAddr.CoinType),
+	})
+
+	if err != nil {
+		p.Emit(
+			handler.EventLogError,
+			fmt.Sprintf("Cannot get available tokens"),
+		)
+		p.SwitchToPage(p.Pages().GetPrevious())
+	}
+
+	p.tokensList = make([]string, 0)
+
+	for _, token := range *p.availableTokens {
+		p.tokensList = append(p.tokensList, token.Symbol)
+	}
+	p.tokensList = append(p.tokensList, "Add token")
 
 	p.layoutTokensTreeView = tview.NewTreeView()
 
@@ -70,12 +94,13 @@ func (p *pageOperationTx) actionUpdateTokens() {
 			handler.EventLogError,
 			fmt.Sprintf("Cannot get data for %s: %s", p.selectedAddr.Path, err),
 		)
-	} else {
-		for key, value := range balances {
-			tokenNode := tview.NewTreeNode(fmt.Sprintf("$%s - %f", key, value))
-			nodeTokens.AddChild(tokenNode)
-		}
 	}
+
+	for key, value := range balances {
+		tokenNode := tview.NewTreeNode(fmt.Sprintf("$%s - %f", key, value))
+		nodeTokens.AddChild(tokenNode)
+	}
+
 	p.Emit(handler.EventDrawForce, nil)
 }
 
@@ -93,26 +118,28 @@ func (p *pageOperationTx) uiOperationForm() *tview.Form {
 		SetLabel(`Amount`)
 
 	inputAddrCurrency := tview.NewDropDown().
-		SetLabel("0.23322").
+		SetLabel("Currency").
 		SetFieldWidth(10).
-		SetOptions([]string{"ETH", "USDT", "USDC", "DAO", "Add token"}, func(text string, index int) {
-
+		SetOptions(p.tokensList, func(text string, index int) {
+			if index == len(p.tokensList)-1 {
+				p.SwitchToPage(pageNameTokenAdd, p.selectedAddr.CoinType)
+			}
 		}).
-		SetLabel(`Currency`).
 		SetCurrentOption(0)
-
-	btnSend := tview.NewInputField().
-		SetLabel(`Send`)
 
 	layoutForm.AddFormItem(inputAddrSender).
 		AddFormItem(inputAddrReceiver).
 		AddFormItem(inputAddrAmount).
 		AddFormItem(inputAddrCurrency).
-		AddFormItem(btnSend)
+		AddButton("Send", func() {
+
+		})
 	return layoutForm
 }
 
 func (p *pageOperationTx) FuncOnHide() {
 	p.selectedAddr = nil
+	p.tokensList = nil
+	p.availableTokens = nil
 	p.layout.Clear()
 }

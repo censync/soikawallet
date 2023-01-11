@@ -18,6 +18,7 @@ type BaseNetwork struct {
 	index    CoinType
 	name     string
 	currency string
+	decimals int
 	explorer string
 
 	rpc    *RPCMap
@@ -71,6 +72,14 @@ type RPC struct {
 	isDefault bool
 }
 
+func NewRPC(title, endpoint string, isDefault bool) *RPC {
+	return &RPC{
+		title:     title,
+		endpoint:  endpoint,
+		isDefault: isDefault,
+	}
+}
+
 func (r *RPC) Title() string {
 	return r.title
 }
@@ -84,11 +93,16 @@ func (r *RPC) IsDefault() bool {
 }
 
 type TokenConfig struct {
+	standard  TokenStandard
 	name      string
 	symbol    string
 	contract  string
 	decimals  int
 	isBuiltin bool
+}
+
+func (t TokenConfig) Standard() TokenStandard {
+	return t.standard
 }
 
 func (t TokenConfig) Name() string {
@@ -112,20 +126,31 @@ func (t TokenConfig) IsBuiltin() bool {
 }
 
 func NewTokenConfig(name string, symbol string, contract string, decimals int) *TokenConfig {
-	return &TokenConfig{name: name, symbol: symbol, contract: contract, decimals: decimals, isBuiltin: false}
+	return &TokenConfig{
+		name:      name,
+		symbol:    symbol,
+		contract:  contract,
+		decimals:  decimals,
+		isBuiltin: false,
+	}
 }
 
 type RPCAdapter interface {
 	Name() string
 	Currency() string
+	Decimals() int
 
 	// RPC
 	DefaultRPC() *RPC
+	DefaultNodeId() uint32
 	RPC(index uint32) *RPC
 	AllRPC() map[uint32]*RPC
 	AddRPC(title, endpoint string) (uint32, error)
 	RemoveRPC(index uint32) error
 	AllTokens() map[string]*TokenConfig
+	// tokens
+	IsTokenExists(contract string) bool
+	AddToken(standard TokenStandard, name, symbol, contract string, decimals int) error
 }
 
 type NetworkAdapter interface {
@@ -135,7 +160,8 @@ type NetworkAdapter interface {
 
 	// node methods
 	GetBalance(ctx *RPCContext) (float64, error)
-	GetERC20TokenBalance(ctx *RPCContext, contract string, decimals int) (*big.Float, error)
+	GetTokenBalance(ctx *RPCContext, contract string, decimals int) (*big.Float, error)
+	GetERC20Token(ctx *RPCContext, contract string) (*TokenConfig, error)
 	TxSendBase(ctx *RPCContext, to string, key *ecdsa.PrivateKey) (string, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
 
@@ -143,11 +169,12 @@ type NetworkAdapter interface {
 	GetRPCInfo(ctx *RPCContext) (map[string]interface{}, error)
 }
 
-func NewNetwork(index CoinType, name, currency string) *BaseNetwork {
+func NewNetwork(index CoinType, name, currency string, decimals int) *BaseNetwork {
 	return &BaseNetwork{
 		index:    index,
 		name:     name,
 		currency: currency,
+		decimals: decimals,
 		rpc: &RPCMap{
 			data: map[uint32]*RPC{},
 		},
@@ -164,30 +191,36 @@ func (n *BaseNetwork) SetDefaultRPC(defaultEndpoint, defaultExplorer string) *Ba
 	return n
 }
 
-func (n *BaseNetwork) SetBuiltinToken(name, symbol, contract string, decimals int) *BaseNetwork {
-	if _, ok := n.tokens[contract]; ok {
-		panic(fmt.Sprintf("token \"%s\" contract \"%s\" already exist", symbol, contract))
-	}
+func (n *BaseNetwork) addToken(standard TokenStandard, name, symbol, contract string, decimals int, isBuiltin bool) *BaseNetwork {
 	n.tokens[contract] = &TokenConfig{
+		standard:  standard,
 		name:      name,
 		symbol:    symbol,
 		contract:  contract,
 		decimals:  decimals,
-		isBuiltin: true,
+		isBuiltin: isBuiltin,
 	}
 	return n
 }
 
-func (n *BaseNetwork) AddToken(symbol, contract string) error {
+func (n *BaseNetwork) SetBuiltinToken(standard TokenStandard, name, symbol, contract string, decimals int) *BaseNetwork {
+	if _, ok := n.tokens[contract]; ok {
+		panic(fmt.Sprintf("token \"%s\" contract \"%s\" already exist", symbol, contract))
+	}
+	return n.addToken(standard, name, symbol, contract, decimals, true)
+}
+
+func (n *BaseNetwork) AddToken(standard TokenStandard, name, symbol, contract string, decimals int) error {
 	if _, ok := n.tokens[contract]; ok {
 		return errors.New(fmt.Sprintf("token \"%s\" contract \"%s\" already exist", symbol, contract))
 	}
-	n.tokens[contract] = &TokenConfig{
-		symbol:    symbol,
-		contract:  contract,
-		isBuiltin: false,
-	}
+	n.addToken(standard, name, symbol, contract, decimals, false)
 	return nil
+}
+
+func (n *BaseNetwork) IsTokenExists(contract string) bool {
+	_, isExists := n.tokens[contract]
+	return isExists
 }
 
 func (n *BaseNetwork) Name() string {
@@ -198,12 +231,20 @@ func (n *BaseNetwork) Currency() string {
 	return n.currency
 }
 
+func (n *BaseNetwork) Decimals() int {
+	return n.decimals
+}
+
 func (n *BaseNetwork) RPC(index uint32) *RPC {
 	return n.rpc.Get(index)
 }
 
 func (n *BaseNetwork) DefaultRPC() *RPC {
 	return n.RPC(defaultRPCIndex)
+}
+
+func (n *BaseNetwork) DefaultNodeId() uint32 {
+	return defaultRPCIndex
 }
 
 func (n *BaseNetwork) AllRPC() map[uint32]*RPC {

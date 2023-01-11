@@ -42,7 +42,7 @@ func (p *pageSettings) tabLabels() *tview.Flex {
 
 	formControls := tview.NewForm().
 		SetItemPadding(1).
-		AddDropDown("Type", []string{"Account", "Address"}, 0, func(option string, optionIndex int) {
+		AddDropDown("Standard", []string{"Account", "Address"}, 0, func(option string, optionIndex int) {
 			if p.API() != nil {
 				selectedOption = uint8(optionIndex) + 1
 				inputFieldLabel.SetText("")

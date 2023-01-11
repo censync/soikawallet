@@ -24,7 +24,7 @@ func (p *pageSettings) FuncOnShow() {
 	tabs := tabs.NewTabs().
 		AddItem("Application", p.tabApp()).
 		AddItem("Labels", p.tabLabels()).
-		AddItem("Nodes", p.tabNodes())
+		AddItem("nodes", p.tabNodes())
 	p.layout.AddItem(tabs, 0, 1, false)
 
 }

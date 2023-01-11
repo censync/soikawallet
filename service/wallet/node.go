@@ -3,6 +3,7 @@ package wallet
 import (
 	"errors"
 	"github.com/censync/soikawallet/api/dto"
+	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/types"
 )
 
@@ -14,24 +15,63 @@ func (s *Wallet) AllRPC(dto *dto.GetRPCListByCoinDTO) map[uint32]*types.RPC {
 	return s.getRPCProvider(types.CoinType(dto.CoinType)).AllRPC()
 }
 
-func (s *Wallet) AddRPC(dto *dto.AddRPCDTO) (uint32, error) {
-	return s.getRPCProvider(types.CoinType(dto.CoinType)).AddRPC(dto.Title, dto.Endpoint)
+func (s *Wallet) AddRPC(dto *dto.AddRPCDTO) error {
+	provider := s.getRPCProvider(types.CoinType(dto.CoinType))
+
+	index, err := provider.AddRPC(dto.Title, dto.Endpoint)
+
+	if err != nil {
+		return err
+	}
+	rpcConfig := provider.RPC(index)
+
+	// TODO: Add atomic
+	s.meta.AddRPCNode(types.NodeIndex{
+		CoinType: types.CoinType(dto.CoinType),
+		Index:    index,
+	}, rpcConfig)
+
+	return nil
 }
 
+// not used
 func (s *Wallet) RemoveRPC(dto *dto.RemoveRPCDTO) error {
-	return s.getRPCProvider(types.CoinType(dto.CoinType)).RemoveRPC(dto.Index)
+	nodeIndex := types.NodeIndex{
+		CoinType: types.CoinType(dto.CoinType),
+		Index:    dto.Index,
+	}
+
+	if len(s.meta.GetRPCAccountLinks(nodeIndex)) > 0 {
+		return errors.New("cannot remove rpc, until linked accounts exists")
+	}
+
+	provider := s.getRPCProvider(types.CoinType(dto.CoinType))
+
+	err := provider.RemoveRPC(dto.Index)
+
+	if err != nil {
+		return err
+	}
+
+	s.meta.RemoveRPCNode(nodeIndex)
+
+	return nil
 }
 
 func (s *Wallet) AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error {
-	return s.setAccountLinkRPC(types.CoinType(dto.CoinType), types.AccountIndex(dto.AccountIndex), dto.NodeIndex)
+	nodeIndex := types.NodeIndex{
+		CoinType: types.CoinType(dto.CoinType),
+		Index:    dto.NodeIndex,
+	}
+	return s.setAccountLinkRPC(nodeIndex, types.AccountIndex(dto.AccountIndex))
 }
 
-func (s *Wallet) setAccountLinkRPC(coinType types.CoinType, accountIndex types.AccountIndex, nodeIndex uint32) error {
-	if s.getRPCProvider(coinType).RPC(nodeIndex) == nil {
+func (s *Wallet) setAccountLinkRPC(nodeIndex types.NodeIndex, accountIndex types.AccountIndex) error {
+	if s.getRPCProvider(nodeIndex.CoinType).RPC(nodeIndex.Index) == nil {
 		return errors.New("undefined node index")
 	}
 
-	err := s.meta.SetRPCAccountLink(coinType, accountIndex, nodeIndex)
+	err := s.meta.SetRPCAccountLink(nodeIndex, accountIndex)
 
 	if err != nil {
 		return err
@@ -39,8 +79,8 @@ func (s *Wallet) setAccountLinkRPC(coinType types.CoinType, accountIndex types.A
 
 	// set for addresses
 	for index, addr := range s.addresses {
-		if addr.CoinType() == coinType && addr.Account() == accountIndex {
-			s.addresses[index].nodeIndex = nodeIndex
+		if addr.CoinType() == nodeIndex.CoinType && addr.Account() == accountIndex {
+			s.addresses[index].nodeIndex = nodeIndex.Index
 		}
 	}
 	return nil
@@ -55,6 +95,9 @@ func (s *Wallet) removeAccountLinkRPC(coinType types.CoinType, accountIndex type
 		nodeKey types.NodeIndex
 		isExist bool
 	)
+
+	nodeInstance := s.getRPCProvider(nodeKey.CoinType).RPC(nodeKey.Index)
+
 	for _, addr := range s.addresses {
 		if addr.CoinType() == coinType &&
 			addr.Account() == accountIndex {
@@ -66,19 +109,20 @@ func (s *Wallet) removeAccountLinkRPC(coinType types.CoinType, accountIndex type
 			break
 		}
 	}
+
 	if !isExist {
 		return errors.New("account is not found")
 	}
-
-	nodeInstance := s.getRPCProvider(nodeKey.CoinType).RPC(nodeKey.Index)
 
 	if nodeInstance != nil && nodeInstance.IsDefault() {
 		return errors.New("cannot unlink default node")
 	}
 
+	//s.removeAccountLinkRPC(coinType, accountIndex)
+
 	s.meta.RemoveRPCAccountLink(nodeKey, accountIndex)
 
-	return s.setAccountLinkRPC(coinType, accountIndex, 0)
+	return nil
 }
 
 func (s *Wallet) GetRPCLinkedAccountCount(dto *dto.GetRPCLinkedAccountCountDTO) int {
@@ -104,4 +148,110 @@ func (s *Wallet) GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, err
 		return nil, err
 	}
 	return provider.GetRPCInfo(ctx)
+}
+
+func (s *Wallet) GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error) {
+	if !types.IsCoinExists(types.CoinType(dto.CoinType)) {
+		return nil, errors.New("network is not exists in SLIP-44 list")
+	}
+
+	rpcProvider := s.getRPCProvider(types.CoinType(dto.CoinType))
+
+	if rpcProvider == nil {
+		return nil, errors.New("cannot get RPC instance")
+	}
+
+	return &resp.BaseCurrency{
+		Symbol:   rpcProvider.Currency(),
+		Decimals: rpcProvider.Decimals(),
+	}, nil
+}
+
+func (s *Wallet) GetTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error) {
+	if !types.IsCoinExists(types.CoinType(dto.CoinType)) {
+		return nil, errors.New("network is not exists in SLIP-44 list")
+	}
+
+	result := resp.AddressTokensListResponse{}
+
+	rpcProvider := s.getRPCProvider(types.CoinType(dto.CoinType))
+
+	if rpcProvider == nil {
+		return nil, errors.New("cannot get RPC instance")
+	}
+
+	rpcTokens := rpcProvider.AllTokens()
+
+	for contract, token := range rpcTokens {
+		result[contract] = &resp.AddressTokenEntry{
+			Name:     token.Name(),
+			Symbol:   token.Symbol(),
+			Contract: token.Contract(),
+		}
+	}
+	return &result, nil
+}
+
+func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
+	if !types.IsCoinExists(types.CoinType(dto.CoinType)) {
+		return nil, errors.New("network is not exists in SLIP-44 list")
+	}
+
+	defaultNodeIndex := s.getRPCProvider(types.CoinType(dto.CoinType)).DefaultNodeId()
+
+	ctx := types.NewRPCContext(types.CoinType(dto.CoinType), defaultNodeIndex)
+
+	provider, err := s.getNetworkProvider(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	tokenConfig, err := provider.GetERC20Token(ctx, dto.Contract)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp.TokenConfig{
+		Standard: uint8(types.TokenERC20),
+		Name:     tokenConfig.Name(),
+		Symbol:   tokenConfig.Symbol(),
+		Contract: tokenConfig.Contract(),
+		Decimals: tokenConfig.Decimals(),
+	}, nil
+}
+
+func (s *Wallet) AddToken(dto *dto.AddTokenDTO) error {
+	if !types.IsCoinExists(types.CoinType(dto.CoinType)) {
+		return errors.New("network is not exists in SLIP-44 list")
+	}
+
+	defaultNodeIndex := s.getRPCProvider(types.CoinType(dto.CoinType)).DefaultNodeId()
+
+	ctx := types.NewRPCContext(types.CoinType(dto.CoinType), defaultNodeIndex)
+
+	provider, err := s.getNetworkProvider(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	if provider.IsTokenExists(dto.Contract) {
+		return errors.New("token already exists")
+	}
+
+	tokenConfig, err := provider.GetERC20Token(ctx, dto.Contract)
+
+	if err != nil {
+		return err
+	}
+
+	return provider.AddToken(
+		tokenConfig.Standard(),
+		tokenConfig.Name(),
+		tokenConfig.Symbol(),
+		tokenConfig.Contract(),
+		tokenConfig.Decimals(),
+	)
 }
