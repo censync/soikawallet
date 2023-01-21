@@ -263,7 +263,7 @@ var testVectors = []testVector{
 			},
 		},
 	},
-	/*{
+	{
 		"ffffffffffffffffffffffffffffffffffffffffffffffff",
 		"zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when",
 		"0cd6e5d827bb62eb8fc1e262254223817fd068a74b5b449cc2f667c3f1f985a76379b43348d952e2265b4cd129090758b3e3c2c49103b5051aac2eaeb890a528",
@@ -286,18 +286,18 @@ var testVectors = []testVector{
 			// Tron
 			{
 				"m/44'/195'/0'/0/0",
-				"rPAZAmcQRcKhGELQrYibyY8JdcWCNM8xwB",
-				"02f00a9984ae6aa08f84f447ab2f6018e8d8d24f4b822547bd6f59b7cdfa1ed174",
-				"968a48ca5a35466b73612f8a4ce7b2dbbd6a51c0171fa0867af899b83f3286fd",
+				"TDhbo6L48LnXVGzeHgzNEvK7wnfkJLLHrF",
+				"02ccd99f9c9b91ec7bcfcb375637b0b33829ca3baa499e04febd56b5c9b9e1d608",
+				"f276c34ee85d31f1be27305ec3a43fb97e2f2755b6d08e4e795959b6821174ea",
 			},
 			{
 				"m/44'/195'/0'/0/1",
-				"rNUkcuhzALxHdKevWpTkLtCBTcdWL9sxAN",
-				"03a393a69741cb496d5b37b59b351f964f43d71caeef5a6f05670fcffb7da13db3",
-				"f68a914e3f6d64bb241ab4682559099d6debb591b16cdf3eb357ee1726f0e85a",
+				"TRorGhwNgiscTa7Jk7x1AMG53vjrjFzCZj",
+				"02d16dcd3fba5e02cd145cdb0ab36d3ae0e3e1e626c576847c4786a65ba382b294",
+				"5af0248eb09f0795795407233807ece83defa28721b10a6e49a6ab2c1197f35c",
 			},
 		},
-	},*/
+	},
 	{
 		"8080808080808080808080808080808080808080808080808080808080808080",
 		"letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic avoid letter advice cage absurd amount doctor acoustic bless",

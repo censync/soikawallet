@@ -47,16 +47,6 @@ func TestWallet_AddAddressesPositive(t *testing.T) {
 			assert.Nil(t, err)
 
 			assert.Equal(t, testAddr.Address, addr.Address())
-
-			// WRONG: t.Logf("%s vs %s", testAddr.PublicKey, hexutil.Encode(crypto.FromECDSAPub(addr.pub)))
-
-			// t.Logf("%s vs %s", testAddr.PrivateKey, hexutil.Encode(crypto.FromECDSA(addr.key.Get())))
-
-			/*if addr != nil {
-				if testAddr.Address != addr.Address() {
-					t.Logf("%s: %s vs %s", vector.Entropy, testAddr.Address, addr.Address())
-				}
-			}*/
 		}
 	}
 }
