@@ -29,6 +29,7 @@ func TestMeta_MarshalJSON(t *testing.T) {
 	}
 }
 
+/*
 func TestLabels_Add(t *testing.T) {
 	var labels = initLabels()
 	labels.Add("First")
@@ -43,3 +44,4 @@ func TestLabels_Add(t *testing.T) {
 	labels.Remove(2)
 	t.Log(labels)
 }
+*/

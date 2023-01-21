@@ -21,6 +21,14 @@ var (
 			"Test RPC 3",
 			"https://rpc3.example.com",
 		},
+		{
+			"Test RPC 4",
+			"https://rpc4.example.com",
+		},
+		{
+			"Test RPC 5",
+			"https://rpc5.example.com",
+		},
 	}
 )
 
@@ -57,6 +65,48 @@ func TestNodes_AddRPCNodePositive(t *testing.T) {
 		index := nodeIndex.Index - 1
 		assert.Equal(t, testDataRPC[index][0], rpc.Title())
 		assert.Equal(t, testDataRPC[index][1], rpc.Endpoint())
+	}
+}
+
+func TestNodes_SetRPCAccountLink(t *testing.T) {
+	// test init
+	assert.NotNil(t, metaNodes)
+	assert.NotNil(t, metaNodes.nodes)
+	assert.NotNil(t, metaNodes.accountsLinks)
+
+	for accountIndex := types.AccountIndex(0); accountIndex < types.AccountIndex(len(testDataRPC)); accountIndex++ {
+		nodeIndex := types.NodeIndex{
+			CoinType: types.Ethereum,
+			Index:    uint32(accountIndex + 1),
+		}
+
+		err := metaNodes.SetRPCAccountLink(nodeIndex, accountIndex)
+
+		assert.Nil(t, err)
+
+	}
+}
+
+func TestNodes_RemoveRPCAccountLink(t *testing.T) {
+	// test init
+	assert.NotNil(t, metaNodes)
+	assert.NotNil(t, metaNodes.nodes)
+	assert.NotNil(t, metaNodes.accountsLinks)
+
+	for accountIndex := types.AccountIndex(0); accountIndex < types.AccountIndex(len(testDataRPC)); accountIndex++ {
+		nodeIndex := types.NodeIndex{
+			CoinType: types.Ethereum,
+			Index:    uint32(accountIndex + 1),
+		}
+		exists := metaNodes.IsRPCAccountLinkExists(nodeIndex, accountIndex)
+
+		assert.Equal(t, true, exists)
+
+		metaNodes.RemoveRPCAccountLink(nodeIndex, accountIndex)
+
+		notExists := metaNodes.IsRPCAccountLinkExists(nodeIndex, accountIndex)
+
+		assert.Equal(t, false, notExists)
 	}
 }
 
