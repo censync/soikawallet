@@ -241,16 +241,22 @@ func (s *Wallet) GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (tok
 
 	result[provider.Currency()] = balance
 
-	for _, token := range provider.AllTokens() {
-		humanBalance, err := provider.GetTokenBalance(ctx, token.Contract(), token.Decimals())
-		if err != nil {
-			return nil, err
-		}
-		floatBalance, _ := humanBalance.Float64()
+	addressLinkedTokenContracts, err := s.meta.GetAddressTokens(addrPath.Coin(), addrPath.Account(), addrPath.AddressIndex())
 
-		// Show only non-zero balances
-		if floatBalance != 0 {
-			result[token.Symbol()] = floatBalance
+	if len(addressLinkedTokenContracts) > 0 {
+		for _, contract := range addressLinkedTokenContracts {
+			tokenConfig := provider.GetTokenConfig(contract)
+			humanBalance, err := provider.GetTokenBalance(ctx, tokenConfig.Contract(), tokenConfig.Decimals())
+			if err != nil {
+				return nil, err
+			}
+			floatBalance, _ := humanBalance.Float64()
+
+			result[tokenConfig.Symbol()] = floatBalance
+			// Show only non-zero balances
+			/* if floatBalance != 0 {
+				result[tokenConfig.Symbol()] = floatBalance
+			}*/
 		}
 	}
 

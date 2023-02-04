@@ -37,7 +37,7 @@ func init() {
 	metaNodes.initNodes()
 }
 
-func TestNodes_AddRPCNodePositive(t *testing.T) {
+func TestNodes_AddRPCNode_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
@@ -68,7 +68,7 @@ func TestNodes_AddRPCNodePositive(t *testing.T) {
 	}
 }
 
-func TestNodes_SetRPCAccountLink(t *testing.T) {
+func TestNodes_SetRPCAccountLink_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
@@ -87,7 +87,7 @@ func TestNodes_SetRPCAccountLink(t *testing.T) {
 	}
 }
 
-func TestNodes_RemoveRPCAccountLink(t *testing.T) {
+func TestNodes_RemoveRPCAccountLink_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
@@ -110,7 +110,7 @@ func TestNodes_RemoveRPCAccountLink(t *testing.T) {
 	}
 }
 
-func TestNodes_RemoveRPCNodePositive(t *testing.T) {
+func TestNodes_RemoveRPCNode_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)

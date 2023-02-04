@@ -14,8 +14,8 @@ var Ethereum = types.NewNetwork(
 	`https://sepolia.etherscan.io/`, // /block/ /address/ /tx/
 ).SetBuiltinToken(
 	types.TokenERC20,
-	`KOKToken`,
-	`KOK_STG`,
-	`0x91B333A8485737f9B93327483030f48526FaDc22`,
+	`CenTest Token v1`,
+	`CEN_TV1`,
+	`0x91B268bd44c6a16b2E518060b44eFF33cB17f84d`,
 	18,
 )

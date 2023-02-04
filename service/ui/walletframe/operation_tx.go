@@ -122,7 +122,7 @@ func (p *pageOperationTx) uiOperationForm() *tview.Form {
 		SetFieldWidth(10).
 		SetOptions(p.tokensList, func(text string, index int) {
 			if index == len(p.tokensList)-1 {
-				p.SwitchToPage(pageNameTokenAdd, p.selectedAddr.CoinType)
+				p.SwitchToPage(pageNameTokenAdd, p.selectedAddr.CoinType, p.selectedAddr.Path)
 			}
 		}).
 		SetCurrentOption(0)

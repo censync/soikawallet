@@ -12,9 +12,9 @@ type tokens struct {
 	addressesLinks map[types.TokenIndex]map[types.AccountIndex][]types.AddressIndex
 }
 
-func (n *tokens) initTokens() {
-	n.tokens = map[types.TokenIndex]*types.TokenConfig{}
-	n.addressesLinks = map[types.TokenIndex]map[types.AccountIndex][]types.AddressIndex{}
+func (t *tokens) initTokens() {
+	t.tokens = map[types.TokenIndex]*types.TokenConfig{}
+	t.addressesLinks = map[types.TokenIndex]map[types.AccountIndex][]types.AddressIndex{}
 }
 
 func (t *tokens) AddTokenConfig(index types.TokenIndex, config *types.TokenConfig) {
@@ -45,11 +45,9 @@ func (t *tokens) RemoveTokenConfig(index types.TokenIndex) error {
 
 func (t *tokens) IsTokenConfigAddressLinkExists(tokenIndex types.TokenIndex, accountIndex types.AccountIndex, addressIndex types.AddressIndex) bool {
 	if t.addressesLinks[tokenIndex] != nil {
-		if t.addressesLinks[tokenIndex][accountIndex] != nil {
-			for _, index := range t.addressesLinks[tokenIndex][accountIndex] {
-				if index == addressIndex {
-					return true
-				}
+		for _, index := range t.addressesLinks[tokenIndex][accountIndex] {
+			if index == addressIndex {
+				return true
 			}
 		}
 	}
@@ -65,18 +63,41 @@ func (t *tokens) SetTokenConfigAddressLink(tokenIndex types.TokenIndex, accountI
 	defer t.mu.RUnlock()
 
 	if t.IsTokenConfigAddressLinkExists(tokenIndex, accountIndex, addressIndex) {
-		return errors.New("already enabled")
+		return errors.New("address already linked")
 	}
 
 	t.addressesLinks[tokenIndex][accountIndex] = append(t.addressesLinks[tokenIndex][accountIndex], addressIndex)
 	return nil
 }
 
-func (t *tokens) GetTokenConfigAddressLinksCount(coinType types.CoinType, tokenIndex uint32) int {
+func (t *tokens) GetTokenConfigAddressLinksCount(coinType types.CoinType, contract string) int {
 	return len(t.addressesLinks[types.TokenIndex{
 		CoinType: coinType,
-		Index:    tokenIndex,
+		Contract: contract,
 	}])
+}
+
+func (t *tokens) GetAddressTokens(coinType types.CoinType, accountIndex types.AccountIndex, addressIndex types.AddressIndex) ([]string, error) {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	var result []string
+
+	if !types.IsCoinExists(coinType) {
+		return nil, errors.New("coin type is not set")
+	}
+
+	for tokenIndex := range t.addressesLinks {
+		if _, ok := t.addressesLinks[tokenIndex][accountIndex]; ok {
+			for _, addr := range t.addressesLinks[tokenIndex][accountIndex] {
+				if addr == addressIndex {
+					result = append(result, tokenIndex.Contract)
+					break
+				}
+			}
+		}
+	}
+	return result, nil
 }
 
 func (t *tokens) RemoveTokenConfigAddressLink(tokenIndex types.TokenIndex, accountIndex types.AccountIndex, addressIndex types.AddressIndex) {

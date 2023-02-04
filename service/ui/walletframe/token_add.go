@@ -19,8 +19,9 @@ type pageTokenAdd struct {
 	layoutTokenAdd *tview.Flex
 
 	// vars
-	selectedCoin          types.CoinType
-	selectedTokenStandard types.TokenStandard
+	selectedCoin           types.CoinType
+	selectedTokenStandard  types.TokenStandard
+	selectedDerivationPath string
 }
 
 func newPageTokenAdd(state *state.State) *pageTokenAdd {
@@ -41,15 +42,16 @@ func (p *pageTokenAdd) Layout() *tview.Flex {
 }
 
 func (p *pageTokenAdd) FuncOnShow() {
-	if p.Params() == nil || len(p.Params()) != 1 {
+	if p.Params() == nil || len(p.Params()) != 2 {
 		p.Emit(
 			handler.EventLogError,
-			fmt.Sprintf("Sender network is not set"),
+			fmt.Sprintf("Incorrect params"),
 		)
 		p.SwitchToPage(p.Pages().GetPrevious())
 	}
 
 	p.selectedCoin = p.Params()[0].(types.CoinType)
+	p.selectedDerivationPath = p.Params()[1].(string)
 
 	p.layoutTokenAdd.AddItem(p.uiTokenAddForm(), 0, 1, false)
 
@@ -78,7 +80,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 	layoutForm.
 		AddFormItem(inputContractAddr).
 		AddFormItem(inputSelectTokenStandard).
-		AddButton("Process", func() {
+		AddButton("Check contract", func() {
 			tokenInfo, err := p.API().GetToken(&dto.GetTokenDTO{
 				CoinType: uint32(p.selectedCoin),
 				Contract: inputContractAddr.GetText(),
@@ -109,10 +111,11 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 
 	layoutForm.AddFormItem(inputContractAddr).
 		AddButton("Add token", func() {
-			err := p.API().AddToken(&dto.AddTokenDTO{
-				Standard: uint8(p.selectedTokenStandard),
-				CoinType: uint32(p.selectedCoin),
-				Contract: tokenConfig.Contract,
+			err := p.API().UpsertToken(&dto.AddTokenDTO{
+				Standard:       uint8(p.selectedTokenStandard),
+				CoinType:       uint32(p.selectedCoin),
+				Contract:       tokenConfig.Contract,
+				DerivationPath: p.selectedDerivationPath,
 			})
 
 			if err != nil {
@@ -124,6 +127,7 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 					tokenConfig.Symbol,
 				),
 				)
+				p.layoutTokenAdd.Clear()
 				p.SwitchToPage(p.Pages().GetPrevious())
 			}
 		})

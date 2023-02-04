@@ -150,8 +150,9 @@ type RPCAdapter interface {
 	RemoveRPC(index uint32) error
 	AllTokens() map[string]*TokenConfig
 	// tokens
-	IsTokenExists(contract string) bool
-	AddToken(standard TokenStandard, name, symbol, contract string, decimals int) error
+	IsTokenConfigExists(contract string) bool
+	AddTokenConfig(standard TokenStandard, name, symbol, contract string, decimals int) (*TokenConfig, error)
+	GetTokenConfig(contract string) *TokenConfig
 }
 
 type NetworkAdapter interface {
@@ -192,7 +193,7 @@ func (n *BaseNetwork) SetDefaultRPC(defaultEndpoint, defaultExplorer string) *Ba
 	return n
 }
 
-func (n *BaseNetwork) addToken(standard TokenStandard, name, symbol, contract string, decimals int, isBuiltin bool) *BaseNetwork {
+func (n *BaseNetwork) addToken(standard TokenStandard, name, symbol, contract string, decimals int, isBuiltin bool) *TokenConfig {
 	n.tokens[contract] = &TokenConfig{
 		standard:  standard,
 		name:      name,
@@ -201,25 +202,26 @@ func (n *BaseNetwork) addToken(standard TokenStandard, name, symbol, contract st
 		decimals:  decimals,
 		isBuiltin: isBuiltin,
 	}
-	return n
+	return n.tokens[contract]
 }
 
 func (n *BaseNetwork) SetBuiltinToken(standard TokenStandard, name, symbol, contract string, decimals int) *BaseNetwork {
 	if _, ok := n.tokens[contract]; ok {
 		panic(fmt.Sprintf("token \"%s\" contract \"%s\" already exist", symbol, contract))
 	}
-	return n.addToken(standard, name, symbol, contract, decimals, true)
+	n.addToken(standard, name, symbol, contract, decimals, true)
+	return n
 }
 
-func (n *BaseNetwork) AddToken(standard TokenStandard, name, symbol, contract string, decimals int) error {
+func (n *BaseNetwork) AddTokenConfig(standard TokenStandard, name, symbol, contract string, decimals int) (*TokenConfig, error) {
 	if _, ok := n.tokens[contract]; ok {
-		return errors.New(fmt.Sprintf("token \"%s\" contract \"%s\" already exist", symbol, contract))
+		return nil, errors.New(fmt.Sprintf("token \"%s\" contract \"%s\" already exist", symbol, contract))
 	}
-	n.addToken(standard, name, symbol, contract, decimals, false)
-	return nil
+	tokenConfig := n.addToken(standard, name, symbol, contract, decimals, false)
+	return tokenConfig, nil
 }
 
-func (n *BaseNetwork) IsTokenExists(contract string) bool {
+func (n *BaseNetwork) IsTokenConfigExists(contract string) bool {
 	_, isExists := n.tokens[contract]
 	return isExists
 }
@@ -258,6 +260,10 @@ func (n *BaseNetwork) RemoveRPC(index uint32) error {
 
 func (n *BaseNetwork) AddRPC(title, endpoint string) (uint32, error) {
 	return n.rpc.Add(title, endpoint)
+}
+
+func (n *BaseNetwork) GetTokenConfig(contract string) *TokenConfig {
+	return n.tokens[contract]
 }
 
 func (n *BaseNetwork) AllTokens() map[string]*TokenConfig {

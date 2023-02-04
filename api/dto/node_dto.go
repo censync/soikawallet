@@ -11,7 +11,8 @@ type GetTokenDTO struct {
 }
 
 type AddTokenDTO struct {
-	Standard uint8
-	CoinType uint32
-	Contract string
+	Standard       uint8
+	CoinType       uint32
+	Contract       string
+	DerivationPath string // ?null
 }

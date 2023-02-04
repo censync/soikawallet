@@ -45,21 +45,27 @@ func (p *pageAgreement) FuncOnShow() {
 
 	viewTermsOfUse := tview.NewTextView().
 		// SetWordWrap(false).
-		SetScrollable(false).
+		SetScrollable(true).
 		SetTextAlign(tview.AlignLeft).
 		SetTextColor(tcell.ColorRed).
 		SetText(p.Tr().T("ui.label", "terms_of_use_testnet"))
 
-	viewTermsOfUse.SetBorder(true)
+	viewTermsOfUse.SetBorder(true).
+		SetTitle(" Terms of use ").
+		SetTitleAlign(tview.AlignLeft).
+		SetBorderPadding(0, 0, 1, 1)
 
 	viewPrivacyPolicy := tview.NewTextView().
 		// SetWordWrap(false).
-		SetScrollable(false).
+		SetScrollable(true).
 		SetTextAlign(tview.AlignLeft).
 		SetTextColor(tcell.ColorRed).
 		SetText(p.Tr().T("ui.label", "privacy_policy_testnet"))
 
-	viewPrivacyPolicy.SetBorder(true)
+	viewPrivacyPolicy.SetBorder(true).
+		SetTitle(" Privacy policy ").
+		SetTitleAlign(tview.AlignLeft).
+		SetBorderPadding(0, 0, 1, 1)
 
 	formChoice := tview.NewForm().
 		SetHorizontal(true).
@@ -70,8 +76,8 @@ func (p *pageAgreement) FuncOnShow() {
 		AddButton("Decline", func() {
 			p.State.Emit(handler.EventQuit, nil)
 		})
-	p.layout.AddItem(viewTermsOfUse, 0, 1, false).
-		AddItem(viewPrivacyPolicy, 0, 1, false).
+	p.layout.AddItem(viewTermsOfUse, 0, 3, false).
+		AddItem(viewPrivacyPolicy, 0, 3, false).
 		AddItem(formChoice, 0, 1, false)
 }
 

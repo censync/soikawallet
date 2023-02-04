@@ -20,5 +20,5 @@ type NodeIndex struct {
 
 type TokenIndex struct {
 	CoinType
-	Index uint32
+	Contract string
 }

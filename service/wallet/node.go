@@ -193,6 +193,11 @@ func (s *Wallet) GetTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.Addre
 }
 
 func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
+	var (
+		tokenConfig *types.TokenConfig
+		err         error
+	)
+
 	if !types.IsCoinExists(types.CoinType(dto.CoinType)) {
 		return nil, errors.New("network is not exists in SLIP-44 list")
 	}
@@ -207,14 +212,18 @@ func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
 		return nil, err
 	}
 
-	tokenConfig, err := provider.GetERC20Token(ctx, dto.Contract)
+	tokenConfig = provider.GetTokenConfig(dto.Contract)
+	if tokenConfig == nil {
+		tokenConfig, err = provider.GetERC20Token(ctx, dto.Contract)
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	return &resp.TokenConfig{
-		Standard: uint8(types.TokenERC20),
+		Standard: uint8(tokenConfig.Standard()),
 		Name:     tokenConfig.Name(),
 		Symbol:   tokenConfig.Symbol(),
 		Contract: tokenConfig.Contract(),
@@ -222,7 +231,13 @@ func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
 	}, nil
 }
 
-func (s *Wallet) AddToken(dto *dto.AddTokenDTO) error {
+func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
+	var (
+		tokenConfig *types.TokenConfig
+		tokenIndex  types.TokenIndex
+		err         error
+	)
+
 	if !types.IsCoinExists(types.CoinType(dto.CoinType)) {
 		return errors.New("network is not exists in SLIP-44 list")
 	}
@@ -237,21 +252,48 @@ func (s *Wallet) AddToken(dto *dto.AddTokenDTO) error {
 		return err
 	}
 
-	if provider.IsTokenExists(dto.Contract) {
-		return errors.New("token already exists")
+	if provider.IsTokenConfigExists(dto.Contract) {
+		tokenConfig = provider.GetTokenConfig(dto.Contract)
+
+		tokenIndex = types.TokenIndex{
+			CoinType: types.CoinType(dto.CoinType),
+			Contract: tokenConfig.Contract(),
+		}
+	} else {
+		tokenConfig, err = provider.GetERC20Token(ctx, dto.Contract)
+
+		if err != nil {
+			return err
+		}
+
+		tokenConfig, err = provider.AddTokenConfig(
+			tokenConfig.Standard(),
+			tokenConfig.Name(),
+			tokenConfig.Symbol(),
+			tokenConfig.Contract(),
+			tokenConfig.Decimals(),
+		)
+
+		if err != nil {
+			return err
+		}
+
+		tokenIndex = types.TokenIndex{
+			CoinType: types.CoinType(dto.CoinType),
+			Contract: tokenConfig.Contract(),
+		}
+
+		s.meta.AddTokenConfig(tokenIndex, tokenConfig)
 	}
 
-	tokenConfig, err := provider.GetERC20Token(ctx, dto.Contract)
+	if dto.DerivationPath != "" {
+		addrPath, err := types.ParsePath(dto.DerivationPath)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
-		return err
+		err = s.meta.SetTokenConfigAddressLink(tokenIndex, addrPath.Account(), addrPath.AddressIndex())
 	}
 
-	return provider.AddToken(
-		tokenConfig.Standard(),
-		tokenConfig.Name(),
-		tokenConfig.Symbol(),
-		tokenConfig.Contract(),
-		tokenConfig.Decimals(),
-	)
+	return err
 }
