@@ -125,8 +125,9 @@ func (t TokenConfig) IsBuiltin() bool {
 	return t.isBuiltin
 }
 
-func NewTokenConfig(name string, symbol string, contract string, decimals int) *TokenConfig {
+func NewTokenConfig(standard TokenStandard, name string, symbol string, contract string, decimals int) *TokenConfig {
 	return &TokenConfig{
+		standard:  standard,
 		name:      name,
 		symbol:    symbol,
 		contract:  contract,

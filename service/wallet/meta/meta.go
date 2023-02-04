@@ -10,26 +10,27 @@ const (
 )
 
 type Meta struct {
-	version       uint8
-	labelsAccount Labels
-	labelsAddress Labels
+	version uint8
+	labels
+	nodes
+	tokens
 	//nodesAccountsLinks map[types.NodeIndex][]types.AccountIndex
 	// labelsAccountsLinks map[uint32]types.AccountIndex // TODO: check for coins index
 	// addressLabels map[NodeIndex][]types.
-	nodes
 	// tokensRegistry map[types.CoinType]map[uint32]types.TokenConfig
 	// addressTokens  map[string][]uint32
 }
 
 func InitMeta() *Meta {
 	instance := &Meta{
-		version:       metaSettingsVersion,
-		labelsAccount: initLabels(),
-		labelsAddress: initLabels(),
-		//nodesAccountsLinks: map[types.NodeIndex][]types.AccountIndex{},
+		version: metaSettingsVersion,
 	}
 
+	instance.initLabels()
+
 	instance.initNodes()
+
+	instance.initTokens()
 
 	return instance
 }
@@ -78,30 +79,3 @@ func (m *Meta) UnmarshalJSON(b []byte) error {
 
 	return nil
 }
-
-// Labels
-func (m *Meta) AccountLabels() map[uint32]string {
-	return m.labelsAccount.Data()
-}
-
-func (m *Meta) AddressLabels() map[uint32]string {
-	return m.labelsAddress.Data()
-}
-
-func (m *Meta) AddAccountLabel(label string) (uint32, error) {
-	return m.labelsAccount.Add(label)
-}
-
-func (m *Meta) AddAddressLabel(label string) (uint32, error) {
-	return m.labelsAddress.Add(label)
-}
-
-func (m *Meta) RemoveAccountLabel(index uint32) error {
-	return m.labelsAccount.Remove(index)
-}
-
-func (m *Meta) RemoveAddressLabel(index uint32) error {
-	return m.labelsAddress.Remove(index)
-}
-
-// Linked Labels

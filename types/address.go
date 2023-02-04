@@ -15,3 +15,10 @@ type NodeIndex struct {
 	CoinType
 	Index uint32
 }
+
+// meta
+
+type TokenIndex struct {
+	CoinType
+	Index uint32
+}

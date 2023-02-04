@@ -122,7 +122,7 @@ func (e *EVM) GetERC20Token(ctx *types.RPCContext, contract string) (*types.Toke
 		return nil, err
 	}
 
-	return types.NewTokenConfig(name, symbol, contract, int(decimals)), nil
+	return types.NewTokenConfig(types.TokenERC20, name, symbol, contract, int(decimals)), nil
 }
 
 func (e *EVM) getGasPrice(ctx *types.RPCContext) (*big.Int, error) {

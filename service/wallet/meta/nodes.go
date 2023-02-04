@@ -22,19 +22,22 @@ func (n *nodes) AddRPCNode(index types.NodeIndex, rpc *types.RPC) {
 	defer n.mu.RUnlock()
 
 	n.nodes[index] = rpc
-	n.accountsLinks[index] = []types.AccountIndex{}
+	if _, ok := n.accountsLinks[index]; !ok {
+		n.accountsLinks[index] = []types.AccountIndex{}
+	}
 }
 
-func (n *nodes) RemoveRPCNode(nodeIndex types.NodeIndex) error {
+func (n *nodes) RemoveRPCNode(index types.NodeIndex) error {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 
-	if _, ok := n.nodes[nodeIndex]; !ok {
+	if _, ok := n.nodes[index]; !ok {
 		return errors.New("node is not exists")
 	}
 
-	delete(n.nodes, nodeIndex)
-	delete(n.accountsLinks, nodeIndex)
+	delete(n.nodes, index)
+	delete(n.accountsLinks, index)
+
 	return nil
 }
 

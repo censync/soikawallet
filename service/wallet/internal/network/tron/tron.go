@@ -49,6 +49,24 @@ func (t *Tron) getClient(nodeId uint32) *apiclient.Client {
 		},
 	}
 }
+
+/*
+	Test it
+	publicKey := ""
+	publicKeyBytes, _ := hex.DecodeString(publicKey)
+
+	hash := sha256.Sum256(publicKeyBytes)
+	address := hex.EncodeToString(hash[:])
+
+	// Trim to 20 bytes and convert to hexadecimal string representation
+	address = hex.EncodeToString([]byte(address[:40]))
+
+	// Add "41" prefix to indicate the address is for Tron
+	address = "41" + address
+
+	fmt.Println("Tron address:", address)
+*/
+
 func (t *Tron) Address(pub *ecdsa.PublicKey) string {
 	addr := crypto.PubkeyToAddress(*pub).Hex()
 	addr = "41" + addr[2:]

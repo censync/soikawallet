@@ -82,6 +82,8 @@ func (s *State) Pages() *extpages.ExtPages {
 }
 
 func (s *State) SwitchToPage(page string, args ...interface{}) {
+
+	// TODO: Change to channel based events
 	s.pages.SwitchToPage(page, args...)
 	s.Emit(handler.EventDrawForce, nil)
 }

@@ -71,3 +71,37 @@ func (m *Labels) Remove(index uint32) error {
 	delete(m.data, index)
 	return nil
 }
+
+type labels struct {
+	labelsAccount Labels
+	labelsAddress Labels
+}
+
+func (l *labels) initLabels() {
+	l.labelsAccount = initLabels()
+	l.labelsAddress = initLabels()
+}
+
+func (l *labels) AccountLabels() map[uint32]string {
+	return l.labelsAccount.Data()
+}
+
+func (l *labels) AddressLabels() map[uint32]string {
+	return l.labelsAddress.Data()
+}
+
+func (l *labels) AddAccountLabel(label string) (uint32, error) {
+	return l.labelsAccount.Add(label)
+}
+
+func (l *labels) AddAddressLabel(label string) (uint32, error) {
+	return l.labelsAddress.Add(label)
+}
+
+func (l *labels) RemoveAccountLabel(index uint32) error {
+	return l.labelsAccount.Remove(index)
+}
+
+func (l *labels) RemoveAddressLabel(index uint32) error {
+	return l.labelsAddress.Remove(index)
+}

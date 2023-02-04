@@ -22,6 +22,7 @@ const (
 	pageNameNodeInfo         = `node_info`
 	pageNameSettings         = `settings`
 	pageNameQR               = `qr`
+	pageNameAgreement        = `agreement`
 	pageNameAbout            = `about`
 )
 
@@ -52,6 +53,7 @@ func Init(events *handler.TBus, tr *i18n.Translator) *WalletFrame {
 
 	frame := &WalletFrame{state: state.InitState(events, tr)}
 	pages := frame.initPages()
+	pages.SwitchToPage(pageNameAgreement)
 	frame.state.SetPages(pages)
 	return frame
 }
@@ -70,6 +72,7 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 		pageNameNodeInfo:         newPageNodeInfo(f.state),
 		pageNameSettings:         newPageSettings(f.state),
 		pageNameQR:               newPageQr(f.state),
+		pageNameAgreement:        newPageAgreement(f.state),
 		pageNameAbout:            newPageAbout(f.state),
 	}
 	pages := extpages.NewPages()
@@ -85,7 +88,6 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 			page.FuncOnDraw,
 		))
 	}
-	pages.SwitchToPage(pageNameSelectInitMode)
 	return pages
 }
 

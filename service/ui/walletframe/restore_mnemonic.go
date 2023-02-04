@@ -45,11 +45,13 @@ func (p *pageRestoreMnemonic) FuncOnShow() {
 	envMnemonic, ok := os.LookupEnv("SOIKAWALLET_MNEMONIC")
 	if ok {
 		p.inputMnemonic.SetText(strings.TrimSpace(envMnemonic), true)
+		os.Unsetenv("SOIKAWALLET_MNEMONIC")
 	}
 
 	envMnemonicPassphrase, ok := os.LookupEnv("SOIKAWALLET_MNEMONIC_PASSPHRASE")
 	if ok {
 		p.inputPassword.SetText(strings.TrimSpace(envMnemonicPassphrase))
+		os.Unsetenv("SOIKAWALLET_MNEMONIC_PASSPHRASE")
 	}
 
 	labelNext := tview.NewForm().

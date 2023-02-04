@@ -1,0 +1,160 @@
+package meta
+
+import (
+	"github.com/censync/soikawallet/types"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+var (
+	metaTokens        *tokens
+	testCoin          = types.Ethereum
+	testTokenDecimals = 18
+	testDataTokens    = [][]string{
+		{
+			"Test Token 1",
+			"TEST1",
+			"0x0000000000000000000000000000000000000000",
+		},
+		{
+			"Test Token 2",
+			"TEST2",
+			"0x0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+		},
+		{
+			"Test Token 3",
+			"TEST3",
+			"0xffffffffffffffffffffffffffffffffffffffff",
+		},
+	}
+)
+
+func init() {
+	metaTokens = &tokens{}
+	metaTokens.initTokens()
+}
+
+func TestTokens_AddTokenConfigPositive(t *testing.T) {
+	assert.NotNil(t, metaTokens)
+	assert.NotNil(t, metaTokens.tokens)
+	assert.NotNil(t, metaTokens.addressesLinks)
+
+	for index := range testDataTokens {
+		tokenConfig := types.NewTokenConfig(
+			types.TokenERC20,
+			testDataTokens[index][0],
+			testDataTokens[index][1],
+			testDataTokens[index][2],
+			testTokenDecimals,
+		)
+
+		tokenIndex := types.TokenIndex{
+			CoinType: testCoin,
+			Index:    uint32(index + 1),
+		}
+
+		metaTokens.AddTokenConfig(tokenIndex, tokenConfig)
+	}
+
+	if len(metaTokens.tokens) != len(testDataTokens) {
+		t.Fatal("incorrect length")
+	}
+
+	if len(metaTokens.addressesLinks) != len(testDataTokens) {
+		t.Fatal("incorrect length")
+	}
+
+	for tokenIndex, tokenConfig := range metaTokens.tokens {
+		index := tokenIndex.Index - 1
+		assert.Equal(t, types.TokenERC20, tokenConfig.Standard())
+		assert.Equal(t, testDataTokens[index][0], tokenConfig.Name())
+		assert.Equal(t, testDataTokens[index][1], tokenConfig.Symbol())
+		assert.Equal(t, testDataTokens[index][2], tokenConfig.Contract())
+		assert.Equal(t, testTokenDecimals, tokenConfig.Decimals())
+	}
+}
+
+func TestTokens_SetTokenConfigAddressLink(t *testing.T) {
+	assert.NotNil(t, metaTokens)
+	assert.NotNil(t, metaTokens.tokens)
+	assert.NotNil(t, metaTokens.addressesLinks)
+
+	for index := uint32(0); index < uint32(len(testDataTokens)); index++ {
+		tokenIndex := types.TokenIndex{
+			CoinType: testCoin,
+			Index:    index + 1,
+		}
+		addressIndex := types.AddressIndex{
+			Index:      index + 1,
+			IsHardened: true,
+		}
+		err := metaTokens.SetTokenConfigAddressLink(tokenIndex, types.AccountIndex(index), addressIndex)
+
+		assert.Nil(t, err)
+	}
+
+}
+
+func TestTokens_RemoveTokenConfigAddressLink(t *testing.T) {
+	assert.NotNil(t, metaTokens)
+	assert.NotNil(t, metaTokens.tokens)
+	assert.NotNil(t, metaTokens.addressesLinks)
+
+	for index := uint32(0); index < uint32(len(testDataTokens)); index++ {
+		tokenIndex := types.TokenIndex{
+			CoinType: testCoin,
+			Index:    index + 1,
+		}
+		addressIndex := types.AddressIndex{
+			Index:      index + 1,
+			IsHardened: true,
+		}
+		exists := metaTokens.IsTokenConfigAddressLinkExists(tokenIndex, types.AccountIndex(index), addressIndex)
+
+		assert.Equal(t, true, exists)
+
+		metaTokens.RemoveTokenConfigAddressLink(tokenIndex, types.AccountIndex(index), addressIndex)
+
+		notExists := metaTokens.IsTokenConfigAddressLinkExists(tokenIndex, types.AccountIndex(index), addressIndex)
+
+		assert.Equal(t, false, notExists)
+	}
+}
+
+func TestTokens_RemoveTokenConfigPositive(t *testing.T) {
+	assert.NotNil(t, metaTokens)
+	assert.NotNil(t, metaTokens.tokens)
+	assert.NotNil(t, metaTokens.addressesLinks)
+
+	if len(metaTokens.tokens) != len(testDataTokens) {
+		t.Fatal("incorrect length")
+	}
+
+	if len(metaTokens.addressesLinks) != len(testDataTokens) {
+		t.Fatal("incorrect length")
+	}
+
+	for index := uint32(0); index < uint32(len(testDataTokens)); index++ {
+		tokenIndex := types.TokenIndex{
+			CoinType: testCoin,
+			Index:    index + 1,
+		}
+
+		err := metaTokens.RemoveTokenConfig(tokenIndex)
+		assert.Nil(t, err)
+
+		_, exists := metaTokens.tokens[tokenIndex]
+		assert.False(t, exists)
+
+		_, exists = metaTokens.addressesLinks[tokenIndex]
+		assert.False(t, exists)
+	}
+
+	if len(metaTokens.tokens) > 0 {
+		t.Fatal("awaiting zero length")
+	}
+
+	if len(metaTokens.addressesLinks) > 0 {
+		t.Fatal("awaiting zero length")
+	}
+}
