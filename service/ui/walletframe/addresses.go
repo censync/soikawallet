@@ -245,7 +245,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 					AccountIndex: uint32(accountIndex),
 				}) {
 					/* balancesStr := ""
-					balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensBalanceByPathDTO{
+					balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensBalanceByPathDTO{
 						DerivationPath: address.Path,
 					})
 
@@ -286,7 +286,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 				if addrTree.GetReference() != nil {
 					addrView := addrTree.GetReference().(*addrNodeViewEntry)
 					if addrView.balances == nil {
-						balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensByPathDTO{
+						balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensByPathDTO{
 							DerivationPath: addrView.addr.Path,
 						})
 						//p.Emit(handler.EventLog, "actionUpdateBalances get data")

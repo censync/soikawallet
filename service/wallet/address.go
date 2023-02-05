@@ -16,9 +16,9 @@ type address struct {
 	pub  *ecdsa.PublicKey
 	addr string
 
-	accountLabelIndex uint32
-	addressLabelIndex uint32
-	nodeIndex         uint32
+	// accountLabelIndex uint32
+	// addressLabelIndex uint32
+	nodeIndex uint32
 
 	staticKey bool
 	//
@@ -213,7 +213,7 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 	return addresses
 }
 
-func (s *Wallet) GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error) {
+func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error) {
 	result := map[string]float64{}
 	addrPath, err := types.ParsePath(dto.DerivationPath)
 	if err != nil {
@@ -241,11 +241,10 @@ func (s *Wallet) GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (tok
 
 	result[provider.Currency()] = balance
 
-	addressLinkedTokenContracts, err := s.meta.GetAddressTokens(addrPath.Coin(), addrPath.Account(), addrPath.AddressIndex())
+	addressLinkedTokenConfigs, err := s.meta.GetAddressTokens(addrPath.Coin(), addrPath.Account(), addrPath.AddressIndex())
 
-	if len(addressLinkedTokenContracts) > 0 {
-		for _, contract := range addressLinkedTokenContracts {
-			tokenConfig := provider.GetTokenConfig(contract)
+	if len(addressLinkedTokenConfigs) > 0 {
+		for _, tokenConfig := range addressLinkedTokenConfigs {
 			humanBalance, err := provider.GetTokenBalance(ctx, tokenConfig.Contract(), tokenConfig.Decimals())
 			if err != nil {
 				return nil, err

@@ -44,14 +44,14 @@ func (m *Labels) Data() map[uint32]string {
 }
 
 func (m *Labels) Add(label string) (uint32, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	var lastIndex uint32
 
 	if m.Exists(label) {
 		return 0, errors.New("label already exist")
 	}
-
-	m.mu.Lock()
-	defer m.mu.Unlock()
 
 	for lastIndex = range m.data {
 	}

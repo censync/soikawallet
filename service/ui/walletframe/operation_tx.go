@@ -45,7 +45,7 @@ func (p *pageOperationTx) FuncOnShow() {
 
 	p.selectedAddr = p.Params()[0].(*responses.AddressResponse)
 
-	p.availableTokens, err = p.API().GetTokensByNetwork(&dto.GetTokensByNetworkDTO{
+	p.availableTokens, err = p.API().GetAllTokensByNetwork(&dto.GetTokensByNetworkDTO{
 		CoinType: uint32(p.selectedAddr.CoinType),
 	})
 
@@ -85,7 +85,7 @@ func (p *pageOperationTx) actionUpdateTokens() {
 		SetTopLevel(1)
 	p.layoutTokensTreeView.SetBorder(true)
 
-	balances, err := p.API().GetAddressTokensByPath(&dto.GetAddressTokensByPathDTO{
+	balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensByPathDTO{
 		DerivationPath: p.selectedAddr.Path,
 	})
 

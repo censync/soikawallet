@@ -35,12 +35,13 @@ type WalletAdapter interface {
 	AddAddresses(dto *dto.AddAddressesDTO) ([]*resp.AddressResponse, error)
 	GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*resp.AddressResponse
 	// GetAllAddresses() []*types.AddressResponse
-	GetAddressTokensByPath(dto *dto.GetAddressTokensByPathDTO) (map[string]float64, error)
+	GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (map[string]float64, error)
 
 	// Tokens
 	UpsertToken(dto *dto.AddTokenDTO) error
 	GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error)
-	GetTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error)
+	GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.AddressTokensListResponse, error)
+	GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error)
 	GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error)
 
 	// nodes

@@ -9,16 +9,14 @@ const (
 	metaSettingsVersion = 1
 )
 
+// Meta structure contains data for synchronization
+// all user configuration with AirGap
+
 type Meta struct {
-	version uint8
 	labels
 	nodes
 	tokens
-	//nodesAccountsLinks map[types.NodeIndex][]types.AccountIndex
-	// labelsAccountsLinks map[uint32]types.AccountIndex // TODO: check for coins index
-	// addressLabels map[NodeIndex][]types.
-	// tokensRegistry map[types.CoinType]map[uint32]types.TokenConfig
-	// addressTokens  map[string][]uint32
+	version uint8
 }
 
 func InitMeta() *Meta {

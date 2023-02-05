@@ -167,7 +167,7 @@ func (s *Wallet) GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurr
 	}, nil
 }
 
-func (s *Wallet) GetTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error) {
+func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error) {
 	if !types.IsCoinExists(types.CoinType(dto.CoinType)) {
 		return nil, errors.New("network is not exists in SLIP-44 list")
 	}
@@ -189,6 +189,28 @@ func (s *Wallet) GetTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.Addre
 			Contract: token.Contract(),
 		}
 	}
+	return &result, nil
+}
+
+func (s *Wallet) GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.AddressTokensListResponse, error) {
+	addrPath, err := types.ParsePath(dto.DerivationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	addressLinkedTokenContracts, err := s.meta.GetAddressTokens(addrPath.Coin(), addrPath.Account(), addrPath.AddressIndex())
+
+	result := resp.AddressTokensListResponse{}
+
+	for _, tokenConfig := range addressLinkedTokenContracts {
+
+		result[tokenConfig.Contract()] = &resp.AddressTokenEntry{
+			Name:     tokenConfig.Name(),
+			Symbol:   tokenConfig.Symbol(),
+			Contract: tokenConfig.Contract(),
+		}
+	}
+
 	return &result, nil
 }
 
@@ -282,12 +304,13 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 			CoinType: types.CoinType(dto.CoinType),
 			Contract: tokenConfig.Contract(),
 		}
-
-		s.meta.AddTokenConfig(tokenIndex, tokenConfig)
 	}
 
+	s.meta.AddTokenConfig(types.CoinType(dto.CoinType), tokenConfig)
+
 	if dto.DerivationPath != "" {
-		addrPath, err := types.ParsePath(dto.DerivationPath)
+		var addrPath *types.DerivationPath
+		addrPath, err = types.ParsePath(dto.DerivationPath)
 		if err != nil {
 			return err
 		}
