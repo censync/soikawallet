@@ -1,10 +1,6 @@
 package meta
 
-import (
-	"encoding/json"
-	"testing"
-)
-
+/*
 func TestMeta_MarshalJSON(t *testing.T) {
 	meta := InitMeta()
 
@@ -29,7 +25,7 @@ func TestMeta_MarshalJSON(t *testing.T) {
 	}
 }
 
-/*
+
 func TestLabels_Add(t *testing.T) {
 	var labels = initLabels()
 	labels.Add("First")

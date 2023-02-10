@@ -129,14 +129,14 @@ func TestTokens_RemoveTokenConfigAddressLink_Positive(t *testing.T) {
 		}
 		exists, err := metaTokens.IsTokenConfigAddressLinkExists(tokenIndex, types.AccountIndex(0), addressIndex)
 
-		assert.NotNil(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, true, exists)
 
 		metaTokens.RemoveTokenConfigAddressLink(tokenIndex, types.AccountIndex(0), addressIndex)
 
 		notExists, err := metaTokens.IsTokenConfigAddressLinkExists(tokenIndex, types.AccountIndex(0), addressIndex)
 
-		assert.NotNil(t, err)
+		assert.Nil(t, err)
 		assert.Equal(t, false, notExists)
 	}
 }
