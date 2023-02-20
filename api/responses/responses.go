@@ -18,6 +18,7 @@ type AirGapMessageResponse struct {
 }
 
 type AddressTokenEntry struct {
+	Standard uint8
 	Name     string
 	Symbol   string
 	Contract string

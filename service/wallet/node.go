@@ -180,10 +180,20 @@ func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.Ad
 		return nil, errors.New("cannot get RPC instance")
 	}
 
-	rpcTokens := rpcProvider.AllTokens()
+	rpcTokens := rpcProvider.GetAllTokens()
+
+	rpcBaseToken := rpcProvider.GetBaseToken()
+
+	result[rpcBaseToken.Contract()] = &resp.AddressTokenEntry{
+		Standard: uint8(rpcBaseToken.Standard()),
+		Name:     rpcBaseToken.Name(),
+		Symbol:   rpcBaseToken.Symbol(),
+		Contract: rpcBaseToken.Contract(),
+	}
 
 	for contract, token := range rpcTokens {
 		result[contract] = &resp.AddressTokenEntry{
+			Standard: uint8(token.Standard()),
 			Name:     token.Name(),
 			Symbol:   token.Symbol(),
 			Contract: token.Contract(),
@@ -202,9 +212,20 @@ func (s *Wallet) GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.Addr
 
 	result := resp.AddressTokensListResponse{}
 
+	rpcProvider := s.getRPCProvider(addrPath.Coin())
+	rpcBaseToken := rpcProvider.GetBaseToken()
+
+	result[rpcBaseToken.Contract()] = &resp.AddressTokenEntry{
+		Standard: uint8(rpcBaseToken.Standard()),
+		Name:     rpcBaseToken.Name(),
+		Symbol:   rpcBaseToken.Symbol(),
+		Contract: rpcBaseToken.Contract(),
+	}
+
 	for _, tokenConfig := range addressLinkedTokenContracts {
 
 		result[tokenConfig.Contract()] = &resp.AddressTokenEntry{
+			Standard: uint8(tokenConfig.Standard()),
 			Name:     tokenConfig.Name(),
 			Symbol:   tokenConfig.Symbol(),
 			Contract: tokenConfig.Contract(),

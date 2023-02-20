@@ -148,7 +148,9 @@ type RPCAdapter interface {
 	AllRPC() map[uint32]*RPC
 	AddRPC(title, endpoint string) (uint32, error)
 	RemoveRPC(index uint32) error
-	AllTokens() map[string]*TokenConfig
+
+	GetBaseToken() *TokenConfig
+	GetAllTokens() map[string]*TokenConfig
 	// tokens
 	IsTokenConfigExists(contract string) bool
 	AddTokenConfig(standard TokenStandard, name, symbol, contract string, decimals int) (*TokenConfig, error)
@@ -266,6 +268,17 @@ func (n *BaseNetwork) GetTokenConfig(contract string) *TokenConfig {
 	return n.tokens[contract]
 }
 
-func (n *BaseNetwork) AllTokens() map[string]*TokenConfig {
+func (n *BaseNetwork) GetBaseToken() *TokenConfig {
+	return &TokenConfig{
+		standard:  TokenBase,
+		name:      n.name,
+		symbol:    n.currency,
+		contract:  ``,
+		decimals:  n.decimals,
+		isBuiltin: true,
+	}
+}
+
+func (n *BaseNetwork) GetAllTokens() map[string]*TokenConfig {
 	return n.tokens
 }

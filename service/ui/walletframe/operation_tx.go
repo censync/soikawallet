@@ -45,8 +45,8 @@ func (p *pageOperationTx) FuncOnShow() {
 
 	p.selectedAddr = p.Params()[0].(*responses.AddressResponse)
 
-	p.availableTokens, err = p.API().GetAllTokensByNetwork(&dto.GetTokensByNetworkDTO{
-		CoinType: uint32(p.selectedAddr.CoinType),
+	p.availableTokens, err = p.API().GetTokensByPath(&dto.GetAddressTokensByPathDTO{
+		DerivationPath: p.selectedAddr.Path,
 	})
 
 	if err != nil {
