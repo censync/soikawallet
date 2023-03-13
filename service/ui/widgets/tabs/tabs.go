@@ -17,9 +17,15 @@ func NewTabs() *Tabs {
 		SetDirection(tview.FlexColumn)
 
 	pages := tview.NewPages()
+
+	head := tview.NewFlex().
+		SetDirection(tview.FlexColumn).
+		AddItem(controls, 0, 1, false).
+		AddItem(nil, 0, 3, false)
+
 	tabs := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(controls, 3, 1, false).
+		AddItem(head, 3, 1, false).
 		AddItem(pages, 0, 1, false)
 	return &Tabs{Flex: tabs, controls: controls, pages: pages}
 }
@@ -32,7 +38,13 @@ func (t *Tabs) AddItem(label string, primitive tview.Primitive) *Tabs {
 	})
 	btn.SetBackgroundColorActivated(tcell.ColorBlack).
 		SetBackgroundColor(tcell.ColorBlack).
+		SetLabelColorActivated(tcell.ColorWhite).
+		SetStyleAttrs(tcell.AttrBold).
+		SetActivatedStyleAttrs(tcell.AttrUnderline | tcell.AttrBold)
+
+	btn.SetBorderColor(tcell.ColorGray).
 		SetBorder(true)
+
 	t.controls.AddItem(btn, 0, 1, false)
 	if t.pages.GetPageCount() == 1 {
 		t.pages.SwitchToPage(label)
