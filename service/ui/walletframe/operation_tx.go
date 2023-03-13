@@ -6,6 +6,7 @@ import (
 	"github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/ui/handler"
 	"github.com/censync/soikawallet/service/ui/state"
+	"github.com/censync/soikawallet/service/ui/widgets/formtextview"
 	"github.com/rivo/tview"
 )
 
@@ -17,6 +18,7 @@ type pageOperationTx struct {
 
 	// ui
 	layoutTokensTreeView *tview.TreeView
+	layoutOperationForm  *tview.Form
 
 	// vars
 	availableTokens *responses.AddressTokensListResponse
@@ -65,12 +67,12 @@ func (p *pageOperationTx) FuncOnShow() {
 	p.tokensList = append(p.tokensList, "Add token")
 
 	p.layoutTokensTreeView = tview.NewTreeView()
-
+	p.layoutOperationForm = p.uiOperationForm()
 	layoutOperation := tview.NewFlex().
 		SetDirection(tview.FlexColumn)
 	layoutOperation.SetBorder(true)
 	layoutOperation.AddItem(p.layoutTokensTreeView, 0, 1, false)
-	layoutOperation.AddItem(p.uiOperationForm(), 0, 2, false)
+	layoutOperation.AddItem(p.layoutOperationForm, 0, 2, false)
 
 	p.layout.AddItem(nil, 0, 1, false).
 		AddItem(layoutOperation, 0, 4, false).
@@ -109,8 +111,8 @@ func (p *pageOperationTx) uiOperationForm() *tview.Form {
 		SetHorizontal(false)
 	layoutForm.SetBorder(true)
 
-	inputAddrSender := tview.NewInputField().
-		SetText(p.selectedAddr.Address)
+	inputAddrSender := formtextview.NewFormTextView(p.selectedAddr.Address)
+
 	inputAddrReceiver := tview.NewInputField().
 		SetLabel(`Receiver`)
 
@@ -134,6 +136,31 @@ func (p *pageOperationTx) uiOperationForm() *tview.Form {
 		AddButton("Send", func() {
 
 		})
+	return layoutForm
+}
+
+func (p *pageOperationTx) uiConfirmSendForm(receiver, contract string) *tview.Form {
+	layoutForm := tview.NewForm().
+		SetHorizontal(false)
+	layoutForm.SetBorder(true)
+
+	/* inputAddrSender := formtextview.NewFormTextView(p.selectedAddr.Address)
+
+	inputAddrReceiver := formtextview.NewFormTextView(fmt.Sprintf(`Receiver: %s`, receiver))
+
+	p.availableTokens[currency]
+
+	inputAddrCurrency := formtextview.NewFormTextView(fmt.Sprintf(`%s Max: %f`, currency, 11111.222))
+	inputAddrAmount := tview.NewInputField().
+		SetLabel(`Amount`)
+
+	layoutForm.AddFormItem(inputAddrSender).
+		AddFormItem(inputAddrReceiver).
+		AddFormItem(inputAddrAmount).
+		AddFormItem(inputAddrCurrency).
+		AddButton("Send", func() {
+
+		}) */
 	return layoutForm
 }
 

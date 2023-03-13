@@ -17,7 +17,8 @@ func NewFormTextView(value string) *FormTextView {
 	formTextView := &FormTextView{TextView: tview.NewTextView()}
 	formTextView.SetText(value)
 	formTextView.SetDynamicColors(true)
-	_, _, formTextView.width, formTextView.height = formTextView.TextView.GetRect()
+	//_, _, _, formTextView.height = formTextView.TextView.GetRect()
+	formTextView.height = 1
 	return formTextView
 }
 

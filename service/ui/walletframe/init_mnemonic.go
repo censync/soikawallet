@@ -111,13 +111,13 @@ func (p *pageInitMnemonic) FuncOnShow() {
 
 	layoutMnemonicForm := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(p.inputMnemonic, 15, 1, false).
-		AddItem(inputPassword, 3, 1, false).
-		AddItem(formMnemonicConfig, 3, 1, false).
-		AddItem(labelButtons, 3, 1, false)
+		AddItem(p.inputMnemonic, 0, 6, false).
+		AddItem(inputPassword, 0, 1, false).
+		AddItem(formMnemonicConfig, 0, 1, false).
+		AddItem(labelButtons, 0, 1, false)
 
-	p.layout.AddItem(layoutMnemonicForm, 90, 1, false).
-		AddItem(labelNext, 20, 1, false)
+	p.layout.AddItem(layoutMnemonicForm, 0, 3, false).
+		AddItem(labelNext, 0, 1, false)
 
 }
 

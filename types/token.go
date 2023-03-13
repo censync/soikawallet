@@ -9,6 +9,9 @@ const (
 	TokenERC4626 = TokenStandard(24)
 	TokenTRC10   = TokenStandard(40)
 	TokenTRC20   = TokenStandard(41)
+
+	ContractBase = `__base`
+	ContractZero = `0x0000000000000000000000000000000000000000`
 )
 
 var (

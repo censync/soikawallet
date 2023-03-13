@@ -273,7 +273,7 @@ func (n *BaseNetwork) GetBaseToken() *TokenConfig {
 		standard:  TokenBase,
 		name:      n.name,
 		symbol:    n.currency,
-		contract:  ``,
+		contract:  ContractBase,
 		decimals:  n.decimals,
 		isBuiltin: true,
 	}

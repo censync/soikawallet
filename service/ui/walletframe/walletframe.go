@@ -5,6 +5,7 @@ import (
 	"github.com/censync/soikawallet/service/ui/handler"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/extpages"
+	"github.com/censync/soikawallet/service/ui/widgets/flexmenu"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -47,11 +48,12 @@ func (b *BaseFrame) FuncOnDraw() {}
 
 type WalletFrame struct {
 	state *state.State
+	style *tview.Theme
 }
 
-func Init(events *handler.TBus, tr *i18n.Translator) *WalletFrame {
+func Init(events *handler.TBus, tr *i18n.Translator, style *tview.Theme) *WalletFrame {
 
-	frame := &WalletFrame{state: state.InitState(events, tr)}
+	frame := &WalletFrame{state: state.InitState(events, tr), style: style}
 	pages := frame.initPages()
 	pages.SwitchToPage(pageNameAgreement)
 	frame.state.SetPages(pages)
@@ -92,42 +94,21 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 }
 
 func (f *WalletFrame) Layout() *tview.Flex {
-	layoutMenu := tview.NewForm().
-		SetHorizontal(true).
-		SetItemPadding(1).
-		AddButton("[yellow][F1] [white]QR Page     ", func() {
-			f.state.SwitchToPage(pageNameQR)
-			// t.events <- pageQR
-		}).
-		AddButton("[yellow][F5] [white]Addresses   ", func() {
-			f.state.SwitchToPage(pageNameAddresses)
-		}).
-		AddButton("[yellow][F4] [white]Create      ", func() {
-			if f.state.API() != nil {
-				f.state.SwitchToPage(pageNameCreateWallets)
-			}
-		}).
-		AddButton("[yellow][F6] [white]Transactions", func() {
-			//if f.wallet != nil {
-			f.state.SwitchToPage(pageNameTransaction)
-			//}
-		}).
-		AddButton("[yellow][F8] [white]Node info   ", func() {
-			f.state.SwitchToPage(pageNameNodeInfo)
-		}).
-		AddButton("[yellow][F3] [white]Settings    ", func() {
-			f.state.SwitchToPage(pageNameSettings)
-		}).
-		AddButton("[yellow][F1] [white]About       ", func() {
-			f.state.SwitchToPage(pageNameAbout)
-		}).
-		AddButton("[yellow][F10] [white]Quit       ", func() {
-			f.state.Emit(handler.EventQuit, nil)
+	layoutMenu := flexmenu.NewFlexMenu()
 
-		})
+	layoutMenu.
+		AddMenuItem("QR Dst", 0, func() { f.state.SwitchToPage(pageNameQR) }).
+		AddMenuItem("Addresses", tcell.KeyF5, func() { f.state.SwitchToPage(pageNameAddresses) }).
+		AddMenuItem("Create", tcell.KeyF2, func() { f.state.SwitchToPage(pageNameCreateWallets) }).
+		AddMenuItem("Transactions", tcell.KeyF6, func() { f.state.SwitchToPage(pageNameTransaction) }).
+		AddMenuItem("Node info", tcell.KeyF7, func() { f.state.SwitchToPage(pageNameNodeInfo) }).
+		AddMenuItem("Settings", tcell.KeyF4, func() { f.state.SwitchToPage(pageNameSettings) }).
+		AddMenuItem("About", tcell.KeyF1, func() { f.state.SwitchToPage(pageNameAbout) }).
+		AddMenuItem("Quit", tcell.KeyF12, func() { f.state.Emit(handler.EventQuit, nil) })
+
 	layoutMain := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
-		AddItem(layoutMenu, 25, 1, false).
+		AddItem(layoutMenu.Layout(), 25, 1, false).
 		AddItem(f.state.Pages(), 0, 1, true)
 
 	layoutMenu.SetBorder(true).

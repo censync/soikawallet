@@ -25,10 +25,12 @@ type pageAddresses struct {
 	*state.State
 
 	// ui
-	addrTree       *tview.TreeNode
-	layoutDetails  *tview.Flex
-	layoutSelected *tview.Flex
-	labelQR        *tview.TextView
+
+	layoutAddressesTree *tview.TreeView
+	addrTree            *tview.TreeNode
+	layoutDetails       *tview.Flex
+	layoutSelected      *tview.Flex
+	labelQR             *tview.TextView
 
 	// var
 	selectedAddress *resp.AddressResponse
@@ -46,9 +48,10 @@ func newPageAddresses(state *state.State) *pageAddresses {
 		SetDirection(tview.FlexColumn)
 
 	return &pageAddresses{
-		State:          state,
-		BaseFrame:      &BaseFrame{layout: layout},
-		balanceSpinner: spinner.NewSpinner(spinner.SpinThree, 180),
+		State:               state,
+		BaseFrame:           &BaseFrame{layout: layout},
+		layoutAddressesTree: tview.NewTreeView(),
+		balanceSpinner:      spinner.NewSpinner(spinner.SpinThree, 180),
 	}
 }
 
@@ -82,14 +85,13 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		SetTextColor(tcell.ColorBlue)
 
 	p.addrTree = tview.NewTreeNode("wallets")
-	layoutAddressesTree := tview.NewTreeView().
-		SetRoot(p.addrTree).SetTopLevel(1)
+	p.layoutAddressesTree.SetRoot(p.addrTree).SetTopLevel(1)
 
 	// double click for address operations
-	layoutAddressesTree.SetMouseCapture(func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
-		if layoutAddressesTree.InRect(event.Position()) {
+	p.layoutAddressesTree.SetMouseCapture(func(action tview.MouseAction, event *tcell.EventMouse) (tview.MouseAction, *tcell.EventMouse) {
+		if p.layoutAddressesTree.InRect(event.Position()) {
 			if action == tview.MouseLeftDoubleClick && p.selectedAddress != nil {
-				if layoutAddressesTree.GetCurrentNode().GetLevel() == addrNodeLevelAddr {
+				if p.layoutAddressesTree.GetCurrentNode().GetLevel() == addrNodeLevelAddr {
 					p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
 				}
 				return action, nil
@@ -98,9 +100,9 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		return action, event
 	})
 
-	layoutAddressesTree.SetBorder(true)
+	p.layoutAddressesTree.SetBorder(true)
 
-	layoutAddressesTree.SetSelectedFunc(func(node *tview.TreeNode) {
+	p.layoutAddressesTree.SetSelectedFunc(func(node *tview.TreeNode) {
 		p.clearLayoutSelected()
 
 		reference := node.GetReference()
@@ -142,7 +144,7 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		AddButton("Show QR", func() {
 			p.showAddrQR()
 		}).
-		AddButton("!Set node!", func() {
+		AddButton("!S node!", func() {
 			if p.API() != nil {
 				err := p.API().AccountLinkRPCSet(&dto.SetRPCLinkedAccountDTO{
 					CoinType:     60,
@@ -162,7 +164,7 @@ func (p *pageAddresses) Layout() *tview.Flex {
 				}
 			}
 		}).
-		AddButton("!Remove node!", func() {
+		AddButton("!R node!", func() {
 			if p.API() != nil {
 				err := p.API().RemoveAccountLinkRPC(&dto.RemoveRPCLinkedAccountDTO{
 					CoinType:     60,
@@ -200,8 +202,8 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		AddItem(p.labelQR, 0, 1, false)
 
 	p.layout.
-		AddItem(layoutAddressesTree, 0, 1, false).
-		AddItem(p.layoutDetails, 55, 1, false)
+		AddItem(p.layoutAddressesTree, 0, 1, false).
+		AddItem(p.layoutDetails, 50, 1, false)
 
 	return p.layout
 }
@@ -244,24 +246,12 @@ func (p *pageAddresses) actionUpdateAddresses() {
 					CoinType:     uint32(coin),
 					AccountIndex: uint32(accountIndex),
 				}) {
-					/* balancesStr := ""
-					balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensBalanceByPathDTO{
-						DerivationPath: address.Path,
-					})
-
-					if err != nil {
-						p.Emit(
-							handler.EventLogError,
-							fmt.Sprintf("Cannot get data for %s: %s", address.Path, err),
-						)
-					} else {
-						for key, value := range balances {
-							balancesStr += fmt.Sprintf("$%s - %f ", key, value)
-						}
-					}
-
-					addressNode := exttree.NewTreeNode(fmt.Sprintf("%d - %s | %s", address.AddressIndex.Index, address.Address, balancesStr))*/
-					addressNode := tview.NewTreeNode(fmt.Sprintf("%d - %s", address.AddressIndex.Index, address.Address))
+					addressNode := tview.NewTreeNode(fmt.Sprintf(
+						"%d - %s",
+						address.AddressIndex.Index,
+						p.addrTruncate(address.Address),
+					),
+					)
 					addressNode.SetReference(&addrNodeViewEntry{
 						addr: address,
 					})
@@ -303,7 +293,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 							addrTree.SetText(fmt.Sprintf(
 								"%d - %s | %s",
 								addrView.addr.AddressIndex.Index,
-								addrView.addr.Address,
+								p.addrTruncate(addrView.addr.Address), // format long addr
 								balancesStr,
 							))
 							x := 22
@@ -329,7 +319,7 @@ func (p *pageAddresses) actionTreeSpinnersUpdateFrame(frame string) {
 						addrTree.SetText(fmt.Sprintf(
 							"%d - %s | %s",
 							addrView.addr.AddressIndex.Index,
-							addrView.addr.Address,
+							p.addrTruncate(addrView.addr.Address),
 							frame,
 						))
 					}
@@ -366,4 +356,12 @@ func (p *pageAddresses) clearAddrQR() {
 
 func (p *pageAddresses) showAddrQR() {
 	//p.Emit(handler.EventShowModal, modalQR)
+}
+
+func (p *pageAddresses) addrTruncate(src string) string {
+	x1, _, x2, _ := p.layoutAddressesTree.GetInnerRect()
+	if len(src) <= 14 || x2-x1 > 60 {
+		return src
+	}
+	return src[:6] + "..." + src[len(src)-5:]
 }

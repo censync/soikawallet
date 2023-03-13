@@ -23,6 +23,7 @@ func newPageInitWallet(state *state.State) *pageInitWallet {
 
 func (p *pageInitWallet) FuncOnShow() {
 	btnWalletCreate := tview.NewButton(p.Tr().T("ui.button", "wallet_create"))
+
 	btnWalletCreate.SetSelectedFunc(func() {
 		p.SetStatus(state.StateInitLocal)
 		p.SwitchToPage(pageNameInitMnemonic)
@@ -36,9 +37,9 @@ func (p *pageInitWallet) FuncOnShow() {
 
 	layoutButtons := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
-		AddItem(btnWalletCreate, 0, 1, false).
+		AddItem(btnWalletCreate, 0, 5, false).
 		AddItem(nil, 0, 1, false).
-		AddItem(btnWalletRestore, 0, 1, false)
+		AddItem(btnWalletRestore, 0, 5, false)
 
 	layoutButtons.SetBorderPadding(0, 0, 10, 10)
 

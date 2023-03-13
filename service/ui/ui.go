@@ -16,23 +16,15 @@ type Tui struct {
 	app *tview.Application
 	tr  *i18n.Translator
 
-	frame  *walletframe.WalletFrame
-	tbus   h.TBus
-	layout *tview.Flex
+	frame         *walletframe.WalletFrame
+	tbus          h.TBus
+	layout        *tview.Flex
+	style         *tview.Theme
+	isVerboseMode bool
 }
 
 func Init() *Tui {
-	tui := &Tui{
-		app:  tview.NewApplication(),
-		tr:   dict.GetTr("en"),
-		tbus: make(h.TBus, 20),
-	}
-	tui.frame = walletframe.Init(&tui.tbus, dict.GetTr("en"))
-	tui.layout = tui.initLayout()
-	return tui
-}
-func (t *Tui) initLayout() *tview.Flex {
-	/*tview.Styles = tview.Theme{
+	/* style := &tview.Theme{
 		PrimitiveBackgroundColor:    tcell.ColorLightYellow,
 		ContrastBackgroundColor:     tcell.ColorOrange,
 		MoreContrastBackgroundColor: tcell.ColorGreen,
@@ -45,6 +37,20 @@ func (t *Tui) initLayout() *tview.Flex {
 		InverseTextColor:            tcell.ColorBlue,
 		ContrastSecondaryTextColor:  tcell.ColorDarkBlue,
 	}*/
+
+	style := &tview.Styles
+
+	tui := &Tui{
+		app:   tview.NewApplication(),
+		tr:    dict.GetTr("en"),
+		tbus:  make(h.TBus, 100),
+		style: style,
+	}
+	tui.frame = walletframe.Init(&tui.tbus, dict.GetTr("en"), tui.style)
+	tui.layout = tui.initLayout()
+	return tui
+}
+func (t *Tui) initLayout() *tview.Flex {
 
 	labelTitle := tview.NewTextView().
 		SetDynamicColors(true).
@@ -131,8 +137,36 @@ func (t *Tui) initLayout() *tview.Flex {
 	return layout
 }
 
-func (t *Tui) Run() {
+func (t *Tui) Run(verbose bool) {
 	// Run the application
+	t.isVerboseMode = verbose
+
+	if t.isVerboseMode {
+		t.tbus.Emit(h.EventLog, "Verbose mode enabled")
+
+		var (
+			prevX, prevY           int
+			prevFrameX, prevFrameY int
+		)
+
+		t.app.SetAfterDrawFunc(func(screen tcell.Screen) {
+			x, y := screen.Size()
+			if x != prevX || y != prevY {
+				prevX = x
+				prevY = y
+				t.tbus.Emit(h.EventLog, fmt.Sprintf("Resolution: %dx%d", x, y))
+			}
+
+			x1, y1, x2, y2 := t.frame.Layout().GetItem(1).GetRect()
+
+			if x2 != prevFrameX || y2 != prevFrameY {
+				prevFrameX = x2
+				prevFrameY = y2
+				t.tbus.Emit(h.EventLog, fmt.Sprintf("Frame: %dx%d, %dx%d", x1, y1, x2, y2))
+			}
+		})
+	}
+
 	if err := t.app.SetRoot(t.layout, true).
 		EnableMouse(true).
 		Run(); err != nil {
