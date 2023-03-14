@@ -8,6 +8,7 @@ import (
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/censync/soikawallet/util/seed"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"strconv"
 	"strings"
@@ -76,13 +77,9 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		AddFormItem(inputDropDownEntropy).
 		AddFormItem(inputDropDownLanguage)
 
-	labelNext := tview.NewForm().
-		SetHorizontal(false).
-		SetItemPadding(2).
-		AddButton(p.Tr().T("ui.button", "back"), func() {
-			p.SwitchToPage(p.Pages().GetPrevious())
-		}).
-		AddButton(p.Tr().T("ui.button", "next"), func() {
+	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
+		SetStyleAttrs(tcell.AttrBold).
+		SetSelectedFunc(func() {
 			err := service.API().Init(&dto.InitWalletDTO{
 				Mnemonic:   p.mnemonic,
 				Passphrase: inputPassword.GetText(),
@@ -95,6 +92,18 @@ func (p *pageInitMnemonic) FuncOnShow() {
 				p.SwitchToPage(pageNameCreateWallets)
 			}
 		})
+	btnBack := tview.NewButton(p.Tr().T("ui.button", "back")).
+		SetSelectedFunc(func() {
+			p.SwitchToPage(p.Pages().GetPrevious())
+		})
+
+	layoutWizard := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(btnNext, 3, 1, false).
+		AddItem(nil, 1, 1, false).
+		AddItem(btnBack, 3, 1, false)
+
+	layoutWizard.SetBorderPadding(1, 1, 2, 2)
 
 	labelButtons := tview.NewForm().
 		SetHorizontal(true).
@@ -112,12 +121,12 @@ func (p *pageInitMnemonic) FuncOnShow() {
 	layoutMnemonicForm := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(p.inputMnemonic, 0, 6, false).
-		AddItem(inputPassword, 0, 1, false).
-		AddItem(formMnemonicConfig, 0, 1, false).
-		AddItem(labelButtons, 0, 1, false)
+		AddItem(inputPassword, 3, 1, false).
+		AddItem(formMnemonicConfig, 3, 1, false).
+		AddItem(labelButtons, 3, 1, false)
 
 	p.layout.AddItem(layoutMnemonicForm, 0, 3, false).
-		AddItem(labelNext, 0, 1, false)
+		AddItem(layoutWizard, 0, 1, false)
 
 }
 
