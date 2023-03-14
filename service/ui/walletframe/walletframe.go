@@ -108,10 +108,10 @@ func (f *WalletFrame) Layout() *tview.Flex {
 
 	layoutMain := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
-		AddItem(layoutMenu.Layout(), 25, 1, false).
-		AddItem(f.state.Pages(), 0, 1, true)
+		AddItem(layoutMenu, 25, 1, false).
+		AddItem(f.state.Pages(), 0, 1, false)
 
-	layoutMenu.SetBorder(true).
-		SetBorderColor(tcell.ColorDarkGrey)
+	/*layoutMenu.SetBorder(true).
+	SetBorderColor(tcell.ColorDarkGrey) */
 	return layoutMain
 }

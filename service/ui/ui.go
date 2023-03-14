@@ -24,7 +24,7 @@ type Tui struct {
 }
 
 func Init() *Tui {
-	/* style := &tview.Theme{
+	/*style := &tview.Theme{
 		PrimitiveBackgroundColor:    tcell.ColorLightYellow,
 		ContrastBackgroundColor:     tcell.ColorOrange,
 		MoreContrastBackgroundColor: tcell.ColorGreen,
@@ -36,6 +36,8 @@ func Init() *Tui {
 		TertiaryTextColor:           tcell.ColorGreen,
 		InverseTextColor:            tcell.ColorBlue,
 		ContrastSecondaryTextColor:  tcell.ColorDarkBlue,
+		DisabledBackgroundColor:     tcell.ColorDarkSlateGray,
+		DisabledTextColor:           tcell.ColorLightGray,
 	}*/
 
 	style := &tview.Styles
@@ -54,7 +56,6 @@ func (t *Tui) initLayout() *tview.Flex {
 
 	labelTitle := tview.NewTextView().
 		SetDynamicColors(true).
-		SetRegions(true).
 		SetWrap(false).
 		SetTextAlign(tview.AlignRight).
 		SetText(fmt.Sprintf("[darkcyan]Soika Wallet[black] v%s", version.VERSION))
@@ -64,7 +65,6 @@ func (t *Tui) initLayout() *tview.Flex {
 
 	labelUUID := tview.NewTextView().
 		SetDynamicColors(true).
-		SetRegions(true).
 		SetWrap(false).
 		SetTextAlign(tview.AlignLeft).
 		SetText(`[darkcyan]UUID:[black] 00000000-0000-0000-0000-000000000000`)
@@ -139,7 +139,7 @@ func (t *Tui) initLayout() *tview.Flex {
 
 func (t *Tui) Run(verbose bool) {
 	// Run the application
-	t.isVerboseMode = verbose
+	t.isVerboseMode = false
 
 	if t.isVerboseMode {
 		t.tbus.Emit(h.EventLog, "Verbose mode enabled")
