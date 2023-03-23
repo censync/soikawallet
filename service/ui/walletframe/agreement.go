@@ -65,19 +65,28 @@ func (p *pageAgreement) FuncOnShow() {
 		SetTitleAlign(tview.AlignLeft).
 		SetBorderPadding(0, 0, 1, 1)
 
-	formChoice := tview.NewForm().
-		SetHorizontal(true).
-		SetButtonsAlign(tview.AlignCenter).
-		AddButton("Accept", func() {
+	btnAccept := tview.NewButton("Accept").
+		SetSelectedFunc(func() {
 			p.SwitchToPage(pageNameSelectInitWallet)
-		}).
-		AddButton("Decline", func() {
+		})
+
+	btnDecline := tview.NewButton("Decline").
+		SetLabelColor(tcell.ColorLightGray).
+		SetBackgroundColor(tcell.ColorDarkSlateGrey).
+		SetSelectedFunc(func() {
 			p.State.Emit(handler.EventQuit, nil)
 		})
 
+	formChoice := tview.NewFlex().
+		SetDirection(tview.FlexColumn).
+		AddItem(nil, 1, 1, false).
+		AddItem(btnAccept, 12, 1, false).
+		AddItem(nil, 3, 1, false).
+		AddItem(btnDecline, 12, 1, false)
+
 	p.layout.AddItem(viewTermsOfUse, 0, 3, false).
 		AddItem(viewPrivacyPolicy, 0, 3, false).
-		AddItem(formChoice, 0, 1, false)
+		AddItem(formChoice, 1, 1, false)
 }
 
 func (p *pageAgreement) FuncOnHide() {

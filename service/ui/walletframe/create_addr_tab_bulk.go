@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"sort"
 	"strings"
@@ -18,6 +19,7 @@ func (p *pageCreateWallet) tabBulk() *tview.Flex {
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
 	p.inputDerivationPaths.
+		SetPlaceholderStyle(tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorDarkGrey)).
 		SetPlaceholder("m/44'/60'/0'/0/0\nm/44'/60'/0'/0/1\nm/44'/60'/0'/0/2")
 
 	labelButtons := tview.NewForm().

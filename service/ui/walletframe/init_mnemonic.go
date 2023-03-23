@@ -105,7 +105,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 
 	layoutWizard.SetBorderPadding(1, 1, 2, 2)
 
-	labelButtons := tview.NewForm().
+	layoutOptions := tview.NewForm().
 		SetHorizontal(true).
 		SetItemPadding(1).
 		AddButton(p.Tr().T("ui.button", "generate_mnemonic"), func() {
@@ -123,7 +123,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		AddItem(p.inputMnemonic, 0, 6, false).
 		AddItem(inputPassword, 3, 1, false).
 		AddItem(formMnemonicConfig, 3, 1, false).
-		AddItem(labelButtons, 3, 1, false)
+		AddItem(layoutOptions, 3, 1, false)
 
 	p.layout.AddItem(layoutMnemonicForm, 0, 3, false).
 		AddItem(layoutWizard, 0, 1, false)
