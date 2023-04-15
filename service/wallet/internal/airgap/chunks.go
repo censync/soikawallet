@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	chunkHeaderSize = 4   // chunk_index(2) + chunks_count(2)
-	minMessageSize  = 67  // protocol_version(1) + root_compressed_pub(65) + operation(1)
-	baseChunkSize   = 192 // best size for terminal
+	chunkHeaderOffset = 6                      // chunk_index(2) + chunks_count(2) + chunk_size(2)
+	minMessageSize    = 67 + chunkHeaderOffset // protocol_version(1) + root_compressed_pub(65) + operation(1)
+	baseChunkSize     = 192                    // best size for terminal
 )
 
 type Chunks struct {
@@ -25,15 +25,15 @@ func NewChunks(src []byte, chunkSize int) (*Chunks, error) {
 	if len(src) < minMessageSize {
 		return nil, errors.New("less than airgap message minimum size")
 	}
-	if chunkSize < 32 {
+	if chunkSize < minMessageSize {
 		return nil, errors.New("min chunk size 32")
 	}
 
-	if chunkSize > 1<<16-4 {
+	if chunkSize > 1<<16-chunkHeaderOffset {
 		return nil, errors.New("max chunk size 65531")
 	}
 
-	chunkSize -= chunkHeaderSize
+	chunkSize -= chunkHeaderOffset
 
 	compressedData, err := compress(src)
 
@@ -43,10 +43,15 @@ func NewChunks(src []byte, chunkSize int) (*Chunks, error) {
 
 	chunks := make([][]byte, 0)
 	for iter := 0; iter < len(compressedData); iter += chunkSize {
-		chunk := make([]byte, chunkSize)
-		if len(compressedData[iter:]) >= chunkSize {
+
+		payloadSize := len(compressedData[iter:])
+
+		chunk := make([]byte, 0)
+		if payloadSize >= chunkSize {
+			chunk = make([]byte, chunkSize)
 			copy(chunk, compressedData[iter:iter+chunkSize])
 		} else {
+			chunk = make([]byte, payloadSize)
 			copy(chunk, compressedData[iter:])
 		}
 
@@ -100,12 +105,20 @@ func uncompress(src []byte) ([]byte, error) {
 }
 
 func (f *Chunks) Chunk(index uint16) []byte {
-	chunk := make([]byte, f.size)
+	size := len(f.chunks[index])
+	chunk := make([]byte, f.size+chunkHeaderOffset)
+	// chunk_index
 	chunk[0] = byte(index)
 	chunk[1] = byte(index >> 8)
+	// chunk_count
 	chunk[2] = byte(f.count)
 	chunk[3] = byte(f.count >> 8)
-	copy(chunk[chunkHeaderSize:], f.chunks[index])
+	// chunk_size
+	chunk[4] = byte(size)
+	chunk[5] = byte(size >> 8)
+
+	copy(chunk[chunkHeaderOffset:], f.chunks[index])
+
 	return chunk
 }
 
@@ -131,4 +144,39 @@ func (f *Chunks) ChunksBase64() []string {
 
 func (f *Chunks) Count() uint16 {
 	return f.count
+}
+
+func (f *Chunks) ReadChunk(frame string) error {
+	chunk, err := base64.StdEncoding.DecodeString(frame)
+
+	if err != nil {
+		return err
+	}
+
+	if f.count == 0 {
+		f.count = uint16(chunk[2] | chunk[3]<<8)
+		f.chunks = make([][]byte, f.count)
+	}
+
+	index := int16(chunk[0] | chunk[1]<<8)
+
+	size := int16(chunk[4] | chunk[5]<<8)
+
+	//fmt.Println(chunk[chunkHeaderOffset:])
+
+	if f.chunks[index] == nil {
+		f.chunks[index] = make([]byte, size)
+		copy(f.chunks[index], chunk[chunkHeaderOffset:chunkHeaderOffset+size])
+	}
+
+	return nil
+}
+
+func (f *Chunks) Data() ([]byte, error) {
+	data := make([]byte, 0)
+	for i := 0; i < len(f.chunks); i++ {
+		data = append(data, f.chunks[i]...)
+	}
+	result, err := uncompress(data)
+	return result, err
 }

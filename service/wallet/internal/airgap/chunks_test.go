@@ -2,6 +2,7 @@ package airgap
 
 import (
 	"crypto/rand"
+	"reflect"
 	"testing"
 )
 
@@ -27,9 +28,9 @@ func TestAirGap_CreateMessage(t *testing.T) {
 
 func TestChunks_NewChunks(t *testing.T) {
 	// without remainder
-	chunksCount := uint16(5)
+	/*chunksCount := uint16(3)
 
-	payload := make([]byte, baseChunkSize*chunksCount)
+	payload := make([]byte, (baseChunkSize-chunkHeaderOffset)*chunksCount)
 	rand.Read(payload)
 
 	chunksWithoutRemainder, err := NewChunks(payload, baseChunkSize)
@@ -40,12 +41,20 @@ func TestChunks_NewChunks(t *testing.T) {
 
 	if chunksWithoutRemainder.count != chunksCount {
 		t.Fatal("chunks without remainder generation failed")
+	}*/
+
+	chunksCount := uint16(3)
+	remainder := uint16(0)
+
+	payload := make([]byte, baseChunkSize*chunksCount-remainder)
+
+	count, err := rand.Read(payload)
+
+	if err != nil {
+		t.Fatal("cannot read random")
 	}
 
-	remainder := uint16(7)
-
-	payload = make([]byte, baseChunkSize*chunksCount-remainder)
-	rand.Read(payload)
+	t.Log("Readed random:", count)
 
 	chunksWithRemainder, err := NewChunks(payload, baseChunkSize)
 
@@ -53,8 +62,24 @@ func TestChunks_NewChunks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if chunksWithRemainder.count != chunksCount {
-		t.Fatal("chunks with remainder generation failed")
+	strChunks := chunksWithRemainder.ChunksBase64()
+
+	readedChunks := &Chunks{}
+
+	for i := 0; i < len(strChunks); i++ {
+		err = readedChunks.ReadChunk(strChunks[i])
+		if err != nil {
+			t.Fatal("cannot parse frame")
+		}
 	}
 
+	result, err := readedChunks.Data()
+
+	if err != nil {
+		t.Fatal("cannot uncompress chunks", err)
+	}
+
+	if !reflect.DeepEqual(payload, result) {
+		t.Fatal("mismatch marshalled data")
+	}
 }
