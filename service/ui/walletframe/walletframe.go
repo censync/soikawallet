@@ -94,7 +94,7 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 }
 
 func (f *WalletFrame) Layout() *tview.Flex {
-	layoutMenu := flexmenu.NewFlexMenu()
+	layoutMenu := flexmenu.NewFlexMenu(false)
 
 	layoutMenu.
 		AddMenuItem("QR Dst", 0, func() { f.state.SwitchToPage(pageNameQR) }).

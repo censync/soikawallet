@@ -13,7 +13,7 @@ type pageQr struct {
 	*state.State
 
 	// ui
-	labelQR *tview.TextView
+	labelQR *qrview.QrView
 }
 
 func newPageQr(state *state.State) *pageQr {
@@ -35,12 +35,14 @@ func (p *pageQr) FuncOnShow() {
 		redraw := func() {
 			p.Emit(handler.EventDrawForce, nil)
 		}
-		p.labelQR = qrview.ShowAnimation(chunks.Chunks, 300, redraw)
+		p.labelQR = qrview.NewQrView(chunks.Chunks, 300, redraw)
 		p.layout.AddItem(p.labelQR, 80, 1, false)
+		p.labelQR.Start()
 	}
 
 }
 
 func (p *pageQr) FuncOnHide() {
+	p.labelQR.Stop()
 	p.layout.Clear()
 }

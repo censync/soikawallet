@@ -1,7 +1,5 @@
 package airgap
 
-import "github.com/google/uuid"
-
 const (
 	ProtocolVersion = 1
 
@@ -14,31 +12,26 @@ const (
 
 type AirGap struct {
 	protocol   uint8
-	instanceId [16]byte
+	instanceId [33]byte
 }
 
 func Create() *AirGap {
-	id := uuid.New()
 	return &AirGap{
 		protocol:   ProtocolVersion,
-		instanceId: id,
+		instanceId: [33]byte{},
 	}
 }
 
-func Restore(instanceId string) *AirGap {
-	id, err := uuid.Parse(instanceId)
-	if err != nil {
-		panic("cannot restore instance id")
-	}
+func Restore(instanceId []byte) *AirGap {
 	return &AirGap{
 		protocol:   ProtocolVersion,
-		instanceId: id,
+		instanceId: [33]byte{},
 	}
 }
 
 type Message struct {
 	Version    uint8
-	InstanceId [16]byte
+	InstanceId [33]byte
 	Operation  uint8
 	Data       []byte
 }

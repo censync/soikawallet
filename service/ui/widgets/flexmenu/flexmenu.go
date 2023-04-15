@@ -6,18 +6,20 @@ import (
 )
 
 type FlexMenu struct {
+	largeButtons bool
 	*tview.Flex
 	items []*menuItem
 }
 
-func NewFlexMenu() *FlexMenu {
+func NewFlexMenu(largeButtons bool) *FlexMenu {
 	menuLayout := tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
 	menuLayout.SetBorderPadding(1, 1, 1, 1)
 
 	return &FlexMenu{
-		Flex: menuLayout,
+		largeButtons: largeButtons,
+		Flex:         menuLayout,
 	}
 }
 
@@ -51,7 +53,11 @@ func (f *FlexMenu) AddMenuItem(label string, key tcell.Key, action func()) *Flex
 
 	btn.SetBorderPadding(0, 0, 2, 0)
 
-	f.Flex.AddItem(btn, 1, 1, false)
+	size := 1
+	if f.largeButtons {
+		size = 3
+	}
+	f.Flex.AddItem(btn, size, 1, false)
 	f.Flex.AddItem(nil, 1, 1, false)
 
 	return f

@@ -9,6 +9,9 @@ import (
 type pageSettings struct {
 	*BaseFrame
 	*state.State
+
+	// vars
+	layoutRPCList *tview.Flex
 }
 
 func newPageSettings(state *state.State) *pageSettings {
@@ -24,7 +27,7 @@ func (p *pageSettings) FuncOnShow() {
 	tabs := tabs.NewTabs().
 		AddItem("Application", p.tabApp()).
 		AddItem("Labels", p.tabLabels()).
-		AddItem("nodes", p.tabNodes())
+		AddItem("RPC", p.tabNodes())
 	p.layout.AddItem(tabs, 0, 1, false)
 
 }

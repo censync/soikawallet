@@ -72,7 +72,7 @@ func (p *pageRestoreMnemonic) FuncOnShow() {
 }
 
 func (p *pageRestoreMnemonic) actionRestoreWithMnemonic() {
-	err := service.API().Init(&dto.InitWalletDTO{
+	instanceId, err := service.API().Init(&dto.InitWalletDTO{
 		Mnemonic:   p.inputMnemonic.GetText(),
 		Passphrase: p.inputPassword.GetText(),
 	})
@@ -80,6 +80,7 @@ func (p *pageRestoreMnemonic) actionRestoreWithMnemonic() {
 		p.Emit(handler.EventLogError, fmt.Sprintf("Cannot restore wallet: %s", err))
 	} else {
 		//p.SetWallet(wallet)
+		p.Emit(handler.EventWalletInitialized, instanceId)
 		p.SwitchToPage(pageNameCreateWallets)
 	}
 }

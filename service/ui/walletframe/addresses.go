@@ -164,6 +164,26 @@ func (p *pageAddresses) Layout() *tview.Flex {
 				}
 			}
 		}).
+		AddButton("Label set", func() {
+			if p.API() != nil {
+				err := p.API().AccountLinkRPCSet(&dto.SetRPCLinkedAccountDTO{
+					CoinType:     60,
+					AccountIndex: 1,
+					NodeIndex:    1,
+				})
+				if err != nil {
+					p.Emit(
+						handler.EventLogError,
+						fmt.Sprintf("Cannot link node for account: %s", err),
+					)
+				} else {
+					p.Emit(
+						handler.EventLog,
+						fmt.Sprintf("SETTED"),
+					)
+				}
+			}
+		}).
 		AddButton("!R node!", func() {
 			if p.API() != nil {
 				err := p.API().RemoveAccountLinkRPC(&dto.RemoveRPCLinkedAccountDTO{

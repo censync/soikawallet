@@ -1,7 +1,10 @@
 package wallet
 
 import (
+	"crypto/sha512"
 	"encoding/json"
+	"errors"
+	"github.com/btcsuite/btcd/btcutil/base58"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
@@ -9,7 +12,8 @@ import (
 	"github.com/censync/soikawallet/service/wallet/internal/network"
 	"github.com/censync/soikawallet/service/wallet/meta"
 	"github.com/censync/soikawallet/types"
-	"github.com/google/uuid"
+	"github.com/censync/soikawallet/util/seed"
+	"golang.org/x/crypto/pbkdf2"
 	"strings"
 )
 
@@ -18,7 +22,8 @@ const (
 )
 
 type Wallet struct {
-	instanceId uuid.UUID
+	instanceId []byte
+	nonce      uint64
 	bip44Key   *hdkeychain.ExtendedKey
 	addresses  map[string]*address
 	meta       *meta.Meta
@@ -30,6 +35,51 @@ func (s *Wallet) getNetworkProvider(ctx *types.RPCContext) (types.NetworkAdapter
 
 func (s *Wallet) getRPCProvider(coinType types.CoinType) types.RPCAdapter {
 	return network.Get(coinType)
+}
+
+func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
+	var err error
+	dto.Mnemonic = strings.TrimSpace(dto.Mnemonic)
+	dto.Passphrase = strings.TrimSpace(dto.Passphrase)
+
+	if !dto.SkipPrefixCheck {
+		err = seed.Check(dto.Mnemonic)
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	rootSeed := pbkdf2.Key([]byte(dto.Mnemonic), []byte("mnemonic"+dto.Passphrase), 2048, 64, sha512.New)
+
+	masterKey, err := generateKeyFromSeed(&rootSeed)
+
+	if err != nil {
+		return "", errors.New("cannot initialize master key")
+	}
+
+	masterPubKey, err := masterKey.ECPubKey()
+
+	if err != nil {
+		return "", errors.New("cannot initialize master pub key")
+	}
+
+	bip44Key, err := masterKey.Derive(hardenedKeyStart + 44)
+	if err != nil {
+		return "", errors.New("cannot initialize BIP-44 key")
+	}
+	masterPubKey.SerializeCompressed()
+	*s = Wallet{
+		instanceId: masterPubKey.SerializeCompressed(), //(masterPubKey.SerializeCompressed()),
+		bip44Key:   bip44Key,
+		addresses:  map[string]*address{},
+		meta:       meta.InitMeta(),
+	}
+	return s.getInstanceId(), nil
+}
+
+func (s *Wallet) getInstanceId() string {
+	return base58.Encode(s.instanceId)
 }
 
 func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
@@ -118,10 +168,6 @@ func (s *Wallet) GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []types.Accoun
 	return accounts
 }
 
-func (s *Wallet) GetInstanceId() string {
-	return s.instanceId.String()
-}
-
 func (s *Wallet) FlushKeys(dto *dto.FlushKeysDTO) {
 	s.bip44Key = nil
 	for key := range s.addresses {
@@ -144,6 +190,14 @@ func (s *Wallet) ExportMeta() (*resp.AirGapMessageResponse, error) {
 	return &resp.AirGapMessageResponse{
 		Chunks: chunks.ChunksBase64(),
 	}, nil
+}
+
+func (s *Wallet) ExportMetaDebug() ([]byte, error) {
+	data, err := s.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func (s *Wallet) MarshalJSON() ([]byte, error) {

@@ -14,14 +14,13 @@ func API() WalletAdapter {
 }
 
 type WalletAdapter interface {
-	Init(dto *dto.InitWalletDTO) error
+	Init(dto *dto.InitWalletDTO) (string, error)
 	GenerateMnemonic(dto *dto.GenerateMnemonicDTO) (string, error)
 
 	SendTokens(dto *dto.SendTokensDTO) (txId string, err error)
 	GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error)
 	// GetAllAccounts() []types.AccountIndex
 	GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []types.AccountIndex
-	GetInstanceId() string
 
 	GetAccountLabels() map[uint32]string
 	GetAddressLabels() map[uint32]string
@@ -52,4 +51,5 @@ type WalletAdapter interface {
 
 	// AirGap
 	ExportMeta() (*resp.AirGapMessageResponse, error)
+	ExportMetaDebug() ([]byte, error)
 }

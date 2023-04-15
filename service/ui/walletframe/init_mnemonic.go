@@ -80,7 +80,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
 		SetStyleAttrs(tcell.AttrBold).
 		SetSelectedFunc(func() {
-			err := service.API().Init(&dto.InitWalletDTO{
+			instanceId, err := service.API().Init(&dto.InitWalletDTO{
 				Mnemonic:   p.mnemonic,
 				Passphrase: inputPassword.GetText(),
 			})
@@ -89,6 +89,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 			} else {
 				//p.SetWallet(walletInstance)
 				clipboard.Clear()
+				p.Emit(handler.EventWalletInitialized, instanceId)
 				p.SwitchToPage(pageNameCreateWallets)
 			}
 		})

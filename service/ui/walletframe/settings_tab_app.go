@@ -1,7 +1,6 @@
 package walletframe
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/censync/soikawallet/service/ui/handler"
 	"github.com/rivo/tview"
@@ -14,27 +13,39 @@ func (p *pageSettings) tabApp() *tview.Flex {
 
 	formConfigLocation := tview.NewForm().
 		SetHorizontal(true).
-		AddInputField("path", ".soikawallet/config", 20, nil, nil).
-		AddButton("Save", func() {
-
-		})
-	formSaveConfig := tview.NewForm().
-		SetHorizontal(true).
+		AddInputField("path", ".soikawallet/config.json", 20, nil, nil).
 		AddButton("Export", func() {
-			// file, err := os.Open("config")
-			data, err := json.Marshal(p.API())
+			// DEBUG
+			homeDir, err := os.UserHomeDir()
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot marshal config: %s", err))
+				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot get user home dir: %s", err))
 				return
 			}
-			err = os.WriteFile("config.json", data, 644)
+
+			meta, err := p.API().ExportMetaDebug()
+			if err != nil {
+				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot get meta: %s", err))
+				return
+			}
+
+			if _, err = os.Stat(homeDir + "/.soikawallet"); err != nil {
+				if os.IsNotExist(err) {
+					err = os.MkdirAll(homeDir+"/.soikawallet", os.ModePerm)
+					if err != nil {
+						p.Emit(handler.EventLogError, fmt.Sprintf("Cannot create settings dir: %s", err))
+						return
+					}
+				}
+				p.Emit(handler.EventLogError, fmt.Sprintf("Err: %s", err))
+			}
+			err = os.WriteFile(homeDir+"/.soikawallet/config.json", meta, 600)
 			if err != nil {
 				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot save file: %s", err))
 				return
 			}
+			p.Emit(handler.EventLogSuccess, "Config saved")
 		})
 
-	layout.AddItem(formConfigLocation, 3, 1, false).
-		AddItem(formSaveConfig, 3, 1, false)
+	layout.AddItem(formConfigLocation, 3, 1, false)
 	return layout
 }

@@ -20,40 +20,84 @@ const (
 )
 
 type QrView struct {
-	*tview.Flex
+	*tview.TextView
+
+	// vars
+	redraw   func()
+	chunks   []string
+	duration time.Duration
+
+	isStarted bool
+	animDone  chan bool
 }
 
-func ShowAnimation(chunks []string, duration int, redraw func()) *tview.TextView {
-
-	labelQr := tview.NewTextView().
+func NewQrView(chunks []string, duration time.Duration, redraw func()) *QrView {
+	label := tview.NewTextView().
 		SetWordWrap(false).
 		//SetTextColor(tcell.ColorBlack).
 		SetScrollable(false).
 		SetTextAlign(tview.AlignCenter)
 
-	labelQr.SetTextColor(tcell.ColorBlack).
+	label.SetTextColor(tcell.ColorBlack).
 		SetBackgroundColor(tcell.ColorLightGray)
 
-	update := func() {
-
-		for i := 0; i < len(chunks); i++ {
-			qrc, err := qrcode.New(chunks[i], qrcode.Low)
-			if err != nil {
-				log.Fatal(err)
-			}
-			bitmap := qrc.Bitmap()
-
-			buf := bytes.NewBufferString("")
-			generateFrame(buf, bitmap)
-			labelQr.SetText(buf.String())
-			redraw()
-			time.Sleep(time.Duration(duration) * time.Millisecond)
-		}
+	return &QrView{
+		TextView: label,
+		chunks:   chunks,
+		duration: duration,
+		redraw:   redraw,
 	}
 
-	go update()
+}
 
-	return labelQr
+func (qr *QrView) Start() {
+	if !qr.isStarted {
+		qr.isStarted = true
+	} else {
+		return
+	}
+
+	qr.animDone = make(chan bool, 1)
+	ticker := time.NewTicker(qr.duration * time.Millisecond)
+
+	for i := 0; i < len(qr.chunks); i++ {
+		qrc, err := qrcode.New(qr.chunks[i], qrcode.Low)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		bitmap := qrc.Bitmap()
+
+		buf := bytes.NewBufferString("")
+		generateFrame(buf, bitmap)
+		qr.chunks[i] = buf.String()
+	}
+
+	go func() {
+		frameId := 0
+		for {
+			select {
+			case <-ticker.C:
+				frame := qr.chunks[frameId%len(qr.chunks)]
+				qr.SetText(frame)
+				qr.redraw()
+				frameId++
+			case <-qr.animDone:
+				qr.isStarted = false
+				ticker.Stop()
+				close(qr.animDone)
+				return
+			}
+		}
+	}()
+}
+
+func (qr *QrView) Stop() {
+	qr.animDone <- true
+	qr.Clear()
 }
 
 func generateFrame(w io.Writer, code [][]bool) {

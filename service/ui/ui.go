@@ -63,13 +63,13 @@ func (t *Tui) initLayout() *tview.Flex {
 	labelTitle.SetBackgroundColor(tcell.ColorDarkGrey).
 		SetBorderPadding(0, 0, 0, 2)
 
-	labelUUID := tview.NewTextView().
+	labelInstanceId := tview.NewTextView().
 		SetDynamicColors(true).
 		SetWrap(false).
 		SetTextAlign(tview.AlignLeft).
-		SetText(`[darkcyan]UUID:[black] 00000000-0000-0000-0000-000000000000`)
+		SetText(`[darkcyan]ID:[black] not initialized`)
 
-	labelUUID.SetBackgroundColor(tcell.ColorDarkGrey).
+	labelInstanceId.SetBackgroundColor(tcell.ColorDarkGrey).
 		SetBorderPadding(0, 0, 2, 0)
 
 	layoutStatus := statusview.NewStatusView()
@@ -80,7 +80,7 @@ func (t *Tui) initLayout() *tview.Flex {
 
 	layoutHeader := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
-		AddItem(labelUUID, 0, 1, false).
+		AddItem(labelInstanceId, 0, 1, false).
 		AddItem(labelTitle, 0, 1, false)
 
 	layout := tview.NewFlex().
@@ -104,9 +104,9 @@ func (t *Tui) initLayout() *tview.Flex {
 					layoutStatus.Warn(event.String())
 				case h.EventLogError:
 					layoutStatus.Error(event.String())
-				case h.EventUpdatedWallet:
-					layoutStatus.Info("Wallet updated: " + event.String())
-					labelUUID.SetText(fmt.Sprintf("[darkcyan]UUID:[black] %s", event.String()))
+				case h.EventWalletInitialized:
+					//layoutStatus.Info("Wallet updated: " + event.String())
+					labelInstanceId.SetText(fmt.Sprintf("[darkcyan]ID:[black] %s", event.String()))
 				case h.EventDrawForce:
 					t.app.Draw()
 				case h.EventShowModal:
@@ -139,7 +139,6 @@ func (t *Tui) initLayout() *tview.Flex {
 
 func (t *Tui) Run(verbose bool) {
 	// Run the application
-	t.isVerboseMode = false
 
 	if t.isVerboseMode {
 		t.tbus.Emit(h.EventLog, "Verbose mode enabled")

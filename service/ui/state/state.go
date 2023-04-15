@@ -41,7 +41,7 @@ func InitState(events *handler.TBus, tr *i18n.Translator) *State {
 
 func (s *State) SetWallet(wallet *wallet.Wallet) {
 	s.isInitialised = true
-	s.events.Emit(handler.EventUpdatedWallet, "xxxx-xxxxx-xxxx") // GetInstanceId()
+	s.events.Emit(handler.EventWalletInitialized, "xxxx-xxxxx-xxxx") // GetInstanceId()
 }
 
 func (s *State) Emit(event handler.EventType, data interface{}) {

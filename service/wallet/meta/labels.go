@@ -24,10 +24,7 @@ func initLabels() Labels {
 	}
 }
 
-func (m *Labels) Exists(label string) bool {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
+func (m *Labels) exists(label string) bool {
 	for idx := range m.data {
 		if strings.ToLower(m.data[idx]) == strings.ToLower(label) {
 			return true
@@ -49,7 +46,7 @@ func (m *Labels) Add(label string) (uint32, error) {
 
 	var lastIndex uint32
 
-	if m.Exists(label) {
+	if m.exists(label) {
 		return 0, errors.New("label already exist")
 	}
 

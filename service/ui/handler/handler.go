@@ -9,7 +9,7 @@ const (
 	EventLogWarning
 	EventLogError
 
-	EventUpdatedWallet
+	EventWalletInitialized
 	EventDrawForce
 	EventShowModal
 	EventQuit
