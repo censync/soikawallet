@@ -22,9 +22,9 @@ type Chunks struct {
 }
 
 func NewChunks(src []byte, chunkSize int) (*Chunks, error) {
-	if len(src) < minMessageSize {
+	/*if len(src) < minMessageSize {
 		return nil, errors.New("less than airgap message minimum size")
-	}
+	}*/
 	if chunkSize < minMessageSize {
 		return nil, errors.New("min chunk size 32")
 	}

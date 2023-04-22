@@ -14,7 +14,7 @@ type pageOperationTx struct {
 	*BaseFrame
 	*state.State
 
-	selectedAddr *responses.AddressResponse
+	paramSelectedAddr *responses.AddressResponse
 
 	// ui
 	layoutTokensTreeView *tview.TreeView
@@ -45,10 +45,10 @@ func (p *pageOperationTx) FuncOnShow() {
 		p.SwitchToPage(p.Pages().GetPrevious())
 	}
 
-	p.selectedAddr = p.Params()[0].(*responses.AddressResponse)
+	p.paramSelectedAddr = p.Params()[0].(*responses.AddressResponse)
 
 	p.availableTokens, err = p.API().GetTokensByPath(&dto.GetAddressTokensByPathDTO{
-		DerivationPath: p.selectedAddr.Path,
+		DerivationPath: p.paramSelectedAddr.Path,
 	})
 
 	if err != nil {
@@ -88,13 +88,13 @@ func (p *pageOperationTx) actionUpdateTokens() {
 	p.layoutTokensTreeView.SetBorder(true)
 
 	balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensByPathDTO{
-		DerivationPath: p.selectedAddr.Path,
+		DerivationPath: p.paramSelectedAddr.Path,
 	})
 
 	if err != nil {
 		p.Emit(
 			handler.EventLogError,
-			fmt.Sprintf("Cannot get data for %s: %s", p.selectedAddr.Path, err),
+			fmt.Sprintf("Cannot get data for %s: %s", p.paramSelectedAddr.Path, err),
 		)
 	}
 
@@ -111,7 +111,7 @@ func (p *pageOperationTx) uiOperationForm() *tview.Form {
 		SetHorizontal(false)
 	layoutForm.SetBorder(true)
 
-	inputAddrSender := formtextview.NewFormTextView(p.selectedAddr.Address)
+	inputAddrSender := formtextview.NewFormTextView(p.paramSelectedAddr.Address)
 
 	inputAddrReceiver := tview.NewInputField().
 		SetLabel(`Receiver`)
@@ -124,7 +124,7 @@ func (p *pageOperationTx) uiOperationForm() *tview.Form {
 		SetFieldWidth(10).
 		SetOptions(p.tokensList, func(text string, index int) {
 			if index == len(p.tokensList)-1 {
-				p.SwitchToPage(pageNameTokenAdd, p.selectedAddr.CoinType, p.selectedAddr.Path)
+				p.SwitchToPage(pageNameTokenAdd, p.paramSelectedAddr.CoinType, p.paramSelectedAddr.Path)
 			}
 		}).
 		SetCurrentOption(0)
@@ -144,7 +144,7 @@ func (p *pageOperationTx) uiConfirmSendForm(receiver, contract string) *tview.Fo
 		SetHorizontal(false)
 	layoutForm.SetBorder(true)
 
-	/* inputAddrSender := formtextview.NewFormTextView(p.selectedAddr.Address)
+	/* inputAddrSender := formtextview.NewFormTextView(p.paramSelectedAddr.Address)
 
 	inputAddrReceiver := formtextview.NewFormTextView(fmt.Sprintf(`Receiver: %s`, receiver))
 
@@ -165,7 +165,7 @@ func (p *pageOperationTx) uiConfirmSendForm(receiver, contract string) *tview.Fo
 }
 
 func (p *pageOperationTx) FuncOnHide() {
-	p.selectedAddr = nil
+	p.paramSelectedAddr = nil
 	p.tokensList = nil
 	p.availableTokens = nil
 	p.layout.Clear()

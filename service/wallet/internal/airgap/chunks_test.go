@@ -2,6 +2,7 @@ package airgap
 
 import (
 	"crypto/rand"
+	"github.com/censync/soikawallet/types"
 	"reflect"
 	"testing"
 )
@@ -11,7 +12,7 @@ func TestAirGap_CreateMessage(t *testing.T) {
 
 	airgapInstance := Create()
 
-	message := airgapInstance.CreateMessage(OperationExportMeta, []byte(metaStr))
+	message := airgapInstance.CreateMessage().AddOperation(types.OpMetaAirGap, []byte(metaStr))
 
 	t.Log(len(message.Bytes()))
 

@@ -3,12 +3,14 @@ package wallet
 import (
 	"encoding/base64"
 	"github.com/censync/soikawallet/service/wallet/internal/airgap"
+	"github.com/censync/soikawallet/types"
 	ecies2 "github.com/ecies/go/v2"
 )
 
 func AirGapInitMessage() string {
 	a := airgap.Create()
-	b64 := base64.StdEncoding.EncodeToString(a.CreateMessage(7, GetECIESPub()).Bytes())
+	airGapMessage := a.CreateMessage().AddOperation(types.OpInitBootstrap, nil)
+	b64 := base64.StdEncoding.EncodeToString(airGapMessage.Bytes())
 	return b64
 }
 

@@ -1,6 +1,8 @@
 package meta
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/censync/soikawallet/types"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -91,6 +93,14 @@ func TestTokens_SetTokenConfigAddressLink_Positive(t *testing.T) {
 
 		assert.Nil(t, err)
 	}
+}
+
+func TestTokens_MarshalJSON_Positive(t *testing.T) {
+	TestTokens_AddTokenConfig_Positive(t)
+	TestTokens_SetTokenConfigAddressLink_Positive(t)
+	str, err := json.Marshal(metaTokens)
+	assert.Nil(t, err)
+	fmt.Println(string(str))
 }
 
 func TestTokens_SetTokenConfigAddressLink_Negative_Duplicate(t *testing.T) {

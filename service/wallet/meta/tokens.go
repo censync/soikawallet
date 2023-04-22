@@ -1,7 +1,9 @@
 package meta
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/censync/soikawallet/types"
 	"sync"
 )
@@ -166,4 +168,21 @@ func (t *tokens) RemoveTokenConfigAddressLink(tokenIndex types.TokenIndex, accou
 		}
 	}
 	return nil
+}
+
+func (t *tokens) MarshalJSON() ([]byte, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	tokensExport := map[string]*types.TokenConfig{}
+	for tokenIndex, token := range t.tokens {
+		tokensExport[fmt.Sprintf("%d:%d", tokenIndex.CoinType, token.Index)] = token.TokenConfig
+	}
+
+	result := map[string]interface{}{
+		"tokens": tokensExport,
+		"links":  t.addressesLinks,
+	}
+
+	return json.Marshal(result)
 }

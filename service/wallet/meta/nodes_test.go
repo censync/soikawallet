@@ -1,6 +1,7 @@
 package meta
 
 import (
+	"encoding/json"
 	"github.com/censync/soikawallet/types"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -85,6 +86,13 @@ func TestNodes_SetRPCAccountLink_Positive(t *testing.T) {
 		assert.Nil(t, err)
 
 	}
+}
+
+func TestNodes_MarshalJSON_Positive(t *testing.T) {
+	// TestNodes_AddRPCNode_Positive(t)
+	// TestNodes_SetRPCAccountLink_Positive(t)
+	_, err := json.Marshal(metaNodes)
+	assert.Nil(t, err)
 }
 
 func TestNodes_RemoveRPCAccountLink_Positive(t *testing.T) {

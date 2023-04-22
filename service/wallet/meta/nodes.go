@@ -1,7 +1,9 @@
 package meta
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/censync/soikawallet/types"
 	"sync"
 )
@@ -86,4 +88,28 @@ func (n *nodes) RemoveRPCAccountLink(nodeIndex types.NodeIndex, accountIndex typ
 			n.accountsLinks[nodeIndex] = append(n.accountsLinks[nodeIndex][:index], n.accountsLinks[nodeIndex][index+1:]...)
 		}
 	}
+}
+
+func (n *nodes) MarshalJSON() ([]byte, error) {
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+
+	nodesExport := map[string]*types.RPC{}
+	for nodeIndex, node := range n.nodes {
+		nodesExport[fmt.Sprintf("%d:%d", nodeIndex.CoinType, nodeIndex.Index)] = node
+	}
+
+	linksExport := map[string][]types.AccountIndex{}
+	for nodeIndex, link := range n.accountsLinks {
+		if len(link) > 0 {
+			linksExport[fmt.Sprintf("%d:%d", nodeIndex.CoinType, nodeIndex.Index)] = link
+		}
+	}
+
+	result := map[string]interface{}{
+		"nodes": nodesExport,
+		"links": linksExport,
+	}
+
+	return json.Marshal(result)
 }

@@ -23,7 +23,6 @@ const (
 
 type Wallet struct {
 	instanceId []byte
-	nonce      uint64
 	bip44Key   *hdkeychain.ExtendedKey
 	addresses  map[string]*address
 	meta       *meta.Meta
@@ -183,7 +182,10 @@ func (s *Wallet) ExportMeta() (*resp.AirGapMessageResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	chunks, err := airgap.NewChunks(data, 192)
+	a := airgap.Restore(s.instanceId).
+		CreateMessage().
+		AddOperation(types.OpMetaWallet, data)
+	chunks, err := airgap.NewChunks(a.Bytes(), 192)
 	if err != nil {
 		return nil, err
 	}

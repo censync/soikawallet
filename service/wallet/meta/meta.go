@@ -3,6 +3,7 @@ package meta
 import (
 	"encoding/json"
 	"errors"
+	"time"
 )
 
 const (
@@ -13,15 +14,22 @@ const (
 // all user configuration with AirGap
 
 type Meta struct {
+	version        uint8
+	nonce          uint32
+	nonceUpdatedAt uint64 // UTC
+	deliveredKeys  []string
 	labels
 	nodes
 	tokens
-	version uint8
 }
 
 func InitMeta() *Meta {
 	instance := &Meta{
 		version: metaSettingsVersion,
+		// debug
+		deliveredKeys:  []string{"m/44'/60'/130'/0", "m/44'/60'/130'/1", "m/44'/60'/130'/2"},
+		nonce:          42,
+		nonceUpdatedAt: uint64(time.Now().UTC().Unix()),
 	}
 
 	instance.initLabels()
@@ -35,15 +43,19 @@ func InitMeta() *Meta {
 
 func (m *Meta) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Version uint8                           `json:"v"`
-		Labels  map[LabelType]map[uint32]string `json:"labels"`
-		// nodes   map[types.NodeIndex]map[string]map[string]string
+		Version       uint8    `json:"v"`
+		Nonce         uint32   `json:"nonce"`
+		DeliveredKeys []string `json:"delivered_keys"`
+		Labels        labels   `json:"labels"`
+		Nodes         nodes    `json:"nodes"`
+		Tokens        tokens   `json:"tokens"`
 	}{
-		Version: m.version,
-		Labels: map[LabelType]map[uint32]string{
-			AccountLabel: m.labelsAccount.Data(),
-			AddressLabel: m.labelsAddress.Data(),
-		},
+		Version:       m.version,
+		Nonce:         m.nonce,
+		DeliveredKeys: m.deliveredKeys,
+		Labels:        m.labels,
+		Nodes:         m.nodes,
+		Tokens:        m.tokens,
 	})
 }
 

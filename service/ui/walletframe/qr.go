@@ -5,6 +5,7 @@ import (
 	"github.com/censync/soikawallet/service/ui/handler"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/qrview"
+	"github.com/censync/soikawallet/types"
 	"github.com/rivo/tview"
 )
 
@@ -14,6 +15,9 @@ type pageQr struct {
 
 	// ui
 	labelQR *qrview.QrView
+
+	// vars
+	paramAction uint8
 }
 
 func newPageQr(state *state.State) *pageQr {
@@ -26,6 +30,17 @@ func newPageQr(state *state.State) *pageQr {
 }
 
 func (p *pageQr) FuncOnShow() {
+	/*if p.Params() == nil || len(p.Params()) != 1 {
+		p.Emit(
+			handler.EventLogError,
+			fmt.Sprintf("Incorrect params"),
+		)
+		p.SwitchToPage(p.Pages().GetPrevious())
+	}*/
+
+	if p.paramAction == types.OpInitBootstrap {
+
+	}
 	chunks, err := p.API().ExportMeta()
 
 	if err != nil {

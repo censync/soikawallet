@@ -19,9 +19,9 @@ type pageTokenAdd struct {
 	layoutTokenAdd *tview.Flex
 
 	// vars
-	selectedCoin           types.CoinType
-	selectedTokenStandard  types.TokenStandard
-	selectedDerivationPath string
+	paramSelectedCoin           types.CoinType
+	selectedTokenStandard       types.TokenStandard
+	paramSelectedDerivationPath string
 }
 
 func newPageTokenAdd(state *state.State) *pageTokenAdd {
@@ -50,8 +50,8 @@ func (p *pageTokenAdd) FuncOnShow() {
 		p.SwitchToPage(p.Pages().GetPrevious())
 	}
 
-	p.selectedCoin = p.Params()[0].(types.CoinType)
-	p.selectedDerivationPath = p.Params()[1].(string)
+	p.paramSelectedCoin = p.Params()[0].(types.CoinType)
+	p.paramSelectedDerivationPath = p.Params()[1].(string)
 
 	p.layoutTokenAdd.AddItem(p.uiTokenAddForm(), 0, 1, false)
 
@@ -72,7 +72,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 	inputSelectTokenStandard := tview.NewDropDown().
 		SetLabel("Type").
 		SetFieldWidth(10).
-		SetOptions(types.GetTokenStandardNames(p.selectedCoin), func(text string, index int) {
+		SetOptions(types.GetTokenStandardNames(p.paramSelectedCoin), func(text string, index int) {
 			p.selectedTokenStandard = types.GetTokenStandByName(text)
 		}).
 		SetCurrentOption(0)
@@ -82,7 +82,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 		AddFormItem(inputSelectTokenStandard).
 		AddButton("Check contract", func() {
 			tokenInfo, err := p.API().GetToken(&dto.GetTokenDTO{
-				CoinType: uint32(p.selectedCoin),
+				CoinType: uint32(p.paramSelectedCoin),
 				Contract: inputContractAddr.GetText(),
 			})
 			if err != nil {
@@ -113,9 +113,9 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 		AddButton("Add token", func() {
 			err := p.API().UpsertToken(&dto.AddTokenDTO{
 				Standard:       uint8(p.selectedTokenStandard),
-				CoinType:       uint32(p.selectedCoin),
+				CoinType:       uint32(p.paramSelectedCoin),
 				Contract:       tokenConfig.Contract,
-				DerivationPath: p.selectedDerivationPath,
+				DerivationPath: p.paramSelectedDerivationPath,
 			})
 
 			if err != nil {

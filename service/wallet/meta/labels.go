@@ -1,6 +1,7 @@
 package meta
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 	"sync"
@@ -101,4 +102,12 @@ func (l *labels) RemoveAccountLabel(index uint32) error {
 
 func (l *labels) RemoveAddressLabel(index uint32) error {
 	return l.labelsAddress.Remove(index)
+}
+
+func (l *labels) MarshalJSON() ([]byte, error) {
+	result := map[LabelType]interface{}{
+		AccountLabel: l.labelsAccount.Data(),
+		AddressLabel: l.labelsAddress.Data(),
+	}
+	return json.Marshal(result)
 }

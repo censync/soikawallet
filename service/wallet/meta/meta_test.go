@@ -1,6 +1,11 @@
 package meta
 
-/*
+import (
+	"encoding/json"
+	"fmt"
+	"testing"
+)
+
 func TestMeta_MarshalJSON(t *testing.T) {
 	meta := InitMeta()
 
@@ -15,7 +20,7 @@ func TestMeta_MarshalJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	//fmt.Println(string(str), err)
+	fmt.Println(string(str), err)
 
 	meta2 := &Meta{}
 	err = json.Unmarshal(str, &meta2)
@@ -24,20 +29,3 @@ func TestMeta_MarshalJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
-
-func TestLabels_Add(t *testing.T) {
-	var labels = initLabels()
-	labels.Add("First")
-	t.Log(labels)
-	labels.Add("Second")
-	t.Log(labels)
-	labels.Add("Third")
-	t.Log(labels)
-	labels.Add("Fourth")
-	t.Log(labels)
-
-	labels.Remove(2)
-	t.Log(labels)
-}
-*/

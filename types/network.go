@@ -92,6 +92,16 @@ func (r *RPC) IsDefault() bool {
 	return r.isDefault
 }
 
+func (r *RPC) MarshalJSON() ([]byte, error) {
+	result := fmt.Sprintf(
+		`["%s","%s","%t"]`,
+		r.Title(),
+		r.Endpoint(),
+		r.isDefault,
+	)
+	return []byte(result), nil
+}
+
 type TokenConfig struct {
 	standard  TokenStandard
 	name      string
@@ -101,28 +111,41 @@ type TokenConfig struct {
 	isBuiltin bool
 }
 
-func (t TokenConfig) Standard() TokenStandard {
+func (t *TokenConfig) Standard() TokenStandard {
 	return t.standard
 }
 
-func (t TokenConfig) Name() string {
+func (t *TokenConfig) Name() string {
 	return t.name
 }
 
-func (t TokenConfig) Symbol() string {
+func (t *TokenConfig) Symbol() string {
 	return t.symbol
 }
 
-func (t TokenConfig) Contract() string {
+func (t *TokenConfig) Contract() string {
 	return t.contract
 }
 
-func (t TokenConfig) Decimals() int {
+func (t *TokenConfig) Decimals() int {
 	return t.decimals
 }
 
-func (t TokenConfig) IsBuiltin() bool {
+func (t *TokenConfig) IsBuiltin() bool {
 	return t.isBuiltin
+}
+
+func (t *TokenConfig) MarshalJSON() ([]byte, error) {
+	result := fmt.Sprintf(
+		`["%d","%s","%s","%s","%d","%t"]`,
+		t.Standard(),
+		t.Name(),
+		t.Symbol(),
+		t.Contract(),
+		t.Decimals(),
+		t.IsBuiltin(),
+	)
+	return []byte(result), nil
 }
 
 func NewTokenConfig(standard TokenStandard, name string, symbol string, contract string, decimals int) *TokenConfig {
