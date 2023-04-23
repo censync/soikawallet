@@ -44,7 +44,7 @@ func InitMeta() *Meta {
 func (m *Meta) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Version       uint8    `json:"v"`
-		Nonce         uint32   `json:"nonce"`
+		Nonce         uint32   `json:"nonce"` // TODO: Add updated at
 		DeliveredKeys []string `json:"delivered_keys"`
 		Labels        labels   `json:"labels"`
 		Nodes         nodes    `json:"nodes"`

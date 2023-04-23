@@ -17,9 +17,14 @@ func Create() *AirGap {
 }
 
 func Restore(instanceId []byte) *AirGap {
+	if len(instanceId) != 33 {
+		panic("incorrect instance pub key size")
+	}
+	compressedPubKey := [33]byte{}
+	copy(compressedPubKey[:], instanceId)
 	return &AirGap{
 		protocol:   ProtocolVersion,
-		instanceId: [33]byte{},
+		instanceId: compressedPubKey,
 	}
 }
 
@@ -66,8 +71,8 @@ func (m *Message) Bytes() []byte {
 		payload[3] = byte(m.Payload[i].Size >> 8)
 		payload[4] = byte(m.Payload[i].Size)
 
+		copy(payload[5:], m.Payload[i].Data)
 		result = append(result, payload...)
-		result = append(result, m.Payload[i].Data...)
 	}
 	return result
 }

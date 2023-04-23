@@ -11,7 +11,7 @@ import (
 
 const (
 	chunkHeaderOffset = 6                      // chunk_index(2) + chunks_count(2) + chunk_size(2)
-	minMessageSize    = 67 + chunkHeaderOffset // protocol_version(1) + root_compressed_pub(65) + operation(1)
+	minMessageSize    = 35 + chunkHeaderOffset // protocol_version(1) + root_compressed_pub(33) + operation(1)
 	baseChunkSize     = 192                    // best size for terminal
 )
 
