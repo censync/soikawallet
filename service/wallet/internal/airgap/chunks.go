@@ -11,7 +11,7 @@ import (
 
 const (
 	chunkHeaderOffset = 6                      // chunk_index(2) + chunks_count(2) + chunk_size(2)
-	minMessageSize    = 35 + chunkHeaderOffset // protocol_version(1) + root_compressed_pub(33) + operation(1)
+	minChunkSize      = 34 + chunkHeaderOffset // protocol_version(1) + root_compressed_pub(33)
 	baseChunkSize     = 192                    // best size for terminal
 )
 
@@ -22,10 +22,10 @@ type Chunks struct {
 }
 
 func NewChunks(src []byte, chunkSize int) (*Chunks, error) {
-	/*if len(src) < minMessageSize {
+	/*if len(src) < minChunkSize {
 		return nil, errors.New("less than airgap message minimum size")
 	}*/
-	if chunkSize < minMessageSize {
+	if chunkSize < minChunkSize {
 		return nil, errors.New("min chunk size 32")
 	}
 

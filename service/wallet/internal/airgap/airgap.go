@@ -31,7 +31,6 @@ func Restore(instanceId []byte) *AirGap {
 type Message struct {
 	Version    uint8
 	InstanceId [33]byte
-	Nonce      uint64
 	Payload    []*OperationPayload
 }
 
