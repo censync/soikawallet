@@ -115,7 +115,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		AddButton(p.Tr().T("ui.button", "copy_to_clipboard"), func() {
 			err := clipboard.CopyToClipboard(p.mnemonic)
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot generate mnemonic: %s", err))
+				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
 			}
 		})
 

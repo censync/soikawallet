@@ -178,7 +178,7 @@ func (s *Wallet) FlushKeys(dto *dto.FlushKeysDTO) {
 }
 
 func (s *Wallet) ExportMeta() (*resp.AirGapMessageResponse, error) {
-	data, err := s.MarshalJSON()
+	data, err := s.meta.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}

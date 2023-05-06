@@ -9,6 +9,7 @@ import (
 	"github.com/censync/soikawallet/service/ui/widgets/spinner"
 	"github.com/censync/soikawallet/service/ui/widgets/strip_color"
 	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"strconv"
@@ -29,7 +30,7 @@ type pageAddresses struct {
 	layoutAddressesTree *tview.TreeView
 	addrTree            *tview.TreeNode
 	layoutDetails       *tview.Flex
-	layoutSelected      *tview.Flex
+	layoutAddrSelected  *tview.Flex
 	labelQR             *tview.TextView
 
 	// var
@@ -59,10 +60,10 @@ func (p *pageAddresses) Layout() *tview.Flex {
 	p.layoutDetails = tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
-	p.layoutSelected = tview.NewFlex().
+	p.layoutAddrSelected = tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
-	p.layoutSelected.SetTitle(" Send from ").
+	p.layoutAddrSelected.SetTitle(" Send from ").
 		SetBorder(true).
 		SetBorderColor(tcell.ColorDimGrey).
 		SetBorderPadding(0, 0, 3, 0)
@@ -84,6 +85,23 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		SetToggleHighlights(true).
 		SetTextColor(tcell.ColorBlue)
 
+	btnSelectedAddrCopy := tview.NewButton("copy").SetSelectedFunc(func() {
+		if p.selectedAddress != nil {
+			err := clipboard.CopyToClipboard(p.selectedAddress.Address)
+			if err != nil {
+				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
+			} else {
+				p.Emit(handler.EventLogSuccess, "Address copied to clipboard")
+			}
+
+		}
+	})
+
+	layoutSelectedAddrOptions := tview.NewFlex().
+		SetDirection(tview.FlexColumn).
+		AddItem(btnSelectedAddrCopy, 10, 1, false).
+		AddItem(nil, 0, 1, false)
+
 	p.addrTree = tview.NewTreeNode("wallets")
 	p.layoutAddressesTree.SetRoot(p.addrTree).SetTopLevel(1)
 
@@ -95,6 +113,11 @@ func (p *pageAddresses) Layout() *tview.Flex {
 					p.SwitchToPage(pageNameOperationTx, p.selectedAddress)
 				}
 				return action, nil
+			} else if action == tview.MouseLeftClick && p.selectedAddress != nil {
+				if p.layoutAddressesTree.GetCurrentNode().GetLevel() != addrNodeLevelAddr {
+					p.selectedAddress = nil
+					p.clearLayoutSelected()
+				}
 			}
 		}
 		return action, event
@@ -112,7 +135,7 @@ func (p *pageAddresses) Layout() *tview.Flex {
 			}
 		}
 		if p.selectedAddress != nil {
-			p.updateLayoutDetails()
+			p.updateLayoutAddrDetails()
 		}
 
 	})
@@ -210,12 +233,13 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		SetBorder(true).
 		SetBorderColor(tcell.ColorDimGrey)
 
-	p.layoutSelected.
+	p.layoutAddrSelected.
 		AddItem(viewSelectedPath, 1, 1, false).
-		AddItem(viewSelectedAddr, 1, 1, false)
+		AddItem(viewSelectedAddr, 1, 1, false).
+		AddItem(layoutSelectedAddrOptions, 0, 1, false)
 
 	p.layoutDetails.
-		AddItem(p.layoutSelected, 4, 1, false).
+		AddItem(p.layoutAddrSelected, 5, 1, false).
 		//AddItem(tview.NewTextView().SetText("[ Send to ]").SetTextColor(tcell.ColorYellow), 1, 1, false).
 		AddItem(formDetails, 5, 1, false).
 		AddItem(formDetails2, 3, 1, false).
@@ -356,16 +380,23 @@ func (p *pageAddresses) actionTreeSpinnersUpdateFrame(frame string) {
 
 func (p *pageAddresses) clearLayoutSelected() {
 	p.clearAddrQR()
-	p.layoutSelected.GetItem(0).(*tview.TextView).Clear()
-	p.layoutSelected.GetItem(1).(*tview.TextView).Clear()
+	// path
+	p.layoutAddrSelected.GetItem(0).(*tview.TextView).Clear()
+	// addr
+	p.layoutAddrSelected.GetItem(1).(*tview.TextView).Clear()
+	// btn copy
+	p.layoutAddrSelected.GetItem(2).(*tview.Flex).
+		GetItem(0).(*tview.Button).SetDisabled(true)
 }
 
-func (p *pageAddresses) updateLayoutDetails() {
+func (p *pageAddresses) updateLayoutAddrDetails() {
 	p.clearLayoutSelected()
-	p.layoutSelected.GetItem(0).(*tview.TextView).
+	p.layoutAddrSelected.GetItem(0).(*tview.TextView).
 		SetText(p.selectedAddress.Path)
-	p.layoutSelected.GetItem(1).(*tview.TextView).
+	p.layoutAddrSelected.GetItem(1).(*tview.TextView).
 		SetText(p.selectedAddress.Address)
+	p.layoutAddrSelected.GetItem(2).(*tview.Flex).
+		GetItem(0).(*tview.Button).SetDisabled(false)
 }
 
 func (p *pageAddresses) clearAddrQR() {

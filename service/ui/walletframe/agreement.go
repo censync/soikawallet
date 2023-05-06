@@ -5,6 +5,7 @@ package walletframe
 import (
 	"github.com/censync/soikawallet/service/ui/handler"
 	"github.com/censync/soikawallet/service/ui/state"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"os"
 	"strings"
