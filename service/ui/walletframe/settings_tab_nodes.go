@@ -3,7 +3,7 @@ package walletframe
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/types"
 	"github.com/rivo/tview"
 )
@@ -31,9 +31,9 @@ func (p *pageSettings) tabNodes() *tview.Flex {
 			Endpoint: inputRPC.GetText(),
 		})
 		if err != nil {
-			p.Emit(handler.EventLogError, fmt.Sprintf("Cannot add rpc \"%s\"", err))
+			p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot add rpc \"%s\"", err))
 		} else {
-			p.Emit(handler.EventLogInfo, fmt.Sprintf("Added rpc \"%s\"", inputTitle.GetText()))
+			p.Emit(event_bus.EventLogInfo, fmt.Sprintf("Added rpc \"%s\"", inputTitle.GetText()))
 			inputTitle.SetText(``)
 			inputRPC.SetText(``)
 			p.actionUpdateRPCList()

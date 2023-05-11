@@ -2,7 +2,7 @@ package walletframe
 
 import (
 	"fmt"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/qrview"
 	"github.com/censync/soikawallet/types"
@@ -44,11 +44,11 @@ func (p *pageQr) FuncOnShow() {
 	chunks, err := p.API().ExportMeta()
 
 	if err != nil {
-		p.Emit(handler.EventLogError, fmt.Sprintf("Cannot get meta: %s", err))
+		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get meta: %s", err))
 	} else {
-		p.Emit(handler.EventLog, fmt.Sprintf("CHUNKS: %d", len(chunks.Chunks)))
+		p.Emit(event_bus.EventLog, fmt.Sprintf("CHUNKS: %d", len(chunks.Chunks)))
 		redraw := func() {
-			p.Emit(handler.EventDrawForce, nil)
+			p.Emit(event_bus.EventDrawForce, nil)
 		}
 		p.labelQR = qrview.NewQrView(chunks.Chunks, 300, redraw)
 		p.layout.AddItem(p.labelQR, 80, 1, false)

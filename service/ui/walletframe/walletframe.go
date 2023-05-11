@@ -2,7 +2,7 @@ package walletframe
 
 import (
 	"github.com/censync/go-i18n"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/extpages"
 	"github.com/censync/soikawallet/service/ui/widgets/flexmenu"
@@ -51,7 +51,7 @@ type WalletFrame struct {
 	style *tview.Theme
 }
 
-func Init(events *handler.TBus, tr *i18n.Translator, style *tview.Theme) *WalletFrame {
+func Init(events *event_bus.EventBus, tr *i18n.Translator, style *tview.Theme) *WalletFrame {
 
 	frame := &WalletFrame{state: state.InitState(events, tr), style: style}
 	pages := frame.initPages()
@@ -104,7 +104,7 @@ func (f *WalletFrame) Layout() *tview.Flex {
 		AddMenuItem("Node info", tcell.KeyF7, func() { f.state.SwitchToPage(pageNameNodeInfo) }).
 		AddMenuItem("Settings", tcell.KeyF4, func() { f.state.SwitchToPage(pageNameSettings) }).
 		AddMenuItem("About", tcell.KeyF1, func() { f.state.SwitchToPage(pageNameAbout) }).
-		AddMenuItem("Quit", tcell.KeyF12, func() { f.state.Emit(handler.EventQuit, nil) })
+		AddMenuItem("Quit", tcell.KeyF12, func() { f.state.Emit(event_bus.EventQuit, nil) })
 
 	layoutMain := tview.NewFlex().
 		SetDirection(tview.FlexColumn).

@@ -2,7 +2,7 @@ package walletframe
 
 import (
 	"fmt"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/rivo/tview"
 	"os"
 )
@@ -18,13 +18,13 @@ func (p *pageSettings) tabApp() *tview.Flex {
 			// DEBUG
 			homeDir, err := os.UserHomeDir()
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot get user home dir: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get user home dir: %s", err))
 				return
 			}
 
 			meta, err := p.API().ExportMetaDebug()
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot get meta: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get meta: %s", err))
 				return
 			}
 
@@ -32,18 +32,18 @@ func (p *pageSettings) tabApp() *tview.Flex {
 				if os.IsNotExist(err) {
 					err = os.MkdirAll(homeDir+"/.soikawallet", os.ModePerm)
 					if err != nil {
-						p.Emit(handler.EventLogError, fmt.Sprintf("Cannot create settings dir: %s", err))
+						p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot create settings dir: %s", err))
 						return
 					}
 				}
-				p.Emit(handler.EventLogError, fmt.Sprintf("Err: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Err: %s", err))
 			}
 			err = os.WriteFile(homeDir+"/.soikawallet/config.json", meta, 600)
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot save file: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot save file: %s", err))
 				return
 			}
-			p.Emit(handler.EventLogSuccess, "Config saved")
+			p.Emit(event_bus.EventLogSuccess, "Config saved")
 		})
 
 	layout.AddItem(formConfigLocation, 3, 1, false)

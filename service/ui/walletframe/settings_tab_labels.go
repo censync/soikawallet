@@ -3,7 +3,7 @@ package walletframe
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/rivo/tview"
 )
 
@@ -58,7 +58,7 @@ func (p *pageSettings) tabLabels() *tview.Flex {
 				})
 				if err != nil {
 					p.Emit(
-						handler.EventLogError,
+						event_bus.EventLogError,
 						fmt.Sprintf("Cannot add label: %s", err),
 					)
 				} else {
@@ -81,7 +81,7 @@ func (p *pageSettings) tabLabels() *tview.Flex {
 				})
 				if err != nil {
 					p.Emit(
-						handler.EventLogError,
+						event_bus.EventLogError,
 						fmt.Sprintf("Cannot remove label: %s", err),
 					)
 				}

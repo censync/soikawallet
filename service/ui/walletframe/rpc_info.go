@@ -3,7 +3,7 @@ package walletframe
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/types"
 	"github.com/rivo/tview"
@@ -77,7 +77,7 @@ func (p *pageNodeInfo) updateInfo() {
 		}
 		p.labelRPCInfo.SetText(str)
 	} else {
-		p.Emit(handler.EventLogError, fmt.Sprintf("Cannot get rpc info: %s", err))
+		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get rpc info: %s", err))
 	}
 
 }

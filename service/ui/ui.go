@@ -3,13 +3,15 @@ package ui
 import (
 	"fmt"
 	"github.com/censync/go-i18n"
+	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/config/dict"
 	"github.com/censync/soikawallet/config/version"
-	h "github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/walletframe"
 	"github.com/censync/soikawallet/service/ui/widgets/statusview"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"sync"
 )
 
 type Tui struct {
@@ -17,13 +19,15 @@ type Tui struct {
 	tr  *i18n.Translator
 
 	frame         *walletframe.WalletFrame
-	tbus          h.TBus
+	events        *event_bus.EventBus
 	layout        *tview.Flex
 	style         *tview.Theme
 	isVerboseMode bool
+	wg            *sync.WaitGroup
+	stopped       bool
 }
 
-func Init() *Tui {
+func NewTui(cfg *config.Config, wg *sync.WaitGroup, events *event_bus.EventBus) *Tui {
 	/*style := &tview.Theme{
 		PrimitiveBackgroundColor:    tcell.ColorLightYellow,
 		ContrastBackgroundColor:     tcell.ColorOrange,
@@ -43,12 +47,13 @@ func Init() *Tui {
 	style := &tview.Styles
 
 	tui := &Tui{
-		app:   tview.NewApplication(),
-		tr:    dict.GetTr("en"),
-		tbus:  make(h.TBus, 100),
-		style: style,
+		app:    tview.NewApplication(),
+		tr:     dict.GetTr("en"),
+		events: events,
+		style:  style,
+		wg:     wg,
 	}
-	tui.frame = walletframe.Init(&tui.tbus, dict.GetTr("en"), tui.style)
+	tui.frame = walletframe.Init(tui.events, dict.GetTr("en"), tui.style)
 	tui.layout = tui.initLayout()
 	return tui
 }
@@ -89,29 +94,30 @@ func (t *Tui) initLayout() *tview.Flex {
 		AddItem(t.frame.Layout(), 0, 6, true).
 		AddItem(layoutStatus, 6, 1, false)
 
+	// main TUI event loop
 	go func() {
 		for {
 			select {
-			case event := <-t.tbus:
+			case event := <-t.events.Events():
 				switch event.Type() {
-				case h.EventLog:
+				case event_bus.EventLog:
 					layoutStatus.Log(event.String())
-				case h.EventLogInfo:
+				case event_bus.EventLogInfo:
 					layoutStatus.Info(event.String())
-				case h.EventLogSuccess:
+				case event_bus.EventLogSuccess:
 					layoutStatus.Success(event.String())
-				case h.EventLogWarning:
+				case event_bus.EventLogWarning:
 					layoutStatus.Warn(event.String())
-				case h.EventLogError:
+				case event_bus.EventLogError:
 					layoutStatus.Error(event.String())
-				case h.EventWalletInitialized:
-					//layoutStatus.Info("Wallet updated: " + event.String())
+				case event_bus.EventWalletInitialized:
+					layoutStatus.Info("Wallet updated: " + event.String())
 					labelInstanceId.SetText(fmt.Sprintf("[darkcyan]ID:[black] %s", event.String()))
-				case h.EventDrawForce:
+				case event_bus.EventDrawForce:
 					t.app.Draw()
-				case h.EventShowModal:
+				case event_bus.EventShowModal:
 					t.app.SetRoot(event.Data().(*tview.Modal), false)
-				case h.EventQuit:
+				case event_bus.EventQuit:
 					// graceful shutdown
 					// TODO: Uncomment on release
 					/*modalConfirmQuit := tview.NewModal().
@@ -125,23 +131,26 @@ func (t *Tui) initLayout() *tview.Flex {
 						}
 					})
 					t.app.SetRoot(modalConfirmQuit, false)*/
-					t.app.Stop()
+					t.Stop()
+					return
 				default:
 					//layoutStatus.Error()
 					layoutStatus.SetText(fmt.Sprintf("unhandled event: %d", event.Type()))
 				}
-				t.app.ForceDraw()
+				//t.app.ForceDraw()
 			}
 		}
 	}()
+
 	return layout
 }
 
-func (t *Tui) Run(verbose bool) {
-	// Run the application
+func (t *Tui) Start() error {
+	// Start the application
+	//go func() {
 
 	if t.isVerboseMode {
-		t.tbus.Emit(h.EventLog, "Verbose mode enabled")
+		t.events.Emit(event_bus.EventLog, "Verbose mode enabled")
 
 		var (
 			prevX, prevY           int
@@ -153,7 +162,7 @@ func (t *Tui) Run(verbose bool) {
 			if x != prevX || y != prevY {
 				prevX = x
 				prevY = y
-				t.tbus.Emit(h.EventLog, fmt.Sprintf("Resolution: %dx%d", x, y))
+				t.events.Emit(event_bus.EventLog, fmt.Sprintf("Resolution: %dx%d", x, y))
 			}
 
 			x1, y1, x2, y2 := t.frame.Layout().GetItem(1).GetRect()
@@ -161,14 +170,24 @@ func (t *Tui) Run(verbose bool) {
 			if x2 != prevFrameX || y2 != prevFrameY {
 				prevFrameX = x2
 				prevFrameY = y2
-				t.tbus.Emit(h.EventLog, fmt.Sprintf("Frame: %dx%d, %dx%d", x1, y1, x2, y2))
+				t.events.Emit(event_bus.EventLog, fmt.Sprintf("Frame: %dx%d, %dx%d", x1, y1, x2, y2))
 			}
 		})
 	}
 
-	if err := t.app.SetRoot(t.layout, true).
-		EnableMouse(true).
-		Run(); err != nil {
-		panic(err)
+	t.app.SetRoot(t.layout, true).
+		EnableMouse(true).Run()
+	return nil
+	//}()
+}
+
+func (t *Tui) Stop() {
+	if t.stopped {
+		return
 	}
+	defer t.wg.Done()
+
+	t.stopped = true
+	t.events.Stop()
+	t.app.Stop()
 }

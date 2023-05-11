@@ -3,7 +3,7 @@ package walletframe
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/types"
 	"github.com/rivo/tview"
 	"strconv"
@@ -141,10 +141,10 @@ func (p *pageCreateWallet) actionCreateAddrWizard() {
 
 	addresses, err := p.API().AddAddresses(req)
 	if err != nil {
-		p.Emit(handler.EventLogError, fmt.Sprintf("Cannot create addresses: %s", err))
+		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot create addresses: %s", err))
 	} else {
 		for _, addr := range addresses {
-			p.Emit(handler.EventLogInfo, fmt.Sprintf("Added address: %s %s", addr.Path, addr.Address))
+			p.Emit(event_bus.EventLogInfo, fmt.Sprintf("Added address: %s %s", addr.Path, addr.Address))
 		}
 		p.SwitchToPage(pageNameAddresses)
 	}

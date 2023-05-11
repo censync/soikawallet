@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/formtextview"
 	"github.com/rivo/tview"
@@ -39,7 +39,7 @@ func (p *pageOperationTx) FuncOnShow() {
 	var err error
 	if p.Params() == nil || len(p.Params()) != 1 {
 		p.Emit(
-			handler.EventLogError,
+			event_bus.EventLogError,
 			fmt.Sprintf("Sender address is not set"),
 		)
 		p.SwitchToPage(p.Pages().GetPrevious())
@@ -53,7 +53,7 @@ func (p *pageOperationTx) FuncOnShow() {
 
 	if err != nil {
 		p.Emit(
-			handler.EventLogError,
+			event_bus.EventLogError,
 			fmt.Sprintf("Cannot get available tokens"),
 		)
 		p.SwitchToPage(p.Pages().GetPrevious())
@@ -93,7 +93,7 @@ func (p *pageOperationTx) actionUpdateTokens() {
 
 	if err != nil {
 		p.Emit(
-			handler.EventLogError,
+			event_bus.EventLogError,
 			fmt.Sprintf("Cannot get data for %s: %s", p.paramSelectedAddr.Path, err),
 		)
 	}
@@ -103,7 +103,7 @@ func (p *pageOperationTx) actionUpdateTokens() {
 		nodeTokens.AddChild(tokenNode)
 	}
 
-	p.Emit(handler.EventDrawForce, nil)
+	p.Emit(event_bus.EventDrawForce, nil)
 }
 
 func (p *pageOperationTx) uiOperationForm() *tview.Form {

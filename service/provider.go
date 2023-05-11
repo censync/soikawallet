@@ -1,55 +1,38 @@
 package service
 
 import (
-	"github.com/censync/soikawallet/api/dto"
-	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/wallet"
-	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/config"
+	"github.com/censync/soikawallet/service/api_web3"
+	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/censync/soikawallet/service/ui"
+	"sync"
 )
 
-var walletInstance WalletAdapter = &wallet.Wallet{}
+var provider *ServiceProvider
 
-func API() WalletAdapter {
-	return walletInstance
+type IServiceProvider interface {
+	Start() error
+	Stop()
 }
 
-type WalletAdapter interface {
-	Init(dto *dto.InitWalletDTO) (string, error)
-	GenerateMnemonic(dto *dto.GenerateMnemonicDTO) (string, error)
+type ServiceProvider struct {
+	events                *event_bus.EventBus
+	web3ConnectionService *api_web3.Web3Connection
+	tuiService            *ui.Tui
+}
 
-	SendTokens(dto *dto.SendTokensDTO) (txId string, err error)
-	GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error)
-	// GetAllAccounts() []types.AccountIndex
-	GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []types.AccountIndex
+func NewServiceProvider(cfg *config.Config, wg *sync.WaitGroup) *ServiceProvider {
+	events := event_bus.NewEventBus()
+	return &ServiceProvider{
+		web3ConnectionService: api_web3.NewWeb3Connection(cfg, wg, events),
+		tuiService:            ui.NewTui(cfg, wg, events),
+	}
+}
 
-	GetAccountLabels() map[uint32]string
-	GetAddressLabels() map[uint32]string
-	AddLabel(dto *dto.AddLabelDTO) (uint32, error)
-	RemoveLabel(dto *dto.RemoveLabelDTO) error
+func (p *ServiceProvider) Web3Connection() IServiceProvider {
+	return p.web3ConnectionService
+}
 
-	AllRPC(dto *dto.GetRPCListByCoinDTO) map[uint32]*types.RPC
-	AddRPC(dto *dto.AddRPCDTO) error
-	RemoveRPC(dto *dto.RemoveRPCDTO) error
-
-	AddAddresses(dto *dto.AddAddressesDTO) ([]*resp.AddressResponse, error)
-	GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*resp.AddressResponse
-	// GetAllAddresses() []*types.AddressResponse
-	GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (map[string]float64, error)
-
-	// Tokens
-	UpsertToken(dto *dto.AddTokenDTO) error
-	GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error)
-	GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.AddressTokensListResponse, error)
-	GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error)
-	GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error)
-
-	// nodes
-	AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error
-	RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error
-	GetRPCLinkedAccountCount(dto *dto.GetRPCLinkedAccountCountDTO) int
-	GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, error)
-
-	// AirGap
-	ExportMeta() (*resp.AirGapMessageResponse, error)
-	ExportMetaDebug() ([]byte, error)
+func (p *ServiceProvider) UI() IServiceProvider {
+	return p.tuiService
 }

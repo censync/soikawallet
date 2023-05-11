@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/spinner"
 	"github.com/censync/soikawallet/service/ui/widgets/strip_color"
@@ -89,9 +89,9 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		if p.selectedAddress != nil {
 			err := clipboard.CopyToClipboard(p.selectedAddress.Address)
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
 			} else {
-				p.Emit(handler.EventLogSuccess, "Address copied to clipboard")
+				p.Emit(event_bus.EventLogSuccess, "Address copied to clipboard")
 			}
 
 		}
@@ -176,12 +176,12 @@ func (p *pageAddresses) Layout() *tview.Flex {
 				})
 				if err != nil {
 					p.Emit(
-						handler.EventLogError,
+						event_bus.EventLogError,
 						fmt.Sprintf("Cannot link node for account: %s", err),
 					)
 				} else {
 					p.Emit(
-						handler.EventLog,
+						event_bus.EventLog,
 						fmt.Sprintf("SETTED"),
 					)
 				}
@@ -196,12 +196,12 @@ func (p *pageAddresses) Layout() *tview.Flex {
 				})
 				if err != nil {
 					p.Emit(
-						handler.EventLogError,
+						event_bus.EventLogError,
 						fmt.Sprintf("Cannot link node for account: %s", err),
 					)
 				} else {
 					p.Emit(
-						handler.EventLog,
+						event_bus.EventLog,
 						fmt.Sprintf("SETTED"),
 					)
 				}
@@ -215,12 +215,12 @@ func (p *pageAddresses) Layout() *tview.Flex {
 				})
 				if err != nil {
 					p.Emit(
-						handler.EventLogError,
+						event_bus.EventLogError,
 						fmt.Sprintf("Cannot unlink node for account: %s", err),
 					)
 				} else {
 					p.Emit(
-						handler.EventLog,
+						event_bus.EventLog,
 						fmt.Sprintf("Unlinked"),
 					)
 				}
@@ -259,7 +259,7 @@ func (p *pageAddresses) FuncOnShow() {
 func (p *pageAddresses) actionUpdateAddresses() {
 	if p.isUpdating {
 		p.Emit(
-			handler.EventLog,
+			event_bus.EventLog,
 			fmt.Sprintf("Updating in process"),
 		)
 		return
@@ -306,7 +306,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 			}
 			p.addrTree.AddChild(coinNode)
 		}
-		p.Emit(handler.EventDrawForce, nil)
+		p.Emit(event_bus.EventDrawForce, nil)
 
 		p.balanceSpinner.Start(p.actionTreeSpinnersUpdateFrame)
 		p.actionUpdateBalances()
@@ -326,7 +326,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 						//p.Emit(handler.EventLog, "actionUpdateBalances get data")
 						if err != nil {
 							p.Emit(
-								handler.EventLogError,
+								event_bus.EventLogError,
 								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Path, err),
 							)
 						} else {
@@ -371,7 +371,7 @@ func (p *pageAddresses) actionTreeSpinnersUpdateFrame(frame string) {
 			}
 		}
 	}
-	p.Emit(handler.EventDrawForce, nil)
+	p.Emit(event_bus.EventDrawForce, nil)
 	if !isSpinnable {
 		p.isUpdating = false
 		p.balanceSpinner.Stop()

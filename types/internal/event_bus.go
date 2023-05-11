@@ -1,4 +1,4 @@
-package handler
+package internal
 
 import "fmt"
 
@@ -17,22 +17,22 @@ const (
 
 type EventType uint8
 
-type TuiEvent struct {
+type Event struct {
 	event EventType
 	data  interface{}
 }
 
-type TBus chan *TuiEvent
+type EventBus chan *Event
 
-func (t *TuiEvent) Type() EventType {
+func (t *Event) Type() EventType {
 	return t.event
 }
 
-func (t *TuiEvent) Data() interface{} {
+func (t *Event) Data() interface{} {
 	return t.data
 }
 
-func (t *TuiEvent) String() string {
+func (t *Event) String() string {
 	result, ok := t.data.(string)
 	if !ok {
 		result = fmt.Sprintf("%v", t.data)
@@ -40,8 +40,8 @@ func (t *TuiEvent) String() string {
 	return result
 }
 
-func (b *TBus) Emit(event EventType, data interface{}) {
-	*b <- &TuiEvent{
+func (b *EventBus) Emit(event EventType, data interface{}) {
+	*b <- &Event{
 		event: event,
 		data:  data,
 	}

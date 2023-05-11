@@ -3,9 +3,9 @@ package walletframe
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
+	"github.com/censync/soikawallet/service/wallet"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/censync/soikawallet/util/seed"
 	"github.com/gdamore/tcell/v2"
@@ -80,16 +80,16 @@ func (p *pageInitMnemonic) FuncOnShow() {
 	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
 		SetStyleAttrs(tcell.AttrBold).
 		SetSelectedFunc(func() {
-			instanceId, err := service.API().Init(&dto.InitWalletDTO{
+			instanceId, err := wallet.API().Init(&dto.InitWalletDTO{
 				Mnemonic:   p.mnemonic,
 				Passphrase: inputPassword.GetText(),
 			})
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot init wallet: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot init wallet: %s", err))
 			} else {
 				//p.SetWallet(walletInstance)
 				clipboard.Clear()
-				p.Emit(handler.EventWalletInitialized, instanceId)
+				p.Emit(event_bus.EventWalletInitialized, instanceId)
 				p.SwitchToPage(pageNameCreateWallets)
 			}
 		})
@@ -115,7 +115,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		AddButton(p.Tr().T("ui.button", "copy_to_clipboard"), func() {
 			err := clipboard.CopyToClipboard(p.mnemonic)
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
 			}
 		})
 
@@ -136,13 +136,13 @@ func (p *pageInitMnemonic) actionMnemonicUpdate() {
 	//p.inputMnemonic.SetText(``, false)
 	p.inputMnemonic.Clear(false)
 
-	p.mnemonic, err = service.API().GenerateMnemonic(&dto.GenerateMnemonicDTO{
+	p.mnemonic, err = wallet.API().GenerateMnemonic(&dto.GenerateMnemonicDTO{
 		BitSize:  p.selectedMnemonicEntropy,
 		Language: p.selectedMnemonicLanguage,
 	})
 
 	if err != nil {
-		p.Emit(handler.EventLogError, fmt.Sprintf("Cannot generate mnemonic: %s", err))
+		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot generate mnemonic: %s", err))
 		return
 	}
 

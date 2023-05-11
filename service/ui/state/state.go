@@ -2,8 +2,7 @@ package state
 
 import (
 	"github.com/censync/go-i18n"
-	"github.com/censync/soikawallet/service"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/widgets/extpages"
 	"github.com/censync/soikawallet/service/wallet"
 )
@@ -20,7 +19,7 @@ const (
 )
 
 type State struct {
-	events     *handler.TBus
+	events     *event_bus.EventBus
 	walletMode uint8
 	status     uint8
 
@@ -30,7 +29,7 @@ type State struct {
 	pages *extpages.ExtPages
 }
 
-func InitState(events *handler.TBus, tr *i18n.Translator) *State {
+func InitState(events *event_bus.EventBus, tr *i18n.Translator) *State {
 	return &State{
 		events:     events,
 		walletMode: ModeIdle,
@@ -41,10 +40,10 @@ func InitState(events *handler.TBus, tr *i18n.Translator) *State {
 
 func (s *State) SetWallet(wallet *wallet.Wallet) {
 	s.isInitialised = true
-	s.events.Emit(handler.EventWalletInitialized, "xxxx-xxxxx-xxxx") // GetInstanceId()
+	s.events.Emit(event_bus.EventWalletInitialized, "xxxx-xxxxx-xxxx") // GetInstanceId()
 }
 
-func (s *State) Emit(event handler.EventType, data interface{}) {
+func (s *State) Emit(event event_bus.EventType, data interface{}) {
 	s.events.Emit(event, data)
 }
 
@@ -56,8 +55,8 @@ func (s *State) Status() uint8 {
 	return s.status
 }
 
-func (s *State) API() service.WalletAdapter {
-	return service.API()
+func (s *State) API() wallet.WalletAdapter {
+	return wallet.API()
 }
 
 func (s *State) Tr() *i18n.Translator {
@@ -85,7 +84,7 @@ func (s *State) SwitchToPage(page string, args ...interface{}) {
 
 	// TODO: Change to channel based events
 	s.pages.SwitchToPage(page, args...)
-	s.Emit(handler.EventDrawForce, nil)
+	//s.Emit(event_bus.EventDrawForce, nil)
 }
 
 // Current page

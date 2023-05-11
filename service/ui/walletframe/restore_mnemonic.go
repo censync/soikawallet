@@ -3,9 +3,9 @@ package walletframe
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
+	"github.com/censync/soikawallet/service/wallet"
 	"github.com/rivo/tview"
 	"os"
 	"strings"
@@ -72,15 +72,15 @@ func (p *pageRestoreMnemonic) FuncOnShow() {
 }
 
 func (p *pageRestoreMnemonic) actionRestoreWithMnemonic() {
-	instanceId, err := service.API().Init(&dto.InitWalletDTO{
+	instanceId, err := wallet.API().Init(&dto.InitWalletDTO{
 		Mnemonic:   p.inputMnemonic.GetText(),
 		Passphrase: p.inputPassword.GetText(),
 	})
 	if err != nil {
-		p.Emit(handler.EventLogError, fmt.Sprintf("Cannot restore wallet: %s", err))
+		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot restore wallet: %s", err))
 	} else {
 		//p.SetWallet(wallet)
-		p.Emit(handler.EventWalletInitialized, instanceId)
+		p.Emit(event_bus.EventWalletInitialized, instanceId)
 		p.SwitchToPage(pageNameCreateWallets)
 	}
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/ui/handler"
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/formtextview"
 	"github.com/censync/soikawallet/types"
@@ -44,7 +44,7 @@ func (p *pageTokenAdd) Layout() *tview.Flex {
 func (p *pageTokenAdd) FuncOnShow() {
 	if p.Params() == nil || len(p.Params()) != 2 {
 		p.Emit(
-			handler.EventLogError,
+			event_bus.EventLogError,
 			fmt.Sprintf("Incorrect params"),
 		)
 		p.SwitchToPage(p.Pages().GetPrevious())
@@ -86,7 +86,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 				Contract: inputContractAddr.GetText(),
 			})
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot get token data: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get token data: %s", err))
 			} else {
 				p.layoutTokenAdd.Clear()
 				p.layoutTokenAdd.AddItem(p.uiTokenConfirmForm(tokenInfo), 0, 1, false)
@@ -119,9 +119,9 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 			})
 
 			if err != nil {
-				p.Emit(handler.EventLogError, fmt.Sprintf("Cannot add token: %s", err))
+				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot add token: %s", err))
 			} else {
-				p.Emit(handler.EventLogSuccess, fmt.Sprintf(
+				p.Emit(event_bus.EventLogSuccess, fmt.Sprintf(
 					"Added token \"%s\" - \"%s\"",
 					tokenConfig.Name,
 					tokenConfig.Symbol,
