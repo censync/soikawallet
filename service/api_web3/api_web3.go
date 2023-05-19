@@ -3,7 +3,9 @@ package api_web3
 import (
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/gorilla/websocket"
@@ -13,19 +15,27 @@ import (
 	"time"
 )
 
-const addr = "127.0.0.1:8114"
+const (
+	addr = "127.0.0.1:8114"
+
+	protocolVersion = 1
+)
 
 type Web3Connection struct {
-	events *event_bus.EventBus
-	server *http.Server
+	walletId string
+	uiEvents *event_bus.EventBus
+	w3Events *event_bus.EventBus
+	server   *http.Server
 
 	upgrader websocket.Upgrader // use default options
 	done     chan bool
 	wg       *sync.WaitGroup
 	hub      map[string]*websocket.Conn
+	accepted map[string]bool
+	rejected map[string]bool
 }
 
-func NewWeb3Connection(cfg *config.Config, wg *sync.WaitGroup, events *event_bus.EventBus) *Web3Connection {
+func NewWeb3Connection(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *event_bus.EventBus) *Web3Connection {
 	upgrader := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 		return true
 	}}
@@ -48,34 +58,75 @@ func NewWeb3Connection(cfg *config.Config, wg *sync.WaitGroup, events *event_bus
 	}
 
 	return &Web3Connection{
-		events:   events,
+		walletId: ``,
+		uiEvents: uiEvents,
+		w3Events: w3Events,
 		server:   server,
 		upgrader: upgrader,
 		done:     make(chan bool),
 		wg:       wg,
 		hub:      map[string]*websocket.Conn{},
+		accepted: map[string]bool{},
+		rejected: map[string]bool{},
 	}
 }
 
 func (c *Web3Connection) Start() error {
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/rpc", func(w http.ResponseWriter, r *http.Request) {
 		c.handleWS(w, r)
 	})
 
 	c.server.Handler = mux
 
 	c.server.RegisterOnShutdown(func() {
-		c.events.Emit(event_bus.EventLogInfo, "Socket local server stopped")
+		c.uiEvents.Emit(event_bus.EventLogInfo, "Socket local server stopped")
 	})
 
 	go func() {
-		//defer c.wg.Done()
+		for {
+			select {
+			case event := <-c.w3Events.Events():
+				switch event.Type() {
+				//case event_bus.EventW3ConnAccepted:
 
+				case event_bus.EventW3ConnAccepted:
+					d := event.Data().(*dto.ResponseAcceptDTO)
+					rpcResponse := &RPCMessageReq{
+						Type: respCodeConnectionAccepted,
+						Payload: map[string]interface{}{
+							"instance_id": d.InstanceId,
+						},
+					}
+					if conn, ok := c.hub[d.RemoteAddr]; ok {
+						_ = conn.WriteJSON(rpcResponse)
+					}
+				case event_bus.EventW3ConnRejected:
+					d := event.Data().(*dto.ResponseRejectDTO)
+					rpcResponse := &RPCMessageReq{
+						Type: respCodeConnectionRejected,
+						Payload: map[string]interface{}{
+							"instance_id": d.InstanceId,
+						},
+					}
+					if conn, ok := c.hub[d.RemoteAddr]; ok {
+						_ = conn.WriteJSON(rpcResponse)
+					}
+				default:
+					c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf(
+						"[W3 Connector] Undefined event: %d",
+						event.Type()),
+					)
+				}
+			}
+		}
+	}()
+
+	go func() {
 		go func() {
 			c.server.ListenAndServe()
-			c.events.Emit(event_bus.EventLogInfo, "Socket stopping local server")
+			c.uiEvents.Emit(event_bus.EventLogInfo, "[W3 Connector] Stopping local server")
 		}()
 
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -83,62 +134,111 @@ func (c *Web3Connection) Start() error {
 
 		<-c.done
 		err := c.server.Shutdown(shutdownCtx)
-		for id := range c.hub {
-			c.hub[id].Close()
+		for connectionId := range c.hub {
+			if conn, ok := c.hub[connectionId]; ok {
+				_ = conn.Close()
+			}
+			delete(c.hub, connectionId)
 		}
 
 		if err != nil {
-			c.events.Emit(event_bus.EventLogError, fmt.Sprintf("Socket cannot stop server: %s", err))
+			c.uiEvents.Emit(event_bus.EventLogError, fmt.Sprintf("[W3 Connector] Cannot stop server: %s", err))
 		}
-
+		return
 	}()
 	return nil
 }
 
 func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
-	conn, err := c.upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		conn.Close()
+	// Accept only local connections
+	if !isRemoteLocal(r.RemoteAddr) {
+		w.WriteHeader(403)
+
+		httpResponse := c.newRPCResponse(101, "", &ResponseErrorFatal{
+			Error: "only_local_accepted",
+		}).toJSON()
+
+		_, _ = w.Write(httpResponse)
 		return
 	}
 
-	// Accept only local connections
-	if !isRemoteLocal(r.RemoteAddr) {
-		conn.Close()
+	// Accept only with X-Extension header
+	extensionId := r.URL.Query().Get("id")
+	if len(extensionId) != 36 {
+		w.WriteHeader(400)
+
+		httpResponse := c.newRPCResponse(101, "", &ResponseErrorFatal{
+			Error: "bad_extension_id",
+		}).toJSON()
+
+		_, _ = w.Write(httpResponse)
+		return
+	}
+
+	conn, err := c.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		w.WriteHeader(500)
+
+		httpResponse := c.newRPCResponse(101, "", &ResponseErrorFatal{
+			Error: "upgrader_error",
+		}).toJSON()
+
+		_, _ = w.Write(httpResponse)
 		return
 	}
 
 	defer func() {
-		conn.Close()
+		_ = conn.Close()
 		delete(c.hub, r.RemoteAddr)
 	}()
 
 	c.hub[r.RemoteAddr] = conn
 
 	for {
-		mt, message, err := conn.ReadMessage()
+		_, message, err := conn.ReadMessage()
 
 		if err != nil {
-			c.events.Emit(event_bus.EventLogError, fmt.Sprintf("Socket conn err: %s", err))
+			c.uiEvents.Emit(event_bus.EventLogError, fmt.Sprintf("[W3 Connector] Connection error: %s", err))
 			break
 		}
 
-		c.events.Emit(event_bus.EventLogInfo, fmt.Sprintf("Socket message got: %s", message))
+		c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf("[W3 Connector] Message got: %s", message))
 
-		switch string(message) {
-		case "ping":
-			c.events.Emit(event_bus.EventLogInfo, "Echo from client")
-			err = conn.WriteMessage(mt, []byte("pong"))
+		parsedMessage := &RPCMessageReq{}
+		err = json.Unmarshal(message, parsedMessage)
+		if err != nil {
+			c.uiEvents.Emit(event_bus.EventLogWarning, fmt.Sprintf("[W3 Connector] Undefined message: %s", message))
+		}
+
+		if c.walletId == `` {
+			rpcMessage := c.newRPCResponse(respCodeConnectionPong, "extension_id", &ResponsePong{
+				WalletState: 0,
+			})
+			_ = conn.WriteJSON(rpcMessage)
+		}
+
+		switch parsedMessage.Type {
+		case 13:
+			c.uiEvents.Emit(event_bus.EventW3Connect, &dto.ConnectDTO{
+				InstanceId: parsedMessage.Payload["instance_id"].(string),
+				Origin:     r.Header.Get("Origin"),
+				RemoteAddr: conn.RemoteAddr().String(),
+			})
+			/*err = conn.WriteMessage(mt, []byte(`{13, {"payload", "value"}}`))
 			if err != nil {
-				c.events.Emit(event_bus.EventLogError, fmt.Sprintf("Socket write err: %s", err))
+				c.uiEvents.Emit(event_bus.EventLogError, fmt.Sprintf("Socket write err: %s", err))
 				break
-			}
-		case "stop":
-			conn.Close()
-			c.Stop()
-			return
+			}*/
+		case 16:
+			c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf("[W3 Connector] Got message: %s", string(message)))
+
+		/*
+			case "stop":
+				conn.Close()
+				c.Stop()
+				return*/
 		default:
-			c.events.Emit(event_bus.EventLogWarning, fmt.Sprintf("Undefined message: %s", message))
+			c.uiEvents.Emit(event_bus.EventLogWarning, fmt.Sprintf("[W3 Connector] Got undefined message: %s", message))
 		}
 	}
 }
@@ -158,8 +258,20 @@ func isRemoteLocal(addr string) bool {
 	return true
 }
 
+func (c *Web3Connection) newRPCResponse(msgType uint8, receiver string, data interface{}) *RPCMessageResp {
+	return &RPCMessageResp{
+		RPCMessageHeader: &RPCMessageHeader{
+			Version:     protocolVersion,
+			Type:        msgType,
+			WalletId:    c.walletId,
+			ExtensionId: receiver,
+		},
+		Data: data,
+	}
+}
+
 func (c *Web3Connection) Stop() {
 	defer c.wg.Done()
-	c.events.Emit(event_bus.EventLogInfo, "Trying stopping socket server")
+	c.uiEvents.Emit(event_bus.EventLogInfo, "Trying stopping socket server")
 	c.done <- true
 }

@@ -3,7 +3,7 @@ package event_bus
 import "fmt"
 
 const (
-	EventLog EventType = iota
+	EventLog EventType = iota + 100
 	EventLogInfo
 	EventLogSuccess
 	EventLogWarning
@@ -14,7 +14,18 @@ const (
 	EventShowModal
 	EventQuit
 
+	// browser connector
+	EventW3Connect
+	EventW3RequestAccounts
+
 	EventW3Response
+)
+
+const (
+	EventW3WalletAvailable EventType = iota + 200
+	EventW3WalletNotAvailable
+	EventW3ConnAccepted
+	EventW3ConnRejected
 )
 
 type EventType uint8

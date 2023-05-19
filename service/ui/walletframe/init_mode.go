@@ -50,9 +50,11 @@ func (p *pageInitMode) FuncOnShow() {
 
 	layoutButtons := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
-		AddItem(btnModeAirGap, 40, 1, false).
-		AddItem(nil, 0, 3, false).
-		AddItem(btnModeLocal, 40, 1, false)
+		AddItem(nil, 0, 1, false).
+		AddItem(btnModeAirGap, 0, 1, false).
+		AddItem(nil, 0, 1, false).
+		AddItem(btnModeLocal, 0, 1, false).
+		AddItem(nil, 0, 1, false)
 
 	layoutButtons.SetBorderPadding(0, 0, 10, 10)
 

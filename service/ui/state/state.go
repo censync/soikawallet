@@ -19,7 +19,8 @@ const (
 )
 
 type State struct {
-	events     *event_bus.EventBus
+	uiEvents   *event_bus.EventBus
+	w3Events   *event_bus.EventBus
 	walletMode uint8
 	status     uint8
 
@@ -29,9 +30,10 @@ type State struct {
 	pages *extpages.ExtPages
 }
 
-func InitState(events *event_bus.EventBus, tr *i18n.Translator) *State {
+func InitState(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator) *State {
 	return &State{
-		events:     events,
+		uiEvents:   uiEvents,
+		w3Events:   w3Events,
 		walletMode: ModeIdle,
 		status:     StatusIdle,
 		tr:         tr,
@@ -40,11 +42,15 @@ func InitState(events *event_bus.EventBus, tr *i18n.Translator) *State {
 
 func (s *State) SetWallet(wallet *wallet.Wallet) {
 	s.isInitialised = true
-	s.events.Emit(event_bus.EventWalletInitialized, "xxxx-xxxxx-xxxx") // GetInstanceId()
+	s.uiEvents.Emit(event_bus.EventWalletInitialized, "xxxx-xxxxx-xxxx") // GetInstanceId()
 }
 
 func (s *State) Emit(event event_bus.EventType, data interface{}) {
-	s.events.Emit(event, data)
+	s.uiEvents.Emit(event, data)
+}
+
+func (s *State) EmitW3(event event_bus.EventType, data interface{}) {
+	s.w3Events.Emit(event, data)
 }
 
 func (s *State) WalletMode() uint8 {
@@ -82,7 +88,7 @@ func (s *State) Pages() *extpages.ExtPages {
 
 func (s *State) SwitchToPage(page string, args ...interface{}) {
 
-	// TODO: Change to channel based events
+	// TODO: Change to channel based uiEvents
 	s.pages.SwitchToPage(page, args...)
 	//s.Emit(event_bus.EventDrawForce, nil)
 }

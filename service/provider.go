@@ -16,16 +16,18 @@ type IServiceProvider interface {
 }
 
 type ServiceProvider struct {
-	events                *event_bus.EventBus
+	uiEvents              *event_bus.EventBus
+	w3Events              *event_bus.EventBus
 	web3ConnectionService *api_web3.Web3Connection
 	tuiService            *ui.Tui
 }
 
 func NewServiceProvider(cfg *config.Config, wg *sync.WaitGroup) *ServiceProvider {
-	events := event_bus.NewEventBus()
+	uiEvents := event_bus.NewEventBus()
+	w3Events := event_bus.NewEventBus()
 	return &ServiceProvider{
-		web3ConnectionService: api_web3.NewWeb3Connection(cfg, wg, events),
-		tuiService:            ui.NewTui(cfg, wg, events),
+		web3ConnectionService: api_web3.NewWeb3Connection(cfg, wg, uiEvents, w3Events),
+		tuiService:            ui.NewTui(cfg, wg, uiEvents, w3Events),
 	}
 }
 

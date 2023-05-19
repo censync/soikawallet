@@ -37,9 +37,11 @@ func (p *pageInitWallet) FuncOnShow() {
 
 	layoutButtons := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
-		AddItem(btnWalletCreate, 0, 5, false).
 		AddItem(nil, 0, 1, false).
-		AddItem(btnWalletRestore, 0, 5, false)
+		AddItem(btnWalletCreate, 0, 1, false).
+		AddItem(nil, 0, 1, false).
+		AddItem(btnWalletRestore, 0, 1, false).
+		AddItem(nil, 0, 1, false)
 
 	layoutButtons.SetBorderPadding(0, 0, 10, 10)
 

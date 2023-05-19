@@ -25,6 +25,9 @@ const (
 	pageNameQR               = `qr`
 	pageNameAgreement        = `agreement`
 	pageNameAbout            = `about`
+
+	// connector
+	pageNameW3ConfirmConnect = "w3_confirm_connect"
 )
 
 type IExtPage interface {
@@ -51,9 +54,9 @@ type WalletFrame struct {
 	style *tview.Theme
 }
 
-func Init(events *event_bus.EventBus, tr *i18n.Translator, style *tview.Theme) *WalletFrame {
+func Init(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator, style *tview.Theme) *WalletFrame {
 
-	frame := &WalletFrame{state: state.InitState(events, tr), style: style}
+	frame := &WalletFrame{state: state.InitState(uiEvents, w3Events, tr), style: style}
 	pages := frame.initPages()
 	pages.SwitchToPage(pageNameAgreement)
 	frame.state.SetPages(pages)
@@ -76,6 +79,8 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 		pageNameQR:               newPageQr(f.state),
 		pageNameAgreement:        newPageAgreement(f.state),
 		pageNameAbout:            newPageAbout(f.state),
+		// connector
+		pageNameW3ConfirmConnect: newPageW3ConfirmConnect(f.state),
 	}
 	pages := extpages.NewPages()
 
@@ -114,4 +119,8 @@ func (f *WalletFrame) Layout() *tview.Flex {
 	/*layoutMenu.SetBorder(true).
 	SetBorderColor(tcell.ColorDarkGrey) */
 	return layoutMain
+}
+
+func (f *WalletFrame) State() *state.State {
+	return f.state
 }

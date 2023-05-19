@@ -19,6 +19,8 @@ var english = i18n.Dictionary{
 		"create":            "Create",
 		"add":               "Add",
 		"remove":            "Remove",
+		"accept":            "Accept",
+		"reject":            "Reject",
 	},
 	"ui.label": {
 		"splash_option_airgap":    "Create wallet with Soika AirGap application",

@@ -19,7 +19,8 @@ type Tui struct {
 	tr  *i18n.Translator
 
 	frame         *walletframe.WalletFrame
-	events        *event_bus.EventBus
+	uiEvents      *event_bus.EventBus
+	w3Events      *event_bus.EventBus
 	layout        *tview.Flex
 	style         *tview.Theme
 	isVerboseMode bool
@@ -27,7 +28,7 @@ type Tui struct {
 	stopped       bool
 }
 
-func NewTui(cfg *config.Config, wg *sync.WaitGroup, events *event_bus.EventBus) *Tui {
+func NewTui(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *event_bus.EventBus) *Tui {
 	/*style := &tview.Theme{
 		PrimitiveBackgroundColor:    tcell.ColorLightYellow,
 		ContrastBackgroundColor:     tcell.ColorOrange,
@@ -47,13 +48,14 @@ func NewTui(cfg *config.Config, wg *sync.WaitGroup, events *event_bus.EventBus) 
 	style := &tview.Styles
 
 	tui := &Tui{
-		app:    tview.NewApplication(),
-		tr:     dict.GetTr("en"),
-		events: events,
-		style:  style,
-		wg:     wg,
+		app:      tview.NewApplication(),
+		tr:       dict.GetTr("en"),
+		uiEvents: uiEvents,
+		w3Events: w3Events,
+		style:    style,
+		wg:       wg,
 	}
-	tui.frame = walletframe.Init(tui.events, dict.GetTr("en"), tui.style)
+	tui.frame = walletframe.Init(tui.uiEvents, tui.w3Events, dict.GetTr("en"), tui.style)
 	tui.layout = tui.initLayout()
 	return tui
 }
@@ -98,7 +100,7 @@ func (t *Tui) initLayout() *tview.Flex {
 	go func() {
 		for {
 			select {
-			case event := <-t.events.Events():
+			case event := <-t.uiEvents.Events():
 				switch event.Type() {
 				case event_bus.EventLog:
 					layoutStatus.Log(event.String())
@@ -117,6 +119,9 @@ func (t *Tui) initLayout() *tview.Flex {
 					t.app.Draw()
 				case event_bus.EventShowModal:
 					t.app.SetRoot(event.Data().(*tview.Modal), false)
+				case event_bus.EventW3Connect:
+					// t.frame.
+					t.frame.State().SwitchToPage("w3_confirm_connect", event.Data())
 				case event_bus.EventQuit:
 					// graceful shutdown
 					// TODO: Uncomment on release
@@ -137,7 +142,7 @@ func (t *Tui) initLayout() *tview.Flex {
 					//layoutStatus.Error()
 					layoutStatus.SetText(fmt.Sprintf("unhandled event: %d", event.Type()))
 				}
-				//t.app.ForceDraw()
+				t.app.ForceDraw()
 			}
 		}
 	}()
@@ -150,7 +155,7 @@ func (t *Tui) Start() error {
 	//go func() {
 
 	if t.isVerboseMode {
-		t.events.Emit(event_bus.EventLog, "Verbose mode enabled")
+		t.uiEvents.Emit(event_bus.EventLog, "Verbose mode enabled")
 
 		var (
 			prevX, prevY           int
@@ -162,7 +167,7 @@ func (t *Tui) Start() error {
 			if x != prevX || y != prevY {
 				prevX = x
 				prevY = y
-				t.events.Emit(event_bus.EventLog, fmt.Sprintf("Resolution: %dx%d", x, y))
+				t.uiEvents.Emit(event_bus.EventLog, fmt.Sprintf("Resolution: %dx%d", x, y))
 			}
 
 			x1, y1, x2, y2 := t.frame.Layout().GetItem(1).GetRect()
@@ -170,7 +175,7 @@ func (t *Tui) Start() error {
 			if x2 != prevFrameX || y2 != prevFrameY {
 				prevFrameX = x2
 				prevFrameY = y2
-				t.events.Emit(event_bus.EventLog, fmt.Sprintf("Frame: %dx%d, %dx%d", x1, y1, x2, y2))
+				t.uiEvents.Emit(event_bus.EventLog, fmt.Sprintf("Frame: %dx%d, %dx%d", x1, y1, x2, y2))
 			}
 		})
 	}
@@ -188,6 +193,6 @@ func (t *Tui) Stop() {
 	defer t.wg.Done()
 
 	t.stopped = true
-	t.events.Stop()
+	t.uiEvents.Stop()
 	t.app.Stop()
 }
