@@ -92,27 +92,9 @@ func (c *Web3Connection) Start() error {
 				//case event_bus.EventW3ConnAccepted:
 
 				case event_bus.EventW3ConnAccepted:
-					d := event.Data().(*dto.ResponseAcceptDTO)
-					rpcResponse := &RPCMessageReq{
-						Type: respCodeConnectionAccepted,
-						Payload: map[string]interface{}{
-							"instance_id": d.InstanceId,
-						},
-					}
-					if conn, ok := c.hub[d.RemoteAddr]; ok {
-						_ = conn.WriteJSON(rpcResponse)
-					}
+					c.handlerConnAccepted(event.Data())
 				case event_bus.EventW3ConnRejected:
-					d := event.Data().(*dto.ResponseRejectDTO)
-					rpcResponse := &RPCMessageReq{
-						Type: respCodeConnectionRejected,
-						Payload: map[string]interface{}{
-							"instance_id": d.InstanceId,
-						},
-					}
-					if conn, ok := c.hub[d.RemoteAddr]; ok {
-						_ = conn.WriteJSON(rpcResponse)
-					}
+					c.handlerConnRejected(event.Data())
 				default:
 					c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf(
 						"[W3 Connector] Undefined event: %d",
@@ -175,6 +157,16 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.rejected[extensionId] {
+		w.WriteHeader(503)
+		httpResponse := c.newRPCResponse(101, "", &ResponseErrorFatal{
+			Error: "rejected",
+		}).toJSON()
+
+		_, _ = w.Write(httpResponse)
+		return
+	}
+
 	conn, err := c.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		w.WriteHeader(500)
@@ -192,7 +184,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 		delete(c.hub, r.RemoteAddr)
 	}()
 
-	c.hub[r.RemoteAddr] = conn
+	c.hub[extensionId] = conn
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -219,16 +211,17 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 
 		switch parsedMessage.Type {
 		case 13:
-			c.uiEvents.Emit(event_bus.EventW3Connect, &dto.ConnectDTO{
-				InstanceId: parsedMessage.Payload["instance_id"].(string),
-				Origin:     r.Header.Get("Origin"),
-				RemoteAddr: conn.RemoteAddr().String(),
-			})
-			/*err = conn.WriteMessage(mt, []byte(`{13, {"payload", "value"}}`))
-			if err != nil {
-				c.uiEvents.Emit(event_bus.EventLogError, fmt.Sprintf("Socket write err: %s", err))
-				break
-			}*/
+			if c.accepted[extensionId] {
+				c.handlerConnAccepted(&dto.ResponseAcceptDTO{
+					InstanceId: extensionId,
+				})
+			} else {
+				c.uiEvents.Emit(event_bus.EventW3Connect, &dto.ConnectDTO{
+					InstanceId: extensionId,
+					Origin:     r.Header.Get("Origin"),
+					RemoteAddr: conn.RemoteAddr().String(),
+				})
+			}
 		case 16:
 			c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf("[W3 Connector] Got message: %s", string(message)))
 

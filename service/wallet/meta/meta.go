@@ -18,6 +18,7 @@ type Meta struct {
 	nonce          uint32
 	nonceUpdatedAt uint64 // UTC
 	deliveredKeys  []string
+	w3Accounts     []string
 	labels
 	nodes
 	tokens

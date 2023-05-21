@@ -57,7 +57,6 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 	btnWalletCreate.SetSelectedFunc(func() {
 		p.EmitW3(event_bus.EventW3ConnAccepted, &dto.ResponseAcceptDTO{
 			InstanceId: connectionReq.InstanceId,
-			RemoteAddr: connectionReq.RemoteAddr,
 		})
 		p.SwitchToPage(p.Pages().GetPrevious())
 	})

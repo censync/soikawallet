@@ -14,7 +14,6 @@ type RequestAccountsDTO struct {
 
 type ResponseAcceptDTO struct {
 	InstanceId string
-	RemoteAddr string
 }
 
 type ResponseRejectDTO struct {
