@@ -87,7 +87,6 @@ func (p *pageInitMnemonic) FuncOnShow() {
 			if err != nil {
 				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot init wallet: %s", err))
 			} else {
-				//p.SetWallet(walletInstance)
 				clipboard.Clear()
 				p.Emit(event_bus.EventWalletInitialized, instanceId)
 				p.SwitchToPage(pageNameCreateWallets)

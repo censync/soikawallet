@@ -15,6 +15,7 @@ const (
 	EventQuit
 
 	// browser connector
+
 	EventW3Connect
 	EventW3RequestAccounts
 

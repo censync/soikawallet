@@ -5,7 +5,7 @@ import "encoding/json"
 const (
 	respCodeConnectionPong uint8 = iota + 100
 	respCodeErrorFatal
-	respCodeErrorError
+	respCodeError
 	respCodeConnectionAccepted
 	respCodeConnectionRejected
 )
@@ -16,10 +16,9 @@ type RPCMessageReq struct {
 }
 
 type RPCMessageHeader struct {
-	Version     uint8  `json:"version"`
-	Type        uint8  `json:"type"`
-	WalletId    string `json:"wallet_id,omitempty"`
-	ExtensionId string `json:"extension_id"`
+	Version  uint8  `json:"version"`
+	Type     uint8  `json:"type"`
+	WalletId string `json:"wallet_id,omitempty"`
 }
 
 type RPCMessageResp struct {

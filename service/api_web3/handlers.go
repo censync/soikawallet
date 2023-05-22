@@ -4,14 +4,21 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 )
 
+func (c *Web3Connection) handlerWalletAvailable(data interface{}) {
+	c.walletId = data.(string)
+	rpcResponse := c.newRPCResponse(respCodeConnectionPong, map[string]interface{}{
+		"wallet_status": c.walletStatus(),
+	})
+	for _, conn := range c.hub {
+		_ = conn.WriteJSON(rpcResponse)
+	}
+}
+
 func (c *Web3Connection) handlerConnAccepted(data interface{}) {
 	d := data.(*dto.ResponseAcceptDTO)
-	rpcResponse := &RPCMessageReq{
-		Type: respCodeConnectionAccepted,
-		Payload: map[string]interface{}{
-			"instance_id": d.InstanceId,
-		},
-	}
+	rpcResponse := c.newRPCResponse(respCodeConnectionAccepted, map[string]interface{}{
+		"wallet_status": c.walletStatus(),
+	})
 	c.accepted[d.InstanceId] = true
 	if conn, ok := c.hub[d.InstanceId]; ok {
 		_ = conn.WriteJSON(rpcResponse)
@@ -20,12 +27,7 @@ func (c *Web3Connection) handlerConnAccepted(data interface{}) {
 
 func (c *Web3Connection) handlerConnRejected(data interface{}) {
 	d := data.(*dto.ResponseRejectDTO)
-	rpcResponse := &RPCMessageReq{
-		Type: respCodeConnectionRejected,
-		Payload: map[string]interface{}{
-			"instance_id": d.InstanceId,
-		},
-	}
+	rpcResponse := c.newRPCResponse(respCodeConnectionRejected, map[string]interface{}{})
 	c.rejected[d.InstanceId] = true
 	if conn, ok := c.hub[d.InstanceId]; ok {
 		_ = conn.WriteJSON(rpcResponse)

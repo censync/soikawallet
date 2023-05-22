@@ -19,15 +19,15 @@ const (
 )
 
 type State struct {
-	uiEvents   *event_bus.EventBus
-	w3Events   *event_bus.EventBus
+	uiEvents *event_bus.EventBus
+	w3Events *event_bus.EventBus
+	
 	walletMode uint8
 	status     uint8
 
 	isInitialised bool
-	//wallet *wallet.Wallet
-	tr    *i18n.Translator
-	pages *extpages.ExtPages
+	tr            *i18n.Translator
+	pages         *extpages.ExtPages
 }
 
 func InitState(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator) *State {

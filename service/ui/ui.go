@@ -115,6 +115,7 @@ func (t *Tui) initLayout() *tview.Flex {
 				case event_bus.EventWalletInitialized:
 					layoutStatus.Info("Wallet updated: " + event.String())
 					labelInstanceId.SetText(fmt.Sprintf("[darkcyan]ID:[black] %s", event.String()))
+					t.w3Events.Emit(event_bus.EventW3WalletAvailable, event.String())
 				case event_bus.EventDrawForce:
 					t.app.Draw()
 				case event_bus.EventShowModal:

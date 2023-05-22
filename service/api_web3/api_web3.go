@@ -89,8 +89,8 @@ func (c *Web3Connection) Start() error {
 			select {
 			case event := <-c.w3Events.Events():
 				switch event.Type() {
-				//case event_bus.EventW3ConnAccepted:
-
+				case event_bus.EventW3WalletAvailable:
+					c.handlerWalletAvailable(event.Data())
 				case event_bus.EventW3ConnAccepted:
 					c.handlerConnAccepted(event.Data())
 				case event_bus.EventW3ConnRejected:
@@ -136,7 +136,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 	if !isRemoteLocal(r.RemoteAddr) {
 		w.WriteHeader(403)
 
-		httpResponse := c.newRPCResponse(101, "", &ResponseErrorFatal{
+		httpResponse := c.newRPCResponse(101, &ResponseErrorFatal{
 			Error: "only_local_accepted",
 		}).toJSON()
 
@@ -149,7 +149,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 	if len(extensionId) != 36 {
 		w.WriteHeader(400)
 
-		httpResponse := c.newRPCResponse(101, "", &ResponseErrorFatal{
+		httpResponse := c.newRPCResponse(101, &ResponseErrorFatal{
 			Error: "bad_extension_id",
 		}).toJSON()
 
@@ -159,7 +159,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 
 	if c.rejected[extensionId] {
 		w.WriteHeader(503)
-		httpResponse := c.newRPCResponse(101, "", &ResponseErrorFatal{
+		httpResponse := c.newRPCResponse(101, &ResponseErrorFatal{
 			Error: "rejected",
 		}).toJSON()
 
@@ -171,7 +171,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(500)
 
-		httpResponse := c.newRPCResponse(101, "", &ResponseErrorFatal{
+		httpResponse := c.newRPCResponse(101, &ResponseErrorFatal{
 			Error: "upgrader_error",
 		}).toJSON()
 
@@ -203,7 +203,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if c.walletId == `` {
-			rpcMessage := c.newRPCResponse(respCodeConnectionPong, "extension_id", &ResponsePong{
+			rpcMessage := c.newRPCResponse(respCodeConnectionPong, &ResponsePong{
 				WalletState: 0,
 			})
 			_ = conn.WriteJSON(rpcMessage)
@@ -251,15 +251,26 @@ func isRemoteLocal(addr string) bool {
 	return true
 }
 
-func (c *Web3Connection) newRPCResponse(msgType uint8, receiver string, data interface{}) *RPCMessageResp {
+func (c *Web3Connection) newRPCResponse(msgType uint8, data interface{}) *RPCMessageResp {
 	return &RPCMessageResp{
 		RPCMessageHeader: &RPCMessageHeader{
-			Version:     protocolVersion,
-			Type:        msgType,
-			WalletId:    c.walletId,
-			ExtensionId: receiver,
+			Version:  protocolVersion,
+			Type:     msgType,
+			WalletId: c.walletId,
 		},
 		Data: data,
+	}
+}
+
+func (c *Web3Connection) isWalletAvailable() bool {
+	return c.walletId != ``
+}
+
+func (c *Web3Connection) walletStatus() uint8 {
+	if c.isWalletAvailable() {
+		return 1
+	} else {
+		return 0
 	}
 }
 

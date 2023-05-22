@@ -3,8 +3,8 @@
 package walletframe
 
 import (
+	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
-	"github.com/censync/soikawallet/types/internal"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"os"
@@ -76,7 +76,7 @@ func (p *pageAgreement) FuncOnShow() {
 		SetLabelColor(tcell.ColorLightGray).
 		SetBackgroundColor(tcell.ColorDarkSlateGrey).
 		SetSelectedFunc(func() {
-			p.State.Emit(internal.EventQuit, nil)
+			p.State.Emit(event_bus.EventQuit, nil)
 		})
 
 	formChoice := tview.NewFlex().
