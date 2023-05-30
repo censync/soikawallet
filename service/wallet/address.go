@@ -16,8 +16,6 @@ type address struct {
 	pub  *ecdsa.PublicKey
 	addr string
 
-	// accountLabelIndex uint32
-	// addressLabelIndex uint32
 	nodeIndex uint32
 
 	staticKey bool

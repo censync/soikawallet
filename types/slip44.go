@@ -6,6 +6,7 @@ const (
 	Ethereum = CoinType(60)
 	Tron     = CoinType(195)
 	Polygon  = CoinType(966)
+	BSC      = CoinType(9006)
 )
 
 var (
@@ -13,6 +14,7 @@ var (
 		`Ethereum`: Ethereum,
 		`Tron`:     Tron,
 		`Polygon`:  Polygon,
+		`BSC`:      BSC,
 	}
 
 	registeredCoinsIndexes = map[CoinType]string{}

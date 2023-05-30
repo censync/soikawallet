@@ -1,5 +1,10 @@
 package dto
 
+import (
+	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/types"
+)
+
 type ConnectDTO struct {
 	InstanceId string
 	Origin     string
@@ -9,11 +14,12 @@ type ConnectDTO struct {
 type RequestAccountsDTO struct {
 	InstanceId string
 	Origin     string
-	Network    string
+	CoinType   types.CoinType
 }
 
 type ResponseAcceptDTO struct {
 	InstanceId string
+	Chains     []*resp.ChainInfo
 }
 
 type ResponseRejectDTO struct {

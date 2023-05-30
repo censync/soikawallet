@@ -19,6 +19,7 @@ var networkProviders = &Provider{
 		types.Ethereum: evm.NewEVM(networks.Ethereum),
 		types.Tron:     tron.NewTron(networks.Tron),
 		types.Polygon:  evm.NewEVM(networks.Polygon),
+		types.BSC:      evm.NewEVM(networks.BSC),
 	},
 }
 
@@ -54,4 +55,11 @@ func WithContext(ctx *types.RPCContext) (types.NetworkAdapter, error) {
 		return nil, errors.New("network is not defined")
 	}
 	return network, nil
+}
+
+func GetAll() map[types.CoinType]types.NetworkAdapter {
+	networkProviders.mu.RLock()
+	defer networkProviders.mu.RUnlock()
+
+	return networkProviders.networks
 }

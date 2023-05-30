@@ -42,6 +42,9 @@ type WalletAdapter interface {
 	GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error)
 	GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error)
 
+	// chains
+	GetAllChains(dto *dto.GetChainsDTO) []*resp.ChainInfo
+
 	// nodes
 	AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error
 	RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error

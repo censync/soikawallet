@@ -9,6 +9,8 @@ var Tron = types.NewNetwork(
 	`Tron`,
 	`TRX`,
 	6,
+	false,
+	nil,
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/tron`, // `http://3.225.171.164`,
 	`https://tronscan.org/`,                 // /block/ /address/ /tx/

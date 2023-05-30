@@ -2,23 +2,32 @@ package api_web3
 
 import "encoding/json"
 
+// Request codes
 const (
-	respCodeConnectionPong uint8 = iota + 100
-	respCodeErrorFatal
-	respCodeError
-	respCodeConnectionAccepted
-	respCodeConnectionRejected
+	reqCodePing = iota + 100
+	reqCodeConnect
+	reqCodeRequestAccounts
 )
 
-type RPCMessageReq struct {
-	Type    uint8                  `json:"type"`
-	Payload map[string]interface{} `json:"payload"`
-}
+// Response codes
+const (
+	respCodePong uint8 = iota + 100
+	respCodeConnectionAccepted
+	respCodeConnectionRejected
+	respCodeGetAccounts
+	respCodeError      = 400
+	respCodeErrorFatal = 401
+)
 
 type RPCMessageHeader struct {
-	Version  uint8  `json:"version"`
-	Type     uint8  `json:"type"`
-	WalletId string `json:"wallet_id,omitempty"`
+	Version uint8  `json:"_v"`
+	Id      string `json:"_id"`
+	Type    uint8  `json:"type"`
+}
+
+type RPCMessageReq struct {
+	RPCMessageHeader
+	Data interface{} `json:"data"`
 }
 
 type RPCMessageResp struct {

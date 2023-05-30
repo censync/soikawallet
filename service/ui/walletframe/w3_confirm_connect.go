@@ -11,6 +11,8 @@ import (
 type pageW3ConfirmConnect struct {
 	*BaseFrame
 	*state.State
+	// vars
+
 }
 
 func newPageW3ConfirmConnect(state *state.State) *pageW3ConfirmConnect {
@@ -34,35 +36,48 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 	}
 	connectionReq := p.Params()[0].(*dto.ConnectDTO)
 
-	layoutConnectionInfo := tview.NewFlex().
-		SetDirection(tview.FlexColumn)
+	w3Chains := p.API().GetAllChains(&dto.GetChainsDTO{
+		OnlyW3: true,
+	})
+	labelSelectChains := tview.NewFlex().SetDirection(tview.FlexRow)
 
-	labelConnectionInfo := tview.NewTextView().SetText(fmt.Sprintf(
-		"Incomming new extension connection\n\n"+
-			"Instance ID: %s\n"+
-			"Origin: %s\n"+
-			"Remote address: %s",
-		connectionReq.InstanceId,
-		connectionReq.Origin,
-		connectionReq.RemoteAddr,
-	))
+	for _, chain := range w3Chains {
+		selectChainCheckbox := tview.NewCheckbox().
+			SetLabel(chain.Name).
+			SetChecked(true)
+		labelSelectChains.AddItem(selectChainCheckbox, 1, 1, false)
+	}
+
+	layoutConnectionInfo := tview.NewFlex().SetDirection(tview.FlexRow)
+
+	labelConnectionTitle := tview.NewTextView().SetLabel("Incoming new extension connection")
+
+	labelConnectionInstanceId := tview.NewTextView().SetLabel(fmt.Sprintf("Instance ID: %s", connectionReq.InstanceId))
+
+	labelConnectionOrigin := tview.NewTextView().SetLabel(fmt.Sprintf("Origin: %s", connectionReq.Origin))
+
+	labelConnectionAddr := tview.NewTextView().SetLabel(fmt.Sprintf("Remote address: %s", connectionReq.RemoteAddr))
 
 	layoutConnectionInfo.
-		AddItem(nil, 0, 1, false).
-		AddItem(labelConnectionInfo, 0, 1, false).
-		AddItem(nil, 0, 1, false)
+		AddItem(labelConnectionTitle, 1, 1, false).
+		AddItem(labelConnectionInstanceId, 1, 1, false).
+		AddItem(labelConnectionOrigin, 1, 1, false).
+		AddItem(labelConnectionAddr, 1, 1, false).
+		AddItem(nil, 2, 1, false).
+		AddItem(labelSelectChains, 0, 1, false)
 
-	btnWalletCreate := tview.NewButton(p.Tr().T("ui.button", "accept"))
+	btnConnectionAccept := tview.NewButton(p.Tr().T("ui.button", "accept"))
 
-	btnWalletCreate.SetSelectedFunc(func() {
+	btnConnectionAccept.SetSelectedFunc(func() {
 		p.EmitW3(event_bus.EventW3ConnAccepted, &dto.ResponseAcceptDTO{
 			InstanceId: connectionReq.InstanceId,
+			Chains:     w3Chains,
 		})
 		p.SwitchToPage(p.Pages().GetPrevious())
 	})
-	btnWalletRestore := tview.NewButton(p.Tr().T("ui.button", "reject"))
+	btnConnectionReject := tview.NewButton(p.Tr().T("ui.button", "reject"))
 
-	btnWalletRestore.SetSelectedFunc(func() {
+	btnConnectionReject.SetSelectedFunc(func() {
 		p.EmitW3(event_bus.EventW3ConnRejected, &dto.ResponseRejectDTO{
 			InstanceId: connectionReq.InstanceId,
 			RemoteAddr: connectionReq.RemoteAddr,
@@ -72,16 +87,16 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 
 	layoutButtons := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
-		AddItem(nil, 0, 2, false).
-		AddItem(btnWalletCreate, 0, 1, false).
+		AddItem(nil, 3, 1, false).
+		AddItem(btnConnectionAccept, 0, 1, false).
 		AddItem(nil, 0, 1, false).
-		AddItem(btnWalletRestore, 0, 1, false).
+		AddItem(btnConnectionReject, 0, 1, false).
 		AddItem(nil, 0, 2, false)
 
 	layoutButtons.SetBorderPadding(0, 0, 10, 10)
 
 	p.layout.
-		AddItem(layoutConnectionInfo, 0, 1, false).
+		AddItem(layoutConnectionInfo, 0, 2, false).
 		AddItem(layoutButtons, 3, 1, false)
 }
 

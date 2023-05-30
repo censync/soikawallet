@@ -45,3 +45,9 @@ type TokenConfig struct {
 	Contract string
 	Decimals int
 }
+
+type ChainInfo struct {
+	CoinType types.CoinType `json:"coin_type"`
+	Name     string         `json:"name"`
+	ChainId  uint32         `json:"chain_id"`
+}

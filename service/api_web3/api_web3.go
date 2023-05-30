@@ -194,23 +194,23 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf("[W3 Connector] Message got: %s", message))
+		//c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf("[W3 Connector] Message got: %s", message))
 
-		parsedMessage := &RPCMessageReq{}
-		err = json.Unmarshal(message, parsedMessage)
+		parsedRequest := &RPCMessageReq{}
+		err = json.Unmarshal(message, parsedRequest)
 		if err != nil {
 			c.uiEvents.Emit(event_bus.EventLogWarning, fmt.Sprintf("[W3 Connector] Undefined message: %s", message))
 		}
 
-		if c.walletId == `` {
-			rpcMessage := c.newRPCResponse(respCodeConnectionPong, &ResponsePong{
+		if c.walletId == `` || parsedRequest.Id != extensionId {
+			rpcMessage := c.newRPCResponse(respCodePong, &ResponsePong{
 				WalletState: 0,
 			})
 			_ = conn.WriteJSON(rpcMessage)
 		}
 
-		switch parsedMessage.Type {
-		case 13:
+		switch parsedRequest.Type {
+		case reqCodeConnect:
 			if c.accepted[extensionId] {
 				c.handlerConnAccepted(&dto.ResponseAcceptDTO{
 					InstanceId: extensionId,
@@ -222,9 +222,15 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 					RemoteAddr: conn.RemoteAddr().String(),
 				})
 			}
-		case 16:
-			c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf("[W3 Connector] Got message: %s", string(message)))
-
+		case reqCodePing:
+			c.handlerWalletPing(extensionId)
+		case reqCodeRequestAccounts:
+			payload := parsedRequest.Data.(*GetAccountsRequest)
+			c.uiEvents.Emit(event_bus.EventW3RequestAccounts, &dto.RequestAccountsDTO{
+				InstanceId: extensionId,
+				Origin:     r.Header.Get("Origin"),
+				CoinType:   payload.CoinType,
+			})
 		/*
 			case "stop":
 				conn.Close()
@@ -254,9 +260,9 @@ func isRemoteLocal(addr string) bool {
 func (c *Web3Connection) newRPCResponse(msgType uint8, data interface{}) *RPCMessageResp {
 	return &RPCMessageResp{
 		RPCMessageHeader: &RPCMessageHeader{
-			Version:  protocolVersion,
-			Type:     msgType,
-			WalletId: c.walletId,
+			Version: protocolVersion,
+			Id:      c.walletId,
+			Type:    msgType,
 		},
 		Data: data,
 	}

@@ -9,6 +9,10 @@ var Ethereum = types.NewNetwork(
 	`Ethereum (Testnet)`,
 	`SepETH`,
 	18,
+	true,
+	&types.EVMConfig{
+		ChainId: 11155111,
+	},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/eth_testnet2`,
 	`https://sepolia.etherscan.io/`, // /block/ /address/ /tx/

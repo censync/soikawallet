@@ -21,15 +21,16 @@ type BaseNetwork struct {
 	decimals int
 	explorer string
 
-	rpc    *RPCMap
-	tokens map[string]*TokenConfig
-
+	rpc       *RPCMap
+	tokens    map[string]*TokenConfig
+	evmConfig *EVMConfig
+	isW3      bool
 	NetworkAdapter
 }
 
-/*type EVMConfig struct {
+type EVMConfig struct {
 	ChainId uint32
-}*/
+}
 
 type RPCContext struct {
 	context.Context
@@ -163,6 +164,8 @@ type RPCAdapter interface {
 	Name() string
 	Currency() string
 	Decimals() int
+	IsW3() bool
+	EVMConfig() *EVMConfig
 
 	// RPC
 	DefaultRPC() *RPC
@@ -196,16 +199,18 @@ type NetworkAdapter interface {
 	GetRPCInfo(ctx *RPCContext) (map[string]interface{}, error)
 }
 
-func NewNetwork(index CoinType, name, currency string, decimals int) *BaseNetwork {
+func NewNetwork(index CoinType, name, currency string, decimals int, isW3 bool, evmConfig *EVMConfig) *BaseNetwork {
 	return &BaseNetwork{
 		index:    index,
 		name:     name,
 		currency: currency,
 		decimals: decimals,
+		isW3:     isW3,
 		rpc: &RPCMap{
 			data: map[uint32]*RPC{},
 		},
-		tokens: map[string]*TokenConfig{},
+		tokens:    map[string]*TokenConfig{},
+		evmConfig: evmConfig,
 	}
 }
 
@@ -261,6 +266,14 @@ func (n *BaseNetwork) Currency() string {
 
 func (n *BaseNetwork) Decimals() int {
 	return n.decimals
+}
+
+func (n *BaseNetwork) IsW3() bool {
+	return n.isW3
+}
+
+func (n *BaseNetwork) EVMConfig() *EVMConfig {
+	return n.evmConfig
 }
 
 func (n *BaseNetwork) RPC(index uint32) *RPC {

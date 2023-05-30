@@ -9,6 +9,10 @@ var Polygon = types.NewNetwork(
 	`Polygon (Testnet)`,
 	`MATIC`,
 	18,
+	true,
+	&types.EVMConfig{
+		ChainId: 80001,
+	},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/polygon_testnet`,
 	`https://mumbai.polygonscan.com/`, // /block/ /address/ /tx/

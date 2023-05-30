@@ -9,6 +9,8 @@ var Tron = types.NewNetwork(
 	`Tron (Testnet)`,
 	`TRX`,
 	6,
+	false,
+	nil,
 ).SetDefaultRPC(
 	`https://api.shasta.trongrid.io`, // https://rpc.soikawallet.app:8431/tron_testnet
 	`https://shasta.tronscan.org/`,   // /block/ /address/ /tx/
