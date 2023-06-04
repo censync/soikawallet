@@ -202,9 +202,9 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 			c.uiEvents.Emit(event_bus.EventLogWarning, fmt.Sprintf("[W3 Connector] Undefined message: %s", message))
 		}
 
-		if c.walletId == `` || parsedRequest.Id != extensionId {
-			rpcMessage := c.newRPCResponse(respCodePong, &ResponsePong{
-				WalletState: 0,
+		if parsedRequest.Id != extensionId {
+			rpcMessage := c.newRPCResponse(respCodeErrorFatal, &ResponseErrorFatal{
+				Error: "not_authorized",
 			})
 			_ = conn.WriteJSON(rpcMessage)
 		}
@@ -257,7 +257,7 @@ func isRemoteLocal(addr string) bool {
 	return true
 }
 
-func (c *Web3Connection) newRPCResponse(msgType uint8, data interface{}) *RPCMessageResp {
+func (c *Web3Connection) newRPCResponse(msgType uint16, data interface{}) *RPCMessageResp {
 	return &RPCMessageResp{
 		RPCMessageHeader: &RPCMessageHeader{
 			Version: protocolVersion,
@@ -274,9 +274,9 @@ func (c *Web3Connection) isWalletAvailable() bool {
 
 func (c *Web3Connection) walletStatus() uint8 {
 	if c.isWalletAvailable() {
-		return 1
+		return 1 // Available
 	} else {
-		return 0
+		return 0 // Not available
 	}
 }
 

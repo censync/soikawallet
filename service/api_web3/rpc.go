@@ -11,18 +11,18 @@ const (
 
 // Response codes
 const (
-	respCodePong uint8 = iota + 100
+	respCodePong uint16 = iota + 100
 	respCodeConnectionAccepted
 	respCodeConnectionRejected
 	respCodeGetAccounts
 	respCodeError      = 400
-	respCodeErrorFatal = 401
+	respCodeErrorFatal = 501
 )
 
 type RPCMessageHeader struct {
 	Version uint8  `json:"_v"`
 	Id      string `json:"_id"`
-	Type    uint8  `json:"type"`
+	Type    uint16 `json:"type"`
 }
 
 type RPCMessageReq struct {

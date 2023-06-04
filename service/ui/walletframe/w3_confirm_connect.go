@@ -96,7 +96,7 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 	layoutButtons.SetBorderPadding(0, 0, 10, 10)
 
 	p.layout.
-		AddItem(layoutConnectionInfo, 0, 2, false).
+		AddItem(layoutConnectionInfo, 0, 1, false).
 		AddItem(layoutButtons, 3, 1, false)
 }
 

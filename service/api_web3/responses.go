@@ -1,7 +1,7 @@
 package api_web3
 
 type ResponsePong struct {
-	WalletState uint8 `json:"wallet_state"`
+	WalletStatus uint8 `json:"wallet_status"`
 }
 
 type ResponseConnectionAccepted struct {
