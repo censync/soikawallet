@@ -11,7 +11,7 @@ var Polygon = types.NewNetwork(
 	18,
 	true,
 	&types.EVMConfig{
-		ChainId: 80001,
+		ChainId: 0x13881,
 	},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/polygon_testnet`,

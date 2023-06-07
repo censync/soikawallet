@@ -4,6 +4,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/wallet/internal/network"
+	"strconv"
 )
 
 func (s *Wallet) GetAllChains(dto *dto.GetChainsDTO) []*resp.ChainInfo {
@@ -17,7 +18,7 @@ func (s *Wallet) GetAllChains(dto *dto.GetChainsDTO) []*resp.ChainInfo {
 			result = append(result, &resp.ChainInfo{
 				CoinType: coiType,
 				Name:     provider.Name(),
-				ChainId:  chainId,
+				ChainId:  "0x" + strconv.FormatUint(uint64(chainId), 16),
 			})
 		}
 	}

@@ -47,7 +47,7 @@ type TokenConfig struct {
 }
 
 type ChainInfo struct {
-	CoinType types.CoinType `json:"coin_type"`
+	ChainId  string         `json:"chain_id"`
 	Name     string         `json:"name"`
-	ChainId  uint32         `json:"chain_id"`
+	CoinType types.CoinType `json:"coin_type"`
 }
