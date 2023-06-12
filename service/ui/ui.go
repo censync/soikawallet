@@ -121,8 +121,9 @@ func (t *Tui) initLayout() *tview.Flex {
 				case event_bus.EventShowModal:
 					t.app.SetRoot(event.Data().(*tview.Modal), false)
 				case event_bus.EventW3Connect:
-					// t.frame.
 					t.frame.State().SwitchToPage("w3_confirm_connect", event.Data())
+				case event_bus.EventW3RequestAccounts:
+					t.frame.State().SwitchToPage("w3_request_accounts", event.Data())
 				case event_bus.EventQuit:
 					// graceful shutdown
 					// TODO: Uncomment on release

@@ -10,6 +10,13 @@ import (
 	"github.com/censync/soikawallet/types"
 )
 
+const (
+	flagDisabled uint8 = 1 << iota
+	flagDerived
+	flagW3Enabled
+	flagW3Derived
+)
+
 type address struct {
 	path *types.DerivationPath
 	key  *types.ProtectedKey
@@ -19,6 +26,8 @@ type address struct {
 	nodeIndex uint32
 
 	staticKey bool
+
+	flags uint8
 	//
 	// lastSync uint64
 }
@@ -48,6 +57,18 @@ func (a *address) CoinType() types.CoinType {
 
 func (a *address) Account() types.AccountIndex {
 	return a.path.Account()
+}
+
+func (a *address) IsW3() bool {
+	return a.flags&flagW3Enabled != 0
+}
+
+func (a *address) SetW3() {
+	a.flags = a.flags | flagW3Enabled
+}
+
+func (a *address) UnsetW3() {
+	a.flags = a.flags &^ flagW3Enabled
 }
 
 func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err error) {
@@ -169,6 +190,7 @@ func (s *Wallet) AddAddresses(dto *dto.AddAddressesDTO) (addresses []*resp.Addre
 			IsHardenedAddress: addr.IsHardenedAddress(),
 			CoinType:          addr.CoinType(),
 			Account:           addr.Account(),
+			IsW3:              addr.IsW3(),
 		})
 	}
 	return addresses, nil
@@ -188,6 +210,7 @@ func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*res
 				IsHardenedAddress: addr.IsHardenedAddress(),
 				CoinType:          addr.CoinType(),
 				Account:           addr.Account(),
+				IsW3:              addr.IsW3(),
 			})
 		}
 	}
@@ -206,6 +229,7 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 			IsHardenedAddress: addr.IsHardenedAddress(),
 			CoinType:          addr.CoinType(),
 			Account:           addr.Account(),
+			IsW3:              addr.IsW3(),
 		})
 	}
 	return addresses
@@ -258,4 +282,40 @@ func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (to
 	}
 
 	return result, nil
+}
+
+func (s *Wallet) SetAddressW3(dto *dto.SetAddressW3DTO) error {
+	addrPath, err := types.ParsePath(dto.DerivationPath)
+	if err != nil {
+		return err
+	}
+
+	addr, err := s.address(addrPath)
+
+	if addr.IsW3() {
+		return errors.New("address already permitted as web3")
+	}
+
+	addr.SetW3()
+	// TODO: Add save to meta
+
+	return nil
+}
+
+func (s *Wallet) UnsetAddressW3(dto *dto.SetAddressW3DTO) error {
+	addrPath, err := types.ParsePath(dto.DerivationPath)
+	if err != nil {
+		return err
+	}
+
+	addr, err := s.address(addrPath)
+
+	if !addr.IsW3() {
+		return errors.New("address not permitted for web3")
+	}
+
+	addr.UnsetW3()
+	// TODO: Check previous used as web3
+
+	return nil
 }

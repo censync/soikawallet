@@ -28,8 +28,8 @@ func InitMeta() *Meta {
 	instance := &Meta{
 		version: metaSettingsVersion,
 		// debug
-		deliveredKeys:  []string{"m/44'/60'/130'/0", "m/44'/60'/130'/1", "m/44'/60'/130'/2"},
-		nonce:          42,
+		deliveredKeys:  []string{},
+		nonce:          0,
 		nonceUpdatedAt: uint64(time.Now().UTC().Unix()),
 	}
 
@@ -47,6 +47,7 @@ func (m *Meta) MarshalJSON() ([]byte, error) {
 		Version       uint8    `json:"v"`
 		Nonce         uint32   `json:"nonce"` // TODO: Add updated at
 		DeliveredKeys []string `json:"delivered_keys"`
+		W3Accounts    []string `json:"w3_accounts"`
 		Labels        labels   `json:"labels"`
 		Nodes         nodes    `json:"nodes"`
 		Tokens        tokens   `json:"tokens"`
@@ -54,6 +55,7 @@ func (m *Meta) MarshalJSON() ([]byte, error) {
 		Version:       m.version,
 		Nonce:         m.nonce,
 		DeliveredKeys: m.deliveredKeys,
+		W3Accounts:    m.w3Accounts,
 		Labels:        m.labels,
 		Nodes:         m.nodes,
 		Tokens:        m.tokens,

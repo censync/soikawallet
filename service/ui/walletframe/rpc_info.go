@@ -50,7 +50,7 @@ func (p *pageNodeInfo) FuncOnShow() {
 		SetHorizontal(true).
 		AddFormItem(inputSelectNetwork).
 		AddButton("Get", func() {
-			p.updateInfo()
+			p.actionUpdateInfo()
 		})
 
 	p.labelRPCInfo = tview.NewTextView().
@@ -64,7 +64,7 @@ func (p *pageNodeInfo) FuncOnShow() {
 		AddItem(nil, 0, 1, false)
 }
 
-func (p *pageNodeInfo) updateInfo() {
+func (p *pageNodeInfo) actionUpdateInfo() {
 	p.labelRPCInfo.Clear()
 	receipt, err := p.API().GetRPCInfo(&dto.GetRPCInfoDTO{
 		CoinType:  uint32(p.selectedChain),

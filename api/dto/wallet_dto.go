@@ -25,6 +25,14 @@ type RemoveLabelDTO struct {
 	Index     uint32
 }
 
+type SetAddressW3DTO struct {
+	DerivationPath string
+}
+
+type UnsetAddressW3DTO struct {
+	DerivationPath string
+}
+
 type GetAccountsByCoinDTO struct {
 	CoinType uint32
 }

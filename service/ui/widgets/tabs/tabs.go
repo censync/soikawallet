@@ -21,7 +21,7 @@ func NewTabs() *Tabs {
 	head := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
 		AddItem(controls, 0, 1, false).
-		AddItem(nil, 0, 3, false)
+		AddItem(nil, 0, 2, false)
 
 	tabs := tview.NewFlex().
 		SetDirection(tview.FlexRow).

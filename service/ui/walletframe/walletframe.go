@@ -27,7 +27,8 @@ const (
 	pageNameAbout            = `about`
 
 	// connector
-	pageNameW3ConfirmConnect = "w3_confirm_connect"
+	pageNameW3ConfirmConnect  = "w3_confirm_connect"
+	pageNameW3RequestAccounts = "w3_request_accounts"
 )
 
 type IExtPage interface {
@@ -80,7 +81,8 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 		pageNameAgreement:        newPageAgreement(f.state),
 		pageNameAbout:            newPageAbout(f.state),
 		// connector
-		pageNameW3ConfirmConnect: newPageW3ConfirmConnect(f.state),
+		pageNameW3ConfirmConnect:  newPageW3ConfirmConnect(f.state),
+		pageNameW3RequestAccounts: newPageW3RequestAccounts(f.state),
 	}
 	pages := extpages.NewPages()
 

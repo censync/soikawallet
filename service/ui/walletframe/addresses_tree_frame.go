@@ -1,0 +1,150 @@
+package walletframe
+
+import (
+	"fmt"
+	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/censync/soikawallet/service/ui/widgets/strip_color"
+	"github.com/censync/soikawallet/types"
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+	"strconv"
+)
+
+func (p *pageAddresses) actionUpdateAddresses() {
+	if p.isUpdating {
+		p.Emit(
+			event_bus.EventLog,
+			fmt.Sprintf("Updating in process"),
+		)
+		return
+	}
+
+	p.isUpdating = true
+
+	p.selectedAddress = nil
+	p.addrTree.ClearChildren()
+
+	p.actionUpdateFrameDetails()
+
+	if p.API() != nil {
+		for _, coin := range types.GetCoinTypes() {
+			accounts := p.API().GetAccountsByCoin(&dto.GetAccountsByCoinDTO{
+				CoinType: uint32(coin),
+			})
+
+			if len(accounts) == 0 {
+				continue
+			}
+
+			coinNode := tview.NewTreeNode(types.GetCoinNameByIndex(coin))
+
+			for _, accountIndex := range accounts {
+				accountNode := tview.NewTreeNode(strconv.Itoa(int(accountIndex)))
+
+				accountNode.SetReference(&accountNodeViewEntry{
+					coinType:     coin,
+					accountIndex: accountIndex,
+				})
+				stripColor := strip_color.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
+				for _, address := range p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
+					CoinType:     uint32(coin),
+					AccountIndex: uint32(accountIndex),
+				}) {
+					addressNode := tview.NewTreeNode(fmt.Sprintf(
+						"%d - %s",
+						address.AddressIndex.Index,
+						p.addrTruncate(address.Address),
+					),
+					)
+					addressNode.SetReference(&addrNodeViewEntry{
+						addr: address,
+					})
+					addressNode.SetColor(stripColor.Next())
+
+					accountNode.AddChild(addressNode)
+				}
+
+				coinNode.AddChild(accountNode)
+			}
+			p.addrTree.AddChild(coinNode)
+		}
+		p.Emit(event_bus.EventDrawForce, nil)
+
+		p.balanceSpinner.Start(p.actionTreeSpinnersUpdate)
+		p.actionUpdateBalances()
+	}
+}
+
+func (p *pageAddresses) actionUpdateBalances() {
+	for _, coinTree := range p.addrTree.GetChildren() {
+		for _, accountTree := range coinTree.GetChildren() {
+			for _, addrTree := range accountTree.GetChildren() {
+				if addrTree.GetReference() != nil {
+					addrView := addrTree.GetReference().(*addrNodeViewEntry)
+					if addrView.balances == nil {
+						balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensByPathDTO{
+							DerivationPath: addrView.addr.Path,
+						})
+						//p.Emit(handler.EventLog, "actionUpdateBalances get data")
+						if err != nil {
+							p.Emit(
+								event_bus.EventLogError,
+								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Path, err),
+							)
+						} else {
+							balancesStr := ""
+							for key, value := range balances {
+								balancesStr += fmt.Sprintf("$%s - %f ", key, value)
+							}
+							addrTree.SetText(fmt.Sprintf(
+								"%d - %s | %s",
+								addrView.addr.AddressIndex.Index,
+								p.addrTruncate(addrView.addr.Address), // format long addr
+								balancesStr,
+							))
+							x := 22
+							addrView.balances = &x
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func (p *pageAddresses) actionTreeSpinnersUpdate(frame string) {
+	var isSpinnable bool
+	for _, coinTree := range p.addrTree.GetChildren() {
+		for _, accountTree := range coinTree.GetChildren() {
+			for _, addrTree := range accountTree.GetChildren() {
+				if addrTree.GetReference() != nil {
+					addrView := addrTree.GetReference().(*addrNodeViewEntry)
+					if addrView.balances == nil {
+						isSpinnable = true
+						// TODO: mutex or duplicate view required
+						addrTree.SetText(fmt.Sprintf(
+							"%d - %s | %s",
+							addrView.addr.AddressIndex.Index,
+							p.addrTruncate(addrView.addr.Address),
+							frame,
+						))
+					}
+				}
+			}
+		}
+	}
+	p.Emit(event_bus.EventDrawForce, nil)
+	if !isSpinnable {
+		p.isUpdating = false
+		p.balanceSpinner.Stop()
+	}
+}
+
+func (p *pageAddresses) addrTruncate(src string) string {
+	x1, _, x2, _ := p.layoutAddressesTree.GetInnerRect()
+	if len(src) <= 14 || x2-x1 > 60 {
+		return src
+	}
+	return src[:6] + "..." + src[len(src)-5:]
+}

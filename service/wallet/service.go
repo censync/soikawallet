@@ -24,8 +24,13 @@ type WalletAdapter interface {
 	GetAccountLabels() map[uint32]string
 	GetAddressLabels() map[uint32]string
 	AddLabel(dto *dto.AddLabelDTO) (uint32, error)
-	RemoveLabel(dto *dto.RemoveLabelDTO) error
 
+	// Address operations
+	RemoveLabel(dto *dto.RemoveLabelDTO) error
+	SetAddressW3(dto *dto.SetAddressW3DTO) error
+	UnsetAddressW3(dto *dto.SetAddressW3DTO) error
+
+	// RPC operations
 	AllRPC(dto *dto.GetRPCListByCoinDTO) map[uint32]*types.RPC
 	AddRPC(dto *dto.AddRPCDTO) error
 	RemoveRPC(dto *dto.RemoveRPCDTO) error

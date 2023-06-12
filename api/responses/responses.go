@@ -11,6 +11,7 @@ type AddressResponse struct {
 	IsHardenedAddress bool
 	CoinType          types.CoinType
 	Account           types.AccountIndex
+	IsW3              bool
 }
 
 type AirGapMessageResponse struct {
