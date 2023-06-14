@@ -38,47 +38,50 @@ func (f *frameDetailsAccount) Layout() *tview.Flex {
 
 	accountLabels := f.API().GetAccountLabels()
 
-	dropdownSelect := tview.NewDropDown().
+	inputSelectLabel := tview.NewDropDown().
 		SetLabel("Select label")
 
 	for index, title := range accountLabels {
-		dropdownSelect.AddOption(title, func() {
+		inputSelectLabel.AddOption(title, func() {
 			f.selectedLabelIndex = index
 		})
 	}
 
-	dropdownSelect.AddOption(" [ add label ] ", func() {
+	inputSelectLabel.AddOption(" [ add label ] ", func() {
 		f.SwitchToPage(pageNameSettings)
 	})
 
-	btnSetLabel := tview.NewButton("Set label").SetSelectedFunc(func() {
-		err := f.API().SetLabelLink(&dto.SetLabelLinkDTO{
-			LabelType: types.AccountLabel,
-			Index:     f.selectedLabelIndex,
-			Path:      f.selectedAccount.Path,
-		})
-		if err == nil {
-			f.Emit(event_bus.EventLogSuccess, "Label saved for account")
-		} else {
-			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set label: %s", err))
-		}
-	})
-
-	btnRemoveLabel := tview.NewButton("Remove label").SetSelectedFunc(func() {
-		err := f.API().RemoveLabelLink(&dto.RemoveLabelLinkDTO{
-			LabelType: types.AccountLabel,
-			Path:      f.selectedAccount.Path,
-		})
-		if err == nil {
-			f.Emit(event_bus.EventLogSuccess, "Label saved for account")
-		} else {
-			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot remvove label: %s", err))
-		}
-	})
+	formAccountDesc := tview.NewForm().
+		AddFormItem(inputSelectLabel).
+		AddButton("Set label", f.actionSetLabel).
+		AddButton("Remove label", f.actionRemoveLabel)
 
 	f.layout.AddItem(label, 1, 1, false).
-		AddItem(dropdownSelect, 1, 1, false).
-		AddItem(btnSetLabel, 1, 1, false).
-		AddItem(btnRemoveLabel, 1, 1, false)
+		AddItem(formAccountDesc, 0, 1, false)
 	return f.layout
+}
+
+func (f *frameDetailsAccount) actionSetLabel() {
+	err := f.API().SetLabelLink(&dto.SetLabelLinkDTO{
+		LabelType: types.AccountLabel,
+		Index:     f.selectedLabelIndex,
+		Path:      f.selectedAccount.Path,
+	})
+	if err == nil {
+		f.Emit(event_bus.EventLogSuccess, "Label saved for account")
+	} else {
+		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set label: %s", err))
+	}
+}
+
+func (f *frameDetailsAccount) actionRemoveLabel() {
+	err := f.API().RemoveLabelLink(&dto.RemoveLabelLinkDTO{
+		LabelType: types.AccountLabel,
+		Path:      f.selectedAccount.Path,
+	})
+	if err == nil {
+		f.Emit(event_bus.EventLogSuccess, "Label saved for account")
+	} else {
+		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot remvove label: %s", err))
+	}
 }

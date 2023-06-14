@@ -1,8 +1,8 @@
 build:
-	@go build -ldflags "-s -w" -o ./soikawallet .
+	@go build -ldflags "-s -w" -o ./soikawallet ./cmd/tui/main.go
 
 build-testnet:
-	@go build -tags testnet -o ./soikawallet .
+	@go build -tags testnet -o ./soikawallet ./cmd/tui/main.go
 
 gen-chainlink:
 	@wget https://raw.githubusercontent.com/smartcontractkit/chainlink/develop/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol

@@ -71,7 +71,6 @@ func (f *frameDetailsAddr) Layout() *tview.Flex {
 			} else {
 				f.Emit(event_bus.EventLogSuccess, "Address copied to clipboard")
 			}
-
 		}
 	})
 
@@ -135,10 +134,7 @@ func (f *frameDetailsAddr) Layout() *tview.Flex {
 						fmt.Sprintf("Cannot link node for account: %s", err),
 					)
 				} else {
-					f.Emit(
-						event_bus.EventLog,
-						fmt.Sprintf("SETTED"),
-					)
+					f.Emit(event_bus.EventLog, "SETTED")
 				}
 			}
 		}).
@@ -155,10 +151,7 @@ func (f *frameDetailsAddr) Layout() *tview.Flex {
 						fmt.Sprintf("Cannot link node for account: %s", err),
 					)
 				} else {
-					f.Emit(
-						event_bus.EventLog,
-						fmt.Sprintf("SETTED"),
-					)
+					f.Emit(event_bus.EventLog, "SETTED")
 				}
 			}
 		}).
