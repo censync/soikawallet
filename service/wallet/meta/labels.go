@@ -67,10 +67,17 @@ func (m *label) Remove(index uint32) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if m.IsIndexExists(index) {
+	if !m.IsIndexExists(index) {
 		return errors.New("label not exist")
 	}
 	delete(m.labels, index)
+
+	for path, linkedIndex := range m.links {
+		if linkedIndex == index {
+			delete(m.links, path)
+		}
+	}
+
 	return nil
 }
 
