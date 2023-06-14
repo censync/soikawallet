@@ -3,13 +3,22 @@ package walletframe
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
+	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/widgets/strip_color"
 	"github.com/censync/soikawallet/types"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-	"strconv"
 )
+
+type accountNodeViewEntry struct {
+	account *resp.AccountResponse
+}
+
+type addrNodeViewEntry struct {
+	addr     *resp.AddressResponse
+	balances *int // *resp.AddressTokensBalanceListResponse
+}
 
 func (p *pageAddresses) actionUpdateAddresses() {
 	if p.isUpdating {
@@ -39,28 +48,38 @@ func (p *pageAddresses) actionUpdateAddresses() {
 
 			coinNode := tview.NewTreeNode(types.GetCoinNameByIndex(coin))
 
-			for _, accountIndex := range accounts {
-				accountNode := tview.NewTreeNode(strconv.Itoa(int(accountIndex)))
+			for _, account := range accounts {
+				accountNodeTitle := ""
+
+				if account.Label != "" {
+					accountNodeTitle = fmt.Sprintf("[%d] - [lightblue]%s", account.Account, account.Label)
+				} else {
+					accountNodeTitle = fmt.Sprintf("[%d]", account.Account)
+				}
+
+				accountNode := tview.NewTreeNode(accountNodeTitle)
 
 				accountNode.SetReference(&accountNodeViewEntry{
-					coinType:     coin,
-					accountIndex: accountIndex,
+					account: account,
 				})
 				stripColor := strip_color.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
 				for _, address := range p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
 					CoinType:     uint32(coin),
-					AccountIndex: uint32(accountIndex),
+					AccountIndex: uint32(account.Account),
 				}) {
 					addressNode := tview.NewTreeNode(fmt.Sprintf(
-						"%d - %s",
+						"[%d] - %s",
 						address.AddressIndex.Index,
 						p.addrTruncate(address.Address),
-					),
-					)
+					))
 					addressNode.SetReference(&addrNodeViewEntry{
 						addr: address,
 					})
-					addressNode.SetColor(stripColor.Next())
+					if address.IsW3 {
+						addressNode.SetColor(tcell.ColorDarkOrange)
+					} else {
+						addressNode.SetColor(stripColor.Next())
+					}
 
 					accountNode.AddChild(addressNode)
 				}

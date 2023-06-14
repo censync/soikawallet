@@ -2,10 +2,8 @@ package walletframe
 
 import (
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/spinner"
-	"github.com/censync/soikawallet/types"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -28,20 +26,10 @@ type pageAddresses struct {
 
 	// var
 	selectedAddress *resp.AddressResponse
-	selectedCoin    types.CoinType
-	selectedAccount types.AccountIndex
-	isUpdating      bool
-	balanceSpinner  *spinner.Spinner
-}
+	selectedAccount *resp.AccountResponse
 
-type accountNodeViewEntry struct {
-	coinType     types.CoinType
-	accountIndex types.AccountIndex
-}
-
-type addrNodeViewEntry struct {
-	addr     *resp.AddressResponse
-	balances *int // *resp.AddressTokensBalanceListResponse
+	isUpdating     bool
+	balanceSpinner *spinner.Spinner
 }
 
 func newPageAddresses(state *state.State) *pageAddresses {
@@ -82,18 +70,13 @@ func (p *pageAddresses) Layout() *tview.Flex {
 
 		reference := node.GetReference()
 		p.selectedAddress = nil
-		p.selectedCoin = 0
-		p.selectedAccount = 0
+		p.selectedAccount = nil
 
-		if reference != nil {
-			if addressEntry, ok := reference.(*addrNodeViewEntry); ok {
-				p.Emit(event_bus.EventLog, "Addr selected")
-				p.selectedAddress = addressEntry.addr
-			} else if accountEntry, ok := reference.(*accountNodeViewEntry); ok {
-				p.Emit(event_bus.EventLog, "Account selected")
-				p.selectedCoin = accountEntry.coinType
-				p.selectedAccount = accountEntry.accountIndex
-			}
+		switch reference.(type) {
+		case *addrNodeViewEntry:
+			p.selectedAddress = reference.(*addrNodeViewEntry).addr
+		case *accountNodeViewEntry:
+			p.selectedAccount = reference.(*accountNodeViewEntry).account
 		}
 
 		p.actionUpdateFrameDetails()
@@ -117,9 +100,8 @@ func (p *pageAddresses) actionUpdateFrameDetails() {
 	if p.selectedAddress != nil {
 		frame := newFrameDetailsAddr(p.State, p.selectedAddress)
 		detailsFrame = frame.Layout()
-	} else if p.selectedCoin != 0 {
-		p.Emit(event_bus.EventLog, "Account frame")
-		frame := newFrameDetailsAccount(p.State, p.selectedCoin, p.selectedAccount)
+	} else if p.selectedAccount != nil {
+		frame := newFrameDetailsAccount(p.State, p.selectedAccount)
 		detailsFrame = frame.Layout()
 	} else {
 		frame := newFrameDetailsEmpty(p.State)

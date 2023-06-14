@@ -25,6 +25,21 @@ type RemoveLabelDTO struct {
 	Index     uint32
 }
 
+type SetLabelLinkDTO struct {
+	LabelType uint8
+	Index     uint32
+	Path      string
+}
+
+type RemoveLabelLinkDTO struct {
+	LabelType uint8
+	Path      string
+}
+
+type RemoveLabelLinkedAccountDTO struct {
+	Index uint32
+}
+
 type SetAddressW3DTO struct {
 	DerivationPath string
 }

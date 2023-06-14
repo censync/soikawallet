@@ -149,7 +149,7 @@ func (s *Wallet) GetAllAccounts() []types.AccountIndex {
 	return accounts
 }*/
 
-func (s *Wallet) GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []types.AccountIndex {
+func (s *Wallet) GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []*resp.AccountResponse {
 	accountsIndex := map[types.AccountIndex]bool{}
 
 	for _, addr := range s.addresses {
@@ -158,10 +158,19 @@ func (s *Wallet) GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []types.Accoun
 		}
 	}
 
-	accounts := make([]types.AccountIndex, 0)
+	accounts := make([]*resp.AccountResponse, 0)
 
 	for accountIndex := range accountsIndex {
-		accounts = append(accounts, accountIndex)
+		accountPath, err := types.CreateAccountPath(types.CoinType(dto.CoinType), accountIndex)
+		if err != nil {
+			continue
+		}
+		accounts = append(accounts, &resp.AccountResponse{
+			Path:     accountPath.String(),
+			CoinType: accountPath.Coin(),
+			Account:  accountPath.Account(),
+			Label:    s.meta.GetAccountLabel(accountPath.String()),
+		})
 	}
 
 	return accounts

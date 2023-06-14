@@ -23,6 +23,7 @@ type address struct {
 	pub  *ecdsa.PublicKey
 	addr string
 
+	// TODO: Move to meta
 	nodeIndex uint32
 
 	staticKey bool

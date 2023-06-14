@@ -19,14 +19,20 @@ type WalletAdapter interface {
 	SendTokens(dto *dto.SendTokensDTO) (txId string, err error)
 	GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error)
 	// GetAllAccounts() []types.AccountIndex
-	GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []types.AccountIndex
+	GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []*resp.AccountResponse
 
 	GetAccountLabels() map[uint32]string
 	GetAddressLabels() map[uint32]string
+
+	// Label operations
+
 	AddLabel(dto *dto.AddLabelDTO) (uint32, error)
+	RemoveLabel(dto *dto.RemoveLabelDTO) error
+	SetLabelLink(dto *dto.SetLabelLinkDTO) error
+	RemoveLabelLabel(dto *dto.RemoveLabelLinkDTO) error
 
 	// Address operations
-	RemoveLabel(dto *dto.RemoveLabelDTO) error
+
 	SetAddressW3(dto *dto.SetAddressW3DTO) error
 	UnsetAddressW3(dto *dto.SetAddressW3DTO) error
 
@@ -40,14 +46,16 @@ type WalletAdapter interface {
 	// GetAllAddresses() []*types.AddressResponse
 	GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (map[string]float64, error)
 
-	// Tokens
+	// Token operations
+
 	UpsertToken(dto *dto.AddTokenDTO) error
 	GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error)
 	GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.AddressTokensListResponse, error)
 	GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error)
 	GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error)
 
-	// chains
+	// Chain opertions
+
 	GetAllChains(dto *dto.GetChainsDTO) []*resp.ChainInfo
 
 	// nodes

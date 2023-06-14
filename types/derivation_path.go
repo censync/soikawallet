@@ -13,6 +13,7 @@ const (
 )
 
 var (
+	rxAccountPath = regexp.MustCompile(`^m/44[Hh']/([0-9]+)[Hh']/([0-9]+)[Hh']?$`)
 	rxAddressPath = regexp.MustCompile(`^m/44[Hh']/([0-9]+)[Hh']/([0-9]+)[Hh']/(0|1)/([0-9]+)([Hh'])?$`)
 )
 
@@ -111,4 +112,51 @@ func ParsePath(path string) (*DerivationPath, error) {
 func Validate(path string) bool {
 	_, err := ParsePath(path)
 	return err == nil
+}
+
+type AccountDerivationPath struct {
+	coin    CoinType
+	account AccountIndex
+}
+
+func CreateAccountPath(
+	coin CoinType,
+	account AccountIndex,
+) (*AccountDerivationPath, error) {
+	if !IsCoinExists(coin) {
+		return nil, errors.New("coin is not exists in SLIP-44 list")
+	}
+	return &AccountDerivationPath{
+		coin:    coin,
+		account: account,
+	}, nil
+}
+
+func (p *AccountDerivationPath) Coin() CoinType {
+	return p.coin
+}
+
+func (p *AccountDerivationPath) Account() AccountIndex {
+	return p.account
+}
+
+func (p *AccountDerivationPath) String() string {
+	return fmt.Sprintf("m/44'/%d'/%d'", p.coin, p.account)
+}
+
+func ParseAccountPath(path string) (*AccountDerivationPath, error) {
+	matches := rxAddressPath.FindStringSubmatch(path)
+	if len(matches) < 5 {
+		return nil, errors.New(fmt.Sprintf("cannot parse path: %s", path))
+	}
+	coinType, err := strconv.ParseUint(matches[1], 10, 32)
+	if err != nil {
+		return nil, err
+	}
+	accountIndex, err := strconv.ParseUint(matches[2], 10, 32)
+
+	return CreateAccountPath(
+		CoinType(coinType),
+		AccountIndex(accountIndex),
+	)
 }

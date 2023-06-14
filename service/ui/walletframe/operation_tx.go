@@ -64,7 +64,7 @@ func (p *pageOperationTx) FuncOnShow() {
 	for _, token := range *p.availableTokens {
 		p.tokensList = append(p.tokensList, token.Symbol)
 	}
-	p.tokensList = append(p.tokensList, "Add token")
+	p.tokensList = append(p.tokensList, " [ add token] ")
 
 	p.layoutTokensTreeView = tview.NewTreeView()
 	p.layoutOperationForm = p.uiOperationForm()

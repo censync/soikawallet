@@ -2,7 +2,6 @@ package meta
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
 )
 
@@ -10,7 +9,7 @@ const (
 	metaSettingsVersion = 1
 )
 
-// Meta structure contains data for synchronization
+// Meta structure contains labels for synchronization
 // all user configuration with AirGap
 
 type Meta struct {
@@ -63,32 +62,5 @@ func (m *Meta) MarshalJSON() ([]byte, error) {
 }
 
 func (m *Meta) UnmarshalJSON(b []byte) error {
-	var result struct {
-		Version uint8                           `json:"v"`
-		Labels  map[LabelType]map[uint32]string `json:"labels"`
-	}
-
-	if err := json.Unmarshal(b, &result); err != nil {
-		return err
-	}
-
-	*m = *InitMeta()
-
-	if result.Version != m.version {
-		if result.Version < m.version {
-			return errors.New("config version is older version")
-		} else {
-			return errors.New("config version is newer version")
-		}
-	}
-
-	for index, label := range result.Labels[AccountLabel] {
-		m.labelsAccount.data[index] = label
-	}
-
-	for index, label := range result.Labels[AddressLabel] {
-		m.labelsAddress.data[index] = label
-	}
-
 	return nil
 }

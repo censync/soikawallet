@@ -43,7 +43,7 @@ func (f *frameDetailsAddr) Layout() *tview.Flex {
 	f.layoutAddrSelected.SetTitle(" Send from ").
 		SetBorder(true).
 		SetBorderColor(tcell.ColorDimGrey).
-		SetBorderPadding(0, 0, 3, 0)
+		SetBorderPadding(0, 0, 1, 0)
 
 	f.labelQR = tview.NewTextView().
 		SetWordWrap(false).
@@ -195,7 +195,6 @@ func (f *frameDetailsAddr) Layout() *tview.Flex {
 
 	f.layout.
 		AddItem(f.layoutAddrSelected, 5, 1, false).
-		//AddItem(tview.NewTextView().SetText("[ Send to ]").SetTextColor(tcell.ColorYellow), 1, 1, false).
 		AddItem(formDetails, 5, 1, false).
 		AddItem(formDetails2, 3, 1, false).
 		AddItem(f.labelQR, 0, 1, false)

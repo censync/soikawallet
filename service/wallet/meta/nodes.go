@@ -34,7 +34,7 @@ func (n *nodes) RemoveRPCNode(index types.NodeIndex) error {
 	defer n.mu.RUnlock()
 
 	if _, ok := n.nodes[index]; !ok {
-		return errors.New("node is not exists")
+		return errors.New("node is not IsLabelExists")
 	}
 
 	delete(n.nodes, index)

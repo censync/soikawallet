@@ -3,7 +3,7 @@ package wallet
 import (
 	"errors"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service/wallet/meta"
+	"github.com/censync/soikawallet/types"
 	"strings"
 )
 
@@ -26,14 +26,14 @@ func (s *Wallet) AddLabel(dto *dto.AddLabelDTO) (uint32, error) {
 		return 0, errors.New("maximum 20 chars")
 	}
 
-	if meta.LabelType(dto.LabelType) != meta.AccountLabel && meta.LabelType(dto.LabelType) != meta.AddressLabel {
+	if dto.LabelType != types.AccountLabel && dto.LabelType != types.AddressLabel {
 		return 0, errors.New("unknown label type")
 	}
 
-	switch meta.LabelType(dto.LabelType) {
-	case meta.AccountLabel:
+	switch dto.LabelType {
+	case types.AccountLabel:
 		return s.meta.AddAccountLabel(dto.Title)
-	case meta.AddressLabel:
+	case types.AddressLabel:
 		return s.meta.AddAddressLabel(dto.Title)
 	default:
 		return 0, errors.New("unknown label type")
@@ -41,11 +41,33 @@ func (s *Wallet) AddLabel(dto *dto.AddLabelDTO) (uint32, error) {
 }
 
 func (s *Wallet) RemoveLabel(dto *dto.RemoveLabelDTO) error {
-	switch meta.LabelType(dto.LabelType) {
-	case meta.AccountLabel:
+	switch dto.LabelType {
+	case types.AccountLabel:
 		return s.meta.RemoveAccountLabel(dto.Index)
-	case meta.AddressLabel:
+	case types.AddressLabel:
 		return s.meta.RemoveAddressLabel(dto.Index)
+	default:
+		return errors.New("unknown label type")
+	}
+}
+
+func (s *Wallet) SetLabelLink(dto *dto.SetLabelLinkDTO) error {
+	switch dto.LabelType {
+	case types.AccountLabel:
+		return s.meta.SetAccountLabelLink(dto.Path, dto.Index)
+	case types.AddressLabel:
+		return s.meta.SetAddressLabelLink(dto.Path, dto.Index)
+	default:
+		return errors.New("unknown label type")
+	}
+}
+
+func (s *Wallet) RemoveLabelLabel(dto *dto.RemoveLabelLinkDTO) error {
+	switch dto.LabelType {
+	case types.AccountLabel:
+		return s.meta.RemoveAccountLabelLink(dto.Path)
+	case types.AddressLabel:
+		return s.meta.RemoveAddressLabelLink(dto.Path)
 	default:
 		return errors.New("unknown label type")
 	}

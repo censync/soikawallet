@@ -60,7 +60,7 @@ func (t *tokens) RemoveTokenConfig(index types.TokenIndex) error {
 	defer t.mu.Unlock()
 
 	if _, ok := t.tokens[index]; !ok {
-		return errors.New("token is not exists")
+		return errors.New("token is not IsLabelExists")
 	}
 
 	delete(t.addressesLinks, t.tokens[index].Index)
@@ -74,7 +74,7 @@ func (t *tokens) RemoveTokenConfig(index types.TokenIndex) error {
 func (t *tokens) IsTokenConfigAddressLinkExists(tokenIndex types.TokenIndex, accountIndex types.AccountIndex, addressIndex types.AddressIndex) (bool, error) {
 	metaTokenConfig, ok := t.tokens[tokenIndex]
 	if !ok {
-		return false, errors.New("token is not exists")
+		return false, errors.New("token is not IsLabelExists")
 	}
 
 	if t.addressesLinks[metaTokenConfig.Index] != nil {
@@ -92,7 +92,7 @@ func (t *tokens) GetTokenConfigAddressLinks(tokenIndex types.TokenIndex, account
 	metaTokenConfig, ok := t.tokens[tokenIndex]
 
 	if !ok {
-		return nil, errors.New("token is not exists")
+		return nil, errors.New("token is not IsLabelExists")
 	}
 
 	return t.addressesLinks[metaTokenConfig.Index][accountIndex], nil
@@ -159,7 +159,7 @@ func (t *tokens) RemoveTokenConfigAddressLink(tokenIndex types.TokenIndex, accou
 	metaTokenConfig, ok := t.tokens[tokenIndex]
 
 	if !ok {
-		return errors.New("token is not exists")
+		return errors.New("token is not IsLabelExists")
 	}
 
 	for index := range t.addressesLinks[metaTokenConfig.Index][accountIndex] {

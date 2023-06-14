@@ -12,6 +12,14 @@ type AddressResponse struct {
 	CoinType          types.CoinType
 	Account           types.AccountIndex
 	IsW3              bool
+	IsKeyDelivered    bool
+}
+
+type AccountResponse struct {
+	Path     string
+	CoinType types.CoinType
+	Account  types.AccountIndex
+	Label    string
 }
 
 type AirGapMessageResponse struct {

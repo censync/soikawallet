@@ -3,76 +3,117 @@ package meta
 import (
 	"encoding/json"
 	"errors"
+	"github.com/censync/soikawallet/types"
 	"strings"
 	"sync"
 )
 
-const (
-	AccountLabel = LabelType(1)
-	AddressLabel = LabelType(2)
-)
-
-type LabelType uint8
-
-type Labels struct {
-	mu   sync.RWMutex
-	data map[uint32]string
+type label struct {
+	mu     sync.RWMutex
+	labels map[uint32]string
+	links  map[string]uint32
 }
 
-func initLabels() Labels {
-	return Labels{
-		data: map[uint32]string{},
+func initLabels() label {
+	return label{
+		labels: map[uint32]string{},
+		links:  map[string]uint32{},
 	}
 }
 
-func (m *Labels) exists(label string) bool {
-	for idx := range m.data {
-		if strings.ToLower(m.data[idx]) == strings.ToLower(label) {
+func (m *label) IsLabelExists(label string) bool {
+	for idx := range m.labels {
+		if strings.ToLower(m.labels[idx]) == strings.ToLower(label) {
 			return true
 		}
 	}
 	return false
 }
 
-func (m *Labels) Data() map[uint32]string {
+func (m *label) IsIndexExists(index uint32) bool {
+	_, ok := m.labels[index]
+	return ok
+}
+
+func (m *label) Labels() map[string]interface{} {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	return m.data
+	return map[string]interface{}{
+		"d": m.labels,
+		"l": m.links,
+	}
 }
 
-func (m *Labels) Add(label string) (uint32, error) {
+func (m *label) Add(label string) (uint32, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	var lastIndex uint32
 
-	if m.exists(label) {
+	if m.IsLabelExists(label) {
 		return 0, errors.New("label already exist")
 	}
 
-	for lastIndex = range m.data {
+	for lastIndex = range m.labels {
 	}
 
 	lastIndex++
-	m.data[lastIndex] = label
+	m.labels[lastIndex] = label
 	return lastIndex, nil
 }
 
-func (m *Labels) Remove(index uint32) error {
+func (m *label) Remove(index uint32) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if _, ok := m.data[index]; !ok {
+	if m.IsIndexExists(index) {
 		return errors.New("label not exist")
 	}
-	delete(m.data, index)
+	delete(m.labels, index)
+	return nil
+}
+
+func (m *label) GetLabel(path string) string {
+	if index, ok := m.links[path]; ok {
+		return m.labels[index]
+	}
+	return ""
+}
+
+func (m *label) SetLink(path string, index uint32) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if !m.IsIndexExists(index) {
+		return errors.New("label not exist")
+	}
+
+	if currentIndex, ok := m.links[path]; ok && currentIndex == index {
+		return errors.New("already linked")
+	}
+
+	m.links[path] = index
+
+	return nil
+}
+
+func (m *label) RemoveLink(path string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, ok := m.links[path]; !ok {
+		return errors.New("not linked")
+	}
+
+	delete(m.links, path)
+
 	return nil
 }
 
 type labels struct {
-	labelsAccount Labels
-	labelsAddress Labels
+	labelsAccount label
+	labelsAddress label
 }
 
 func (l *labels) initLabels() {
@@ -80,34 +121,62 @@ func (l *labels) initLabels() {
 	l.labelsAddress = initLabels()
 }
 
-func (l *labels) AccountLabels() map[uint32]string {
-	return l.labelsAccount.Data()
-}
+// Account associated labels operations
 
-func (l *labels) AddressLabels() map[uint32]string {
-	return l.labelsAddress.Data()
+func (l *labels) AccountLabels() map[uint32]string {
+	return l.labelsAccount.labels
 }
 
 func (l *labels) AddAccountLabel(label string) (uint32, error) {
 	return l.labelsAccount.Add(label)
 }
 
-func (l *labels) AddAddressLabel(label string) (uint32, error) {
-	return l.labelsAddress.Add(label)
-}
-
 func (l *labels) RemoveAccountLabel(index uint32) error {
 	return l.labelsAccount.Remove(index)
+}
+
+func (l *labels) AddressLabels() map[uint32]string {
+	return l.labelsAddress.labels
+}
+
+func (l *labels) GetAccountLabel(path string) string {
+	return l.labelsAccount.GetLabel(path)
+}
+
+func (l *labels) SetAccountLabelLink(path string, index uint32) error {
+	return l.labelsAccount.SetLink(path, index)
+}
+
+func (l *labels) RemoveAccountLabelLink(path string) error {
+	return l.labelsAccount.RemoveLink(path)
+}
+
+// Address associated labels operations
+
+func (l *labels) GetAddressLabel(path string) string {
+	return l.labelsAddress.GetLabel(path)
+}
+
+func (l *labels) AddAddressLabel(label string) (uint32, error) {
+	return l.labelsAddress.Add(label)
 }
 
 func (l *labels) RemoveAddressLabel(index uint32) error {
 	return l.labelsAddress.Remove(index)
 }
 
+func (l *labels) SetAddressLabelLink(path string, index uint32) error {
+	return l.labelsAddress.SetLink(path, index)
+}
+
+func (l *labels) RemoveAddressLabelLink(path string) error {
+	return l.labelsAddress.RemoveLink(path)
+}
+
 func (l *labels) MarshalJSON() ([]byte, error) {
-	result := map[LabelType]interface{}{
-		AccountLabel: l.labelsAccount.Data(),
-		AddressLabel: l.labelsAddress.Data(),
+	result := map[uint8]interface{}{
+		types.AccountLabel: l.labelsAccount.Labels(),
+		types.AddressLabel: l.labelsAddress.Labels(),
 	}
 	return json.Marshal(result)
 }

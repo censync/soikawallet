@@ -176,8 +176,8 @@ func TestTokens_RemoveTokenConfig_Positive(t *testing.T) {
 		_, exists := metaTokens.tokens[tokenIndex]
 		assert.False(t, exists)
 
-		// _, exists = metaTokens.addressesLinks[tokenIndex]
-		// assert.False(t, exists)
+		// _, IsLabelExists = metaTokens.addressesLinks[tokenIndex]
+		// assert.False(t, IsLabelExists)
 	}
 
 	if len(metaTokens.tokens) > 0 {
