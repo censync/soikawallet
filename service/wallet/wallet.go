@@ -82,6 +82,7 @@ func (s *Wallet) getInstanceId() string {
 }
 
 func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
+	dto.To = strings.TrimSpace(dto.To)
 	addressPath, err := types.ParsePath(dto.DerivationPath)
 	if err != nil {
 		return ``, err
@@ -94,7 +95,11 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 	}
 
 	if addr.key == nil {
-		return ``, nil
+		return ``, errors.New("empty key for sign, use airgap option")
+	}
+
+	if len(dto.To) < 4 {
+		return ``, errors.New("incorrect recipient address")
 	}
 
 	ctx := types.NewRPCContext(addr.CoinType(), addr.nodeIndex, addr.Address())
@@ -104,7 +109,7 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 		return "", err
 	}
 
-	return provider.TxSendBase(ctx, ``, addr.key.Get())
+	return provider.TxSendBase(ctx, dto.To, dto.Value, addr.key.Get())
 }
 
 func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error) {

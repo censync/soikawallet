@@ -11,7 +11,8 @@ var Ethereum = types.NewNetwork(
 	18,
 	true,
 	&types.EVMConfig{
-		ChainId: 0xaa36a7,
+		ChainId:  0xaa36a7,
+		DataFeed: "",
 	},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/eth_testnet2`,

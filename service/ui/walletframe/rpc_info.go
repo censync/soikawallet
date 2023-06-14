@@ -14,11 +14,13 @@ type pageNodeInfo struct {
 	*state.State
 
 	// ui
-	labelRPCInfo *tview.TextView
+	labelRPCInfo    *tview.TextView
+	inputSelectNode *tview.DropDown
 
 	// var
-	selectedChain types.CoinType
-	selectedNode  uint32
+	selectedChain  types.CoinType
+	availableNodes map[uint32]*types.RPC
+	selectedNode   uint32
 }
 
 func newPageNodeInfo(state *state.State) *pageNodeInfo {
@@ -34,11 +36,17 @@ func newPageNodeInfo(state *state.State) *pageNodeInfo {
 }
 
 func (p *pageNodeInfo) FuncOnShow() {
+	p.inputSelectNode = tview.NewDropDown().SetLabel("Select node")
+
 	inputSelectNetwork := tview.NewDropDown().
 		SetLabel("Select network").
 		SetFieldWidth(10).
 		SetOptions(types.GetCoinNames(), func(text string, index int) {
 			p.selectedChain = types.GetCoinByName(text)
+			p.availableNodes = p.API().AllRPC(&dto.GetRPCListByCoinDTO{
+				CoinType: uint32(p.selectedChain),
+			})
+			p.actionUpdateNodesList()
 		}).
 		SetCurrentOption(0)
 
@@ -49,6 +57,7 @@ func (p *pageNodeInfo) FuncOnShow() {
 	searchForm := tview.NewForm().
 		SetHorizontal(true).
 		AddFormItem(inputSelectNetwork).
+		AddFormItem(p.inputSelectNode).
 		AddButton("Get", func() {
 			p.actionUpdateInfo()
 		})
@@ -64,11 +73,31 @@ func (p *pageNodeInfo) FuncOnShow() {
 		AddItem(nil, 0, 1, false)
 }
 
+func (p *pageNodeInfo) actionUpdateNodesList() {
+	nodesLabels := make([]string, 0)
+	nodesIndex := map[int]uint32{}
+
+	index := 0
+	for nodeIndex, nodeInfo := range p.availableNodes {
+		labelFormat := "#%d - %s"
+		if nodeInfo.IsDefault() {
+			labelFormat = "[Default] " + labelFormat
+		}
+		nodesIndex[index] = nodeIndex
+		nodesLabels = append(nodesLabels, fmt.Sprintf(labelFormat, nodeIndex, nodeInfo.Title()))
+		index++
+	}
+
+	p.inputSelectNode.SetOptions(nodesLabels, func(text string, index int) {
+		p.selectedNode = nodesIndex[index]
+	}).SetCurrentOption(0)
+}
+
 func (p *pageNodeInfo) actionUpdateInfo() {
 	p.labelRPCInfo.Clear()
 	receipt, err := p.API().GetRPCInfo(&dto.GetRPCInfoDTO{
 		CoinType:  uint32(p.selectedChain),
-		NodeIndex: 0,
+		NodeIndex: p.selectedNode,
 	})
 	if err == nil {
 		str := ""

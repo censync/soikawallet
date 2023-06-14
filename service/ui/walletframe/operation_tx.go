@@ -8,6 +8,7 @@ import (
 	"github.com/censync/soikawallet/service/ui/state"
 	"github.com/censync/soikawallet/service/ui/widgets/formtextview"
 	"github.com/rivo/tview"
+	"strconv"
 )
 
 type pageOperationTx struct {
@@ -23,6 +24,9 @@ type pageOperationTx struct {
 	// vars
 	availableTokens *responses.AddressTokensListResponse
 	tokensList      []string
+	tokensMap       map[int]string
+
+	selectedToken *responses.AddressTokenEntry
 }
 
 func newPageOperationTx(state *state.State) *pageOperationTx {
@@ -32,6 +36,7 @@ func newPageOperationTx(state *state.State) *pageOperationTx {
 	return &pageOperationTx{
 		State:     state,
 		BaseFrame: &BaseFrame{layout: layout},
+		tokensMap: map[int]string{},
 	}
 }
 
@@ -61,8 +66,11 @@ func (p *pageOperationTx) FuncOnShow() {
 
 	p.tokensList = make([]string, 0)
 
-	for _, token := range *p.availableTokens {
+	index := 0
+	for contract, token := range *p.availableTokens {
 		p.tokensList = append(p.tokensList, token.Symbol)
+		p.tokensMap[index] = contract
+		index++
 	}
 	p.tokensList = append(p.tokensList, " [ add token] ")
 
@@ -125,6 +133,12 @@ func (p *pageOperationTx) uiOperationForm() *tview.Form {
 		SetOptions(p.tokensList, func(text string, index int) {
 			if index == len(p.tokensList)-1 {
 				p.SwitchToPage(pageNameTokenAdd, p.paramSelectedAddr.CoinType, p.paramSelectedAddr.Path)
+			} else {
+				if contract, ok := p.tokensMap[index]; ok {
+					p.selectedToken = (*p.availableTokens)[contract]
+				} else {
+					p.Emit(event_bus.EventLogError, "Undefined token")
+				}
 			}
 		}).
 		SetCurrentOption(0)
@@ -134,7 +148,24 @@ func (p *pageOperationTx) uiOperationForm() *tview.Form {
 		AddFormItem(inputAddrAmount).
 		AddFormItem(inputAddrCurrency).
 		AddButton("Send", func() {
+			value, err := strconv.ParseFloat(inputAddrAmount.GetText(), 64)
 
+			if err == nil {
+				txId, err := p.API().SendTokens(&dto.SendTokensDTO{
+					DerivationPath: p.paramSelectedAddr.Path,
+					To:             inputAddrReceiver.GetText(),
+					Value:          value,
+					Standard:       p.selectedToken.Standard,
+					Contract:       p.selectedToken.Contract,
+				})
+				if err == nil {
+					p.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Transaction sent: %s", txId))
+				} else {
+					p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot send transaction: %s", err))
+				}
+			} else {
+				p.Emit(event_bus.EventLogError, "Incorrect value")
+			}
 		})
 	return layoutForm
 }

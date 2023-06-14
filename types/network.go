@@ -29,7 +29,8 @@ type BaseNetwork struct {
 }
 
 type EVMConfig struct {
-	ChainId uint32
+	ChainId  uint32
+	DataFeed string // ChainLink contract address
 }
 
 type RPCContext struct {
@@ -192,7 +193,7 @@ type NetworkAdapter interface {
 	GetBalance(ctx *RPCContext) (float64, error)
 	GetTokenBalance(ctx *RPCContext, contract string, decimals int) (*big.Float, error)
 	GetERC20Token(ctx *RPCContext, contract string) (*TokenConfig, error)
-	TxSendBase(ctx *RPCContext, to string, key *ecdsa.PrivateKey) (string, error)
+	TxSendBase(ctx *RPCContext, to string, value float64, key *ecdsa.PrivateKey) (string, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
 
 	// RPC info

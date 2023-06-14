@@ -4,16 +4,15 @@ import "github.com/censync/soikawallet/types"
 
 // exported type
 type AddressResponse struct {
-	Address           string
-	Path              string
-	IsExternal        bool
-	AddressIndex      types.AddressIndex
-	IsHardenedAddress bool
-	CoinType          types.CoinType
-	Account           types.AccountIndex
-	Label             string
-	IsW3              bool
-	IsKeyDelivered    bool
+	Address        string
+	Path           string
+	IsExternal     bool
+	AddressIndex   types.AddressIndex
+	CoinType       types.CoinType
+	Account        types.AccountIndex
+	Label          string
+	IsW3           bool
+	IsKeyDelivered bool
 }
 
 type AccountResponse struct {

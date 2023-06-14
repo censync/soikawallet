@@ -11,7 +11,8 @@ var BSC = types.NewNetwork(
 	18,
 	true,
 	&types.EVMConfig{
-		ChainId: 0x38,
+		ChainId:  0x38,
+		DataFeed: "0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee",
 	},
 ).SetDefaultRPC(
 	`https://bsc-dataseed1.binance.org/`,

@@ -68,7 +68,9 @@ type GetAddressTokensBalanceByPathDTO struct {
 type SendTokensDTO struct {
 	DerivationPath string
 	To             string
-	Count          string
+	Value          float64
+	Standard       uint8
+	Contract       string
 }
 
 type GetTxReceiptDTO struct {

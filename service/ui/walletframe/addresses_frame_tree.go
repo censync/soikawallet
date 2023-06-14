@@ -67,8 +67,14 @@ func (p *pageAddresses) actionUpdateAddresses() {
 					CoinType:     uint32(coin),
 					AccountIndex: uint32(account.Account),
 				}) {
+					addrIndexFormat := "[%d] - %s"
+
+					if address.AddressIndex.IsHardened {
+						addrIndexFormat = "[%d'] - %s"
+					}
+
 					addressNode := tview.NewTreeNode(fmt.Sprintf(
-						"[%d] - %s",
+						addrIndexFormat,
 						address.AddressIndex.Index,
 						p.addrTruncate(address.Address),
 					))

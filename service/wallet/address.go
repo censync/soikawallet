@@ -184,15 +184,14 @@ func (s *Wallet) AddAddresses(dto *dto.AddAddressesDTO) (addresses []*resp.Addre
 			return nil, errors.New(fmt.Sprintf("cannot create account: %s", err))
 		}
 		addresses = append(addresses, &resp.AddressResponse{
-			Address:           addr.Address(),
-			Path:              addr.Path().String(),
-			IsExternal:        addr.IsExternal(),
-			AddressIndex:      addr.AddressIndex(),
-			IsHardenedAddress: addr.IsHardenedAddress(),
-			CoinType:          addr.CoinType(),
-			Account:           addr.Account(),
-			Label:             s.meta.GetAddressLabel(addr.Path().String()),
-			IsW3:              addr.IsW3(),
+			Address:      addr.Address(),
+			Path:         addr.Path().String(),
+			IsExternal:   addr.IsExternal(),
+			AddressIndex: addr.AddressIndex(),
+			CoinType:     addr.CoinType(),
+			Account:      addr.Account(),
+			Label:        s.meta.GetAddressLabel(addr.Path().String()),
+			IsW3:         addr.IsW3(),
 		})
 	}
 	return addresses, nil
@@ -205,15 +204,14 @@ func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*res
 		if addr.Path().Coin() == types.CoinType(dto.CoinType) &&
 			addr.Path().Account() == types.AccountIndex(dto.AccountIndex) {
 			addresses = append(addresses, &resp.AddressResponse{
-				Address:           addr.Address(),
-				Path:              addr.Path().String(),
-				IsExternal:        addr.IsExternal(),
-				AddressIndex:      addr.AddressIndex(),
-				IsHardenedAddress: addr.IsHardenedAddress(),
-				CoinType:          addr.CoinType(),
-				Account:           addr.Account(),
-				Label:             s.meta.GetAddressLabel(addr.Path().String()),
-				IsW3:              addr.IsW3(),
+				Address:      addr.Address(),
+				Path:         addr.Path().String(),
+				IsExternal:   addr.IsExternal(),
+				AddressIndex: addr.AddressIndex(),
+				CoinType:     addr.CoinType(),
+				Account:      addr.Account(),
+				Label:        s.meta.GetAddressLabel(addr.Path().String()),
+				IsW3:         addr.IsW3(),
 			})
 		}
 	}
@@ -225,15 +223,14 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 	var addresses []*resp.AddressResponse
 	for _, addr := range s.addresses {
 		addresses = append(addresses, &resp.AddressResponse{
-			Address:           addr.Address(),
-			Path:              addr.Path().String(),
-			IsExternal:        addr.IsExternal(),
-			AddressIndex:      addr.AddressIndex(),
-			IsHardenedAddress: addr.IsHardenedAddress(),
-			CoinType:          addr.CoinType(),
-			Account:           addr.Account(),
-			Label:             s.meta.GetAddressLabel(addr.Path().String()),
-			IsW3:              addr.IsW3(),
+			Address:      addr.Address(),
+			Path:         addr.Path().String(),
+			IsExternal:   addr.IsExternal(),
+			AddressIndex: addr.AddressIndex(),
+			CoinType:     addr.CoinType(),
+			Account:      addr.Account(),
+			Label:        s.meta.GetAddressLabel(addr.Path().String()),
+			IsW3:         addr.IsW3(),
 		})
 	}
 	return addresses

@@ -134,13 +134,13 @@ func (e *EVM) getGasPrice(ctx *types.RPCContext) (*big.Int, error) {
 	return client.SuggestGasPrice(ctx)
 }
 
-func (e *EVM) getNonce(ctx *types.RPCContext, to string) (uint64, error) {
+func (e *EVM) getNonce(ctx *types.RPCContext, account string) (uint64, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
 		return 0, err
 	}
 
-	return client.PendingNonceAt(ctx, common.HexToAddress(to))
+	return client.PendingNonceAt(ctx, common.HexToAddress(account))
 }
 
 func (e *EVM) getChainId(ctx *types.RPCContext) (*big.Int, error) {
@@ -161,7 +161,7 @@ func (e *EVM) getGasTipCap(ctx *types.RPCContext) (*big.Int, error) {
 	return client.SuggestGasTipCap(ctx)
 }
 
-func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, key *ecdsa.PrivateKey) (txId string, err error) {
+func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, key *ecdsa.PrivateKey) (txId string, err error) {
 	chainId, err := e.getChainId(ctx)
 
 	if err != nil {
@@ -186,7 +186,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, key *ecdsa.PrivateKey
 		return "", err
 	}
 
-	nonce, err := e.getNonce(ctx, to)
+	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
 
 	if err != nil {
 		return "", err
@@ -195,8 +195,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, key *ecdsa.PrivateKey
 	gasLimit := block.GasLimit()
 
 	addrTo := common.HexToAddress(to)
-	wei := int64(0) // 0.0014 * unit
-	value := big.NewInt(wei)
+	weiValue := big.NewInt(int64(value * float64(wei)))
 	maxGas := big.NewInt(int64(gasLimit - 1000000))
 	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
 		ChainID:   chainId,
@@ -205,7 +204,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, key *ecdsa.PrivateKey
 		Gas:       gasTipCap.Uint64() + 10000000, // 10000000
 		Nonce:     nonce,
 		To:        &addrTo,
-		Value:     value,
+		Value:     weiValue,
 		Data:      nil,
 	})
 
@@ -318,7 +317,9 @@ func (e *EVM) TxGetReceipt(ctx *types.RPCContext, tx string) (map[string]interfa
 }
 
 func (e *EVM) GetRPCInfo(ctx *types.RPCContext) (map[string]interface{}, error) {
-	result := map[string]interface{}{}
+	result := map[string]interface{}{
+		"errors": "",
+	}
 
 	height, err := e.getHeight(ctx)
 
@@ -334,16 +335,28 @@ func (e *EVM) GetRPCInfo(ctx *types.RPCContext) (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	gasTipCap, _ := e.getGasTipCap(ctx)
-	gasPrice, _ := e.getGasPrice(ctx)
-
-	price, err := e.GetPrice(ctx, "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419")
+	gasTipCap, err := e.getGasTipCap(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	gasPrice, err := e.getGasPrice(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	price := 0.0
+
+	if e.EVMConfig().DataFeed != "" {
+		price, err = e.GetPrice(ctx, e.EVMConfig().DataFeed)
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	gasEstimated := float64(block.GasLimit()*(gasPrice.Uint64()/gwei+gasTipCap.Uint64())/gwei) / float64(gwei)
-	calculatedGas := float64(gasMinLimit*(block.BaseFee().Uint64()/gwei+gasTipCap.Uint64())) / float64(gwei)
+	calculatedGas := float64(gasMinLimit*(block.BaseFee().Uint64()/gwei+gasTipCap.Uint64())) / float64(gwei) // BSC check
 	calculatedGasStr := fmt.Sprintf("%d * (%f + %f) = %f (%f USD)",
 		gasMinLimit,
 		float64(block.BaseFee().Uint64())/float64(gwei),
