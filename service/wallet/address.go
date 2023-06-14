@@ -191,6 +191,7 @@ func (s *Wallet) AddAddresses(dto *dto.AddAddressesDTO) (addresses []*resp.Addre
 			IsHardenedAddress: addr.IsHardenedAddress(),
 			CoinType:          addr.CoinType(),
 			Account:           addr.Account(),
+			Label:             s.meta.GetAddressLabel(addr.Path().String()),
 			IsW3:              addr.IsW3(),
 		})
 	}
@@ -211,6 +212,7 @@ func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*res
 				IsHardenedAddress: addr.IsHardenedAddress(),
 				CoinType:          addr.CoinType(),
 				Account:           addr.Account(),
+				Label:             s.meta.GetAddressLabel(addr.Path().String()),
 				IsW3:              addr.IsW3(),
 			})
 		}
@@ -230,6 +232,7 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 			IsHardenedAddress: addr.IsHardenedAddress(),
 			CoinType:          addr.CoinType(),
 			Account:           addr.Account(),
+			Label:             s.meta.GetAddressLabel(addr.Path().String()),
 			IsW3:              addr.IsW3(),
 		})
 	}

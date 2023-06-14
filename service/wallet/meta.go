@@ -62,7 +62,7 @@ func (s *Wallet) SetLabelLink(dto *dto.SetLabelLinkDTO) error {
 	}
 }
 
-func (s *Wallet) RemoveLabelLabel(dto *dto.RemoveLabelLinkDTO) error {
+func (s *Wallet) RemoveLabelLink(dto *dto.RemoveLabelLinkDTO) error {
 	switch dto.LabelType {
 	case types.AccountLabel:
 		return s.meta.RemoveAccountLabelLink(dto.Path)

@@ -29,7 +29,7 @@ type WalletAdapter interface {
 	AddLabel(dto *dto.AddLabelDTO) (uint32, error)
 	RemoveLabel(dto *dto.RemoveLabelDTO) error
 	SetLabelLink(dto *dto.SetLabelLinkDTO) error
-	RemoveLabelLabel(dto *dto.RemoveLabelLinkDTO) error
+	RemoveLabelLink(dto *dto.RemoveLabelLinkDTO) error
 
 	// Address operations
 

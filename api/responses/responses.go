@@ -11,6 +11,7 @@ type AddressResponse struct {
 	IsHardenedAddress bool
 	CoinType          types.CoinType
 	Account           types.AccountIndex
+	Label             string
 	IsW3              bool
 	IsKeyDelivered    bool
 }

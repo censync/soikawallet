@@ -57,18 +57,21 @@ func (f *frameDetailsAccount) Layout() *tview.Flex {
 			Index:     f.selectedLabelIndex,
 			Path:      f.selectedAccount.Path,
 		})
-		if err != nil {
+		if err == nil {
+			f.Emit(event_bus.EventLogSuccess, "Label saved for account")
+		} else {
 			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set label: %s", err))
 		}
 	})
 
-	btnRemoveLabel := tview.NewButton("Set label").SetSelectedFunc(func() {
-		err := f.API().SetLabelLink(&dto.SetLabelLinkDTO{
+	btnRemoveLabel := tview.NewButton("Remove label").SetSelectedFunc(func() {
+		err := f.API().RemoveLabelLink(&dto.RemoveLabelLinkDTO{
 			LabelType: types.AccountLabel,
-			Index:     f.selectedLabelIndex,
 			Path:      f.selectedAccount.Path,
 		})
-		if err != nil {
+		if err == nil {
+			f.Emit(event_bus.EventLogSuccess, "Label saved for account")
+		} else {
 			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot remvove label: %s", err))
 		}
 	})
