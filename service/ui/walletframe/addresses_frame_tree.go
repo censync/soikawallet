@@ -52,7 +52,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 				accountNodeTitle := ""
 
 				if account.Label != "" {
-					accountNodeTitle = fmt.Sprintf("[%d] - [lightblue::b]%s", account.Account, account.Label)
+					accountNodeTitle = fmt.Sprintf("[%d] - [blue::b]%s", account.Account, account.Label)
 				} else {
 					accountNodeTitle = fmt.Sprintf("[%d]", account.Account)
 				}

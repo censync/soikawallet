@@ -5,21 +5,21 @@ import (
 	"github.com/rivo/tview"
 )
 
-type frameDetailsEmpty struct {
+type frameAddressesDetailsEmpty struct {
 	layout *tview.Flex
 	*state.State
 }
 
-func newFrameDetailsEmpty(state *state.State) *frameDetailsEmpty {
+func newFrameAddressesDetailsEmpty(state *state.State) *frameAddressesDetailsEmpty {
 	layout := tview.NewFlex().
 		SetDirection(tview.FlexRow)
-	return &frameDetailsEmpty{
+	return &frameAddressesDetailsEmpty{
 		State:  state,
 		layout: layout,
 	}
 }
 
-func (f *frameDetailsEmpty) Layout() *tview.Flex {
+func (f *frameAddressesDetailsEmpty) Layout() *tview.Flex {
 	label := tview.NewTextView().
 		SetText("Account or address not selected")
 	label.SetBorderPadding(0, 0, 8, 8)

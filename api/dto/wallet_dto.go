@@ -65,6 +65,18 @@ type GetAddressTokensBalanceByPathDTO struct {
 	DerivationPath string
 }
 
+type GetGasPriceBaseTxDTO struct {
+	DerivationPath string
+}
+
+type GetTokenAllowanceDTO struct {
+	DerivationPath string
+	To             string
+	Value          float64
+	Standard       uint8
+	Contract       string
+}
+
 type SendTokensDTO struct {
 	DerivationPath string
 	To             string

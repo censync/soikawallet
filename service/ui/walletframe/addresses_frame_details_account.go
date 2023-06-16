@@ -10,7 +10,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-type frameDetailsAccount struct {
+type frameAddressesDetailsAccount struct {
 	layout *tview.Flex
 	*state.State
 
@@ -20,17 +20,17 @@ type frameDetailsAccount struct {
 	selectedLabelIndex uint32
 }
 
-func newFrameDetailsAccount(state *state.State, accountPath *resp.AccountResponse) *frameDetailsAccount {
+func newAddressesFrameDetailsAccount(state *state.State, accountPath *resp.AccountResponse) *frameAddressesDetailsAccount {
 	layout := tview.NewFlex().
 		SetDirection(tview.FlexRow)
-	return &frameDetailsAccount{
+	return &frameAddressesDetailsAccount{
 		State:           state,
 		layout:          layout,
 		selectedAccount: accountPath,
 	}
 }
 
-func (f *frameDetailsAccount) Layout() *tview.Flex {
+func (f *frameAddressesDetailsAccount) Layout() *tview.Flex {
 	label := tview.NewTextView().
 		SetText("Account selected")
 
@@ -61,7 +61,7 @@ func (f *frameDetailsAccount) Layout() *tview.Flex {
 	return f.layout
 }
 
-func (f *frameDetailsAccount) actionSetLabel() {
+func (f *frameAddressesDetailsAccount) actionSetLabel() {
 	err := f.API().SetLabelLink(&dto.SetLabelLinkDTO{
 		LabelType: types.AccountLabel,
 		Index:     f.selectedLabelIndex,
@@ -74,7 +74,7 @@ func (f *frameDetailsAccount) actionSetLabel() {
 	}
 }
 
-func (f *frameDetailsAccount) actionRemoveLabel() {
+func (f *frameAddressesDetailsAccount) actionRemoveLabel() {
 	err := f.API().RemoveLabelLink(&dto.RemoveLabelLinkDTO{
 		LabelType: types.AccountLabel,
 		Path:      f.selectedAccount.Path,

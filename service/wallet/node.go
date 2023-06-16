@@ -257,7 +257,7 @@ func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
 
 	tokenConfig = provider.GetTokenConfig(dto.Contract)
 	if tokenConfig == nil {
-		tokenConfig, err = provider.GetERC20Token(ctx, dto.Contract)
+		tokenConfig, err = provider.GetToken(ctx, dto.Contract)
 
 		if err != nil {
 			return nil, err
@@ -303,7 +303,7 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 			Contract: tokenConfig.Contract(),
 		}
 	} else {
-		tokenConfig, err = provider.GetERC20Token(ctx, dto.Contract)
+		tokenConfig, err = provider.GetToken(ctx, dto.Contract)
 
 		if err != nil {
 			return err

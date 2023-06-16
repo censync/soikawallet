@@ -8,11 +8,13 @@ import (
 	"github.com/censync/soikawallet/service/wallet/internal/oracle/chainlink"
 	"github.com/censync/soikawallet/service/wallet/internal/token/erc20"
 	"github.com/censync/soikawallet/types"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"golang.org/x/crypto/sha3"
 	"log"
 	"math"
 	"math/big"
@@ -98,7 +100,7 @@ func (e *EVM) GetTokenBalance(ctx *types.RPCContext, contract string, decimals i
 	return humanBalance, nil
 }
 
-func (e *EVM) GetERC20Token(ctx *types.RPCContext, contract string) (*types.TokenConfig, error) {
+func (e *EVM) GetToken(ctx *types.RPCContext, contract string) (*types.TokenConfig, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
@@ -123,6 +125,40 @@ func (e *EVM) GetERC20Token(ctx *types.RPCContext, contract string) (*types.Toke
 	}
 
 	return types.NewTokenConfig(types.TokenERC20, name, symbol, contract, int(decimals)), nil
+}
+
+func (e *EVM) GetTokenAllowance(ctx *types.RPCContext, contract, to string) (uint64, error) {
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return 0, err
+	}
+	instance, err := erc20.NewErc20(common.HexToAddress(contract), client)
+	if err != nil {
+		return 0, err
+	}
+
+	allowance, err := instance.Allowance(nil, common.HexToAddress(ctx.CurrentAccount()), common.HexToAddress(to))
+
+	if err != nil {
+		return 0, err
+	}
+
+	return allowance.Uint64(), nil
+}
+
+func (e *EVM) ApproveToken(ctx *types.RPCContext, contract string, value float64) (string, error) {
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return ``, err
+	}
+	instance, err := erc20.NewErc20(common.HexToAddress(contract), client)
+	if err != nil {
+		return ``, err
+	}
+	weiValue := big.NewInt(int64(value * float64(wei)))
+	signedTX, err := instance.Approve(&bind.TransactOpts{}, common.HexToAddress(ctx.CurrentAccount()), weiValue)
+
+	return signedTX.Hash().Hex(), err
 }
 
 func (e *EVM) getGasPrice(ctx *types.RPCContext) (*big.Int, error) {
@@ -161,6 +197,54 @@ func (e *EVM) getGasTipCap(ctx *types.RPCContext) (*big.Int, error) {
 	return client.SuggestGasTipCap(ctx)
 }
 
+func (e *EVM) getGasEstimate(ctx *types.RPCContext, msg *ethereum.CallMsg) (uint64, error) {
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return 0, err
+	}
+
+	return client.EstimateGas(ctx, *msg)
+}
+
+func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]float64, error) {
+	result := map[string]float64{
+		"base_fee":     0,
+		"priority_fee": 0,
+		"units":        21000,
+		"limit":        0,
+		"currency":     0,
+	}
+
+	height, err := e.getHeight(ctx)
+
+	if err != nil {
+		return result, err
+	}
+
+	block, err := e.getBlock(ctx, height)
+
+	if err != nil {
+		return result, err
+	}
+
+	gasLimit := block.GasLimit()
+	result["limit"] = float64(gasLimit)
+
+	baseFee := block.BaseFee()
+	if baseFee != nil {
+		result["base_fee"] = float64(baseFee.Int64()) / float64(gwei)
+	}
+
+	gasTipCap, err := e.getGasTipCap(ctx)
+	if err != nil {
+		return result, err
+	}
+	if gasTipCap != nil {
+		result["priority_fee"] = float64(gasTipCap.Int64()) / float64(gwei)
+	}
+	return result, nil
+}
+
 func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, key *ecdsa.PrivateKey) (txId string, err error) {
 	chainId, err := e.getChainId(ctx)
 
@@ -197,6 +281,9 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, key *e
 	addrTo := common.HexToAddress(to)
 	weiValue := big.NewInt(int64(value * float64(wei)))
 	maxGas := big.NewInt(int64(gasLimit - 1000000))
+
+	// both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified
+
 	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
 		ChainID:   chainId,
 		GasFeeCap: maxGas,
@@ -224,8 +311,109 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, key *e
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxPrepare(ctx *types.RPCContext, to string, value float64) (interface{}, error) {
+func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, key *ecdsa.PrivateKey) (txId string, err error) {
 	chainId, err := e.getChainId(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	/*height, err := e.getHeight(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	block, err := e.getBlock(ctx, height)
+
+	gasLimit := block.GasLimit()*/
+
+	if err != nil {
+		return "", err
+	}
+
+	gasTipCap, err := e.getGasTipCap(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
+
+	if err != nil {
+		return "", err
+	}
+
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return ``, err
+	}
+	allowance, err := e.GetTokenAllowance(ctx, token.Contract(), to)
+
+	if err != nil {
+		return "", err
+	}
+
+	if allowance == 0 {
+		return ``, errors.New("not approved")
+	}
+
+	transferFnSignature := []byte("transfer(address,uint256)")
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(transferFnSignature)
+	methodID := hash.Sum(nil)[:4]
+
+	addrFrom := common.HexToAddress(to)
+	paddedAddress := common.LeftPadBytes(addrFrom.Bytes(), 32)
+
+	addrTo := common.HexToAddress(to)
+
+	weiValue := big.NewInt(int64(value * float64(wei)))
+
+	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
+
+	var data []byte
+	data = append(data, methodID...)
+	data = append(data, paddedAddress...)
+	data = append(data, paddedAmount...)
+
+	tokenContract := common.HexToAddress(token.Contract())
+
+	dataTx := ethereum.CallMsg{
+		To:   &tokenContract,
+		Data: data,
+	}
+
+	gasEstimate, err := e.getGasEstimate(ctx, &dataTx)
+
+	if err != nil {
+		return ``, err
+	}
+
+	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
+		ChainID:   chainId,
+		GasFeeCap: big.NewInt(int64(gasEstimate)),
+		GasTipCap: gasTipCap,
+		Gas:       gasTipCap.Uint64() + 10000000, // 10000000
+		Nonce:     nonce,
+		To:        &addrTo,
+		Value:     weiValue,
+		Data:      data,
+	})
+
+	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
+
+	if err != nil {
+		return ``, err
+	}
+
+	err = client.SendTransaction(ctx, signedTX)
+
+	return signedTX.Hash().Hex(), err
+}
+
+func (e *EVM) TxPrepare(ctx *types.RPCContext, to string, value float64) (interface{}, error) {
+	/*chainId, err := e.getChainId(ctx)
 
 	if err != nil {
 		return nil, err
@@ -270,7 +458,7 @@ func (e *EVM) TxPrepare(ctx *types.RPCContext, to string, value float64) (interf
 		Value: weiValue,
 		Data:  nil,
 	})
-	return tx.Data(), nil
+	return tx.Data(), nil*/
 	/*
 		signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
 
@@ -286,6 +474,7 @@ func (e *EVM) TxPrepare(ctx *types.RPCContext, to string, value float64) (interf
 		err = client.SendTransaction(context.Background(), signedTX)
 
 		return signedTX.Hash().Hex(), err*/
+	return nil, nil
 }
 
 func (e *EVM) TxSend(ctx *context.Context) error {

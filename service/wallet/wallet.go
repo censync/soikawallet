@@ -81,6 +81,67 @@ func (s *Wallet) getInstanceId() string {
 	return base58.Encode(s.instanceId)
 }
 
+func (s *Wallet) GetGasPriceBaseTx(dto *dto.GetGasPriceBaseTxDTO) (map[string]float64, error) {
+	addressPath, err := types.ParsePath(dto.DerivationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	addr, err := s.address(addressPath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := types.NewRPCContext(addr.CoinType(), addr.nodeIndex, addr.Address())
+	provider, err := s.getNetworkProvider(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return provider.GetGasBaseTx(ctx)
+}
+
+func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
+	dto.To = strings.TrimSpace(dto.To)
+	addressPath, err := types.ParsePath(dto.DerivationPath)
+	if err != nil {
+		return 0, err
+	}
+
+	addr, err := s.address(addressPath)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if len(dto.To) < 4 {
+		return 0, errors.New("incorrect recipient address")
+	}
+
+	ctx := types.NewRPCContext(addr.CoinType(), addr.nodeIndex, addr.Address())
+	provider, err := s.getNetworkProvider(ctx)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if types.TokenStandard(dto.Standard) == types.TokenBase {
+		return 0, errors.New("allowance not available for base tokens")
+	}
+	tokenConfig := provider.GetTokenConfig(dto.Contract)
+
+	if tokenConfig == nil {
+		return 0, errors.New("token not configured")
+	}
+
+	if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
+		return 0, errors.New("incorrect token type")
+	}
+	return provider.GetTokenAllowance(ctx, tokenConfig.Contract(), dto.To)
+}
+
 func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 	dto.To = strings.TrimSpace(dto.To)
 	addressPath, err := types.ParsePath(dto.DerivationPath)
@@ -109,7 +170,20 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 		return "", err
 	}
 
-	return provider.TxSendBase(ctx, dto.To, dto.Value, addr.key.Get())
+	if types.TokenStandard(dto.Standard) == types.TokenBase {
+		return provider.TxSendBase(ctx, dto.To, dto.Value, addr.key.Get())
+	} else {
+		tokenConfig := provider.GetTokenConfig(dto.Contract)
+
+		if tokenConfig == nil {
+			return ``, errors.New("token not configured")
+		}
+
+		if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
+			return ``, errors.New("incorrect token type")
+		}
+		return provider.TxSendToken(ctx, dto.To, dto.Value, tokenConfig, addr.key.Get())
+	}
 }
 
 func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error) {
@@ -134,25 +208,6 @@ func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{},
 	}
 	return provider.TxGetReceipt(ctx, dto.Hash)
 }
-
-/*
-func (s *Wallet) GetAllCoins() []types.CoinType {
-	var coins []types.CoinType
-	for coin := range s.addresses {
-		coins = append(coins, coin)
-	}
-	return coins
-}
-
-func (s *Wallet) GetAllAccounts() []types.AccountIndex {
-	var accounts []types.AccountIndex
-	for coin := range s.coins {
-		for account := range s.coins[coin] {
-			accounts = append(accounts, account)
-		}
-	}
-	return accounts
-}*/
 
 func (s *Wallet) GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []*resp.AccountResponse {
 	accountsIndex := map[types.AccountIndex]bool{}

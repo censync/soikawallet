@@ -192,8 +192,11 @@ type NetworkAdapter interface {
 	// node methods
 	GetBalance(ctx *RPCContext) (float64, error)
 	GetTokenBalance(ctx *RPCContext, contract string, decimals int) (*big.Float, error)
-	GetERC20Token(ctx *RPCContext, contract string) (*TokenConfig, error)
+	GetToken(ctx *RPCContext, contract string) (*TokenConfig, error)
+	GetTokenAllowance(ctx *RPCContext, contract, to string) (uint64, error)
+	GetGasBaseTx(ctx *RPCContext) (map[string]float64, error)
 	TxSendBase(ctx *RPCContext, to string, value float64, key *ecdsa.PrivateKey) (string, error)
+	TxSendToken(ctx *RPCContext, to string, value float64, token *TokenConfig, key *ecdsa.PrivateKey) (string, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
 
 	// RPC info

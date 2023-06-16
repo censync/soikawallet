@@ -16,6 +16,7 @@ type WalletAdapter interface {
 	Init(dto *dto.InitWalletDTO) (string, error)
 	GenerateMnemonic(dto *dto.GenerateMnemonicDTO) (string, error)
 
+	GetGasPriceBaseTx(dto *dto.GetGasPriceBaseTxDTO) (map[string]float64, error)
 	SendTokens(dto *dto.SendTokensDTO) (txId string, err error)
 	GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error)
 	// GetAllAccounts() []types.AccountIndex
@@ -53,6 +54,7 @@ type WalletAdapter interface {
 	GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.AddressTokensListResponse, error)
 	GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error)
 	GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error)
+	GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error)
 
 	// Chain opertions
 

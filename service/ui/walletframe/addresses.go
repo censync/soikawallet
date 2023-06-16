@@ -98,13 +98,13 @@ func (p *pageAddresses) actionUpdateFrameDetails() {
 	}
 	detailsFrame := tview.NewFlex()
 	if p.selectedAddress != nil {
-		frame := newFrameDetailsAddr(p.State, p.selectedAddress)
+		frame := newFrameAddressesDetailsAddr(p.State, p.selectedAddress)
 		detailsFrame = frame.Layout()
 	} else if p.selectedAccount != nil {
-		frame := newFrameDetailsAccount(p.State, p.selectedAccount)
+		frame := newAddressesFrameDetailsAccount(p.State, p.selectedAccount)
 		detailsFrame = frame.Layout()
 	} else {
-		frame := newFrameDetailsEmpty(p.State)
+		frame := newFrameAddressesDetailsEmpty(p.State)
 		detailsFrame = frame.Layout()
 	}
 	item := p.layout.GetItem(1)

@@ -11,7 +11,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-type frameDetailsAddr struct {
+type frameAddressesDetailsAddr struct {
 	layout *tview.Flex
 	*state.State
 
@@ -23,18 +23,18 @@ type frameDetailsAddr struct {
 	selectedAddress *resp.AddressResponse
 }
 
-func newFrameDetailsAddr(state *state.State, selectedAddress *resp.AddressResponse) *frameDetailsAddr {
+func newFrameAddressesDetailsAddr(state *state.State, selectedAddress *resp.AddressResponse) *frameAddressesDetailsAddr {
 	layout := tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
-	return &frameDetailsAddr{
+	return &frameAddressesDetailsAddr{
 		State:           state,
 		layout:          layout,
 		selectedAddress: selectedAddress,
 	}
 }
 
-func (f *frameDetailsAddr) Layout() *tview.Flex {
+func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 
 	f.layoutAddrSelected = tview.NewFlex().
 		SetDirection(tview.FlexRow)
@@ -194,12 +194,12 @@ func (f *frameDetailsAddr) Layout() *tview.Flex {
 	return f.layout
 }
 
-func (f *frameDetailsAddr) clearAddrQR() {
+func (f *frameAddressesDetailsAddr) clearAddrQR() {
 	// f.labelQR.Clear()
 	// f.labelQR.SetTextColor(tcell.ColorDefault).
 	//	SetBackgroundColor(tcell.ColorDefault)
 }
 
-func (f *frameDetailsAddr) showAddrQR() {
+func (f *frameAddressesDetailsAddr) showAddrQR() {
 	//p.Emit(handler.EventShowModal, modalQR)
 }
