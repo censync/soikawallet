@@ -3,6 +3,7 @@ package network
 import (
 	"errors"
 	"github.com/censync/soikawallet/config/networks"
+	"github.com/censync/soikawallet/service/wallet/internal/network/btc"
 	"github.com/censync/soikawallet/service/wallet/internal/network/evm"
 	"github.com/censync/soikawallet/service/wallet/internal/network/tron"
 	"github.com/censync/soikawallet/types"
@@ -10,17 +11,20 @@ import (
 )
 
 type Provider struct {
-	mu       sync.RWMutex
-	networks map[types.CoinType]types.NetworkAdapter
+	mu              sync.RWMutex
+	networks        map[types.CoinType]types.NetworkAdapter
+	defaultCurrency string
 }
 
 var networkProviders = &Provider{
 	networks: map[types.CoinType]types.NetworkAdapter{
+		types.Bitcoin:  btc.NewBTC(networks.Bitcoin),
 		types.Ethereum: evm.NewEVM(networks.Ethereum),
 		types.Tron:     tron.NewTron(networks.Tron),
 		types.Polygon:  evm.NewEVM(networks.Polygon),
 		types.BSC:      evm.NewEVM(networks.BSC),
 	},
+	defaultCurrency: `USD`,
 }
 
 func (s *Provider) IsExists(index types.CoinType) bool {

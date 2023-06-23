@@ -11,17 +11,19 @@ import (
 
 const (
 	chunkHeaderOffset = 6                      // chunk_index(2) + chunks_count(2) + chunk_size(2)
+	defaultChunkSize  = 192                    // best size for terminal
 	minChunkSize      = 34 + chunkHeaderOffset // protocol_version(1) + root_compressed_pub(33)
-	baseChunkSize     = 192                    // best size for terminal
+	// maxChunksCount = maxChunksCount
+	// maxPayloadSize    = defaultChunkSize * (2<<15 - 1 - chunkHeaderOffset) // ~ 12.58Mb
 )
 
-type Chunks struct {
-	count  uint16
-	size   uint16
-	chunks [][]byte
+type chunks struct {
+	count uint16
+	size  uint16
+	data  [][]byte
 }
 
-func NewChunks(src []byte, chunkSize int) (*Chunks, error) {
+func NewChunks(src []byte, chunkSize int) (*chunks, error) {
 	/*if len(src) < minChunkSize {
 		return nil, errors.New("less than airgap message minimum size")
 	}*/
@@ -41,7 +43,7 @@ func NewChunks(src []byte, chunkSize int) (*Chunks, error) {
 		return nil, err
 	}
 
-	chunks := make([][]byte, 0)
+	data := make([][]byte, 0)
 	for iter := 0; iter < len(compressedData); iter += chunkSize {
 
 		payloadSize := len(compressedData[iter:])
@@ -55,13 +57,13 @@ func NewChunks(src []byte, chunkSize int) (*Chunks, error) {
 			copy(chunk, compressedData[iter:])
 		}
 
-		chunks = append(chunks, chunk)
+		data = append(data, chunk)
 	}
 
-	return &Chunks{
-		count:  uint16(len(chunks)),
-		size:   uint16(chunkSize),
-		chunks: chunks,
+	return &chunks{
+		count: uint16(len(data)),
+		size:  uint16(chunkSize),
+		data:  data,
 	}, nil
 }
 
@@ -104,8 +106,8 @@ func uncompress(src []byte) ([]byte, error) {
 	return uncompressedBytes, nil
 }
 
-func (f *Chunks) Chunk(index uint16) []byte {
-	size := len(f.chunks[index])
+func (f *chunks) getChunkWithHeader(index uint16) []byte {
+	size := len(f.data[index])
 	chunk := make([]byte, f.size+chunkHeaderOffset)
 	// chunk_index
 	chunk[0] = byte(index)
@@ -117,36 +119,34 @@ func (f *Chunks) Chunk(index uint16) []byte {
 	chunk[4] = byte(size)
 	chunk[5] = byte(size >> 8)
 
-	copy(chunk[chunkHeaderOffset:], f.chunks[index])
+	copy(chunk[chunkHeaderOffset:], f.data[index])
 
 	return chunk
 }
 
-func (f *Chunks) Bytes() [][]byte {
-	var chunks [][]byte
+func (f *chunks) Data() []byte {
+	var result []byte
 	for index := uint16(0); index < f.count; index++ {
-		chunks = append(chunks, f.Chunk(index))
+		result = append(result, f.data[index]...)
 	}
-	return chunks
+	result, _ = uncompress(result)
+	return result
 }
 
-func (f *Chunks) ChunkBase64(index uint16) string {
-	return base64.StdEncoding.EncodeToString(f.Chunk(index))
-}
-
-func (f *Chunks) ChunksBase64() []string {
+// SerializeB64 represents data frames to strings array, ready for generate QR code animation frames
+func (f *chunks) SerializeB64() []string {
 	var chunksB64 []string
 	for i := uint16(0); i < f.count; i++ {
-		chunksB64 = append(chunksB64, base64.StdEncoding.EncodeToString(f.Chunk(i)))
+		chunksB64 = append(chunksB64, base64.StdEncoding.EncodeToString(f.getChunkWithHeader(i)))
 	}
 	return chunksB64
 }
 
-func (f *Chunks) Count() uint16 {
+func (f *chunks) Count() uint16 {
 	return f.count
 }
 
-func (f *Chunks) ReadChunk(frame string) error {
+func (f *chunks) ReadB64Chunk(frame string) error {
 	chunk, err := base64.StdEncoding.DecodeString(frame)
 
 	if err != nil {
@@ -154,29 +154,22 @@ func (f *Chunks) ReadChunk(frame string) error {
 	}
 
 	if f.count == 0 {
-		f.count = uint16(chunk[2] | chunk[3]<<8)
-		f.chunks = make([][]byte, f.count)
+		f.count = uint16(chunk[2]) | uint16(chunk[3])<<8
+		f.data = make([][]byte, f.count)
 	}
 
-	index := int16(chunk[0] | chunk[1]<<8)
+	index := uint16(chunk[0]) | uint16(chunk[1])<<8
 
-	size := int16(chunk[4] | chunk[5]<<8)
+	size := uint16(chunk[4]) | uint16(chunk[5])<<8
 
-	//fmt.Println(chunk[chunkHeaderOffset:])
-
-	if f.chunks[index] == nil {
-		f.chunks[index] = make([]byte, size)
-		copy(f.chunks[index], chunk[chunkHeaderOffset:chunkHeaderOffset+size])
+	if f.data[index] == nil {
+		f.data[index] = make([]byte, size)
+		copy(f.data[index], chunk[chunkHeaderOffset:chunkHeaderOffset+size])
 	}
 
 	return nil
 }
 
-func (f *Chunks) Data() ([]byte, error) {
-	data := make([]byte, 0)
-	for i := 0; i < len(f.chunks); i++ {
-		data = append(data, f.chunks[i]...)
-	}
-	result, err := uncompress(data)
-	return result, err
+func (f *chunks) IsFilled() bool {
+	return len(f.data) == int(f.count)
 }

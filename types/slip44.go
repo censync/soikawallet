@@ -3,6 +3,7 @@ package types
 import "sort"
 
 const (
+	Bitcoin  = CoinType(1)
 	Ethereum = CoinType(60)
 	Tron     = CoinType(195)
 	Polygon  = CoinType(966)
@@ -11,6 +12,7 @@ const (
 
 var (
 	registeredCoins = map[string]CoinType{
+		`Bitcoin`:  Bitcoin,
 		`Ethereum`: Ethereum,
 		`Tron`:     Tron,
 		`Polygon`:  Polygon,

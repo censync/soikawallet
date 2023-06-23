@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	"github.com/censync/soikawallet/types/gas"
 	"math/big"
 )
 
@@ -22,9 +23,11 @@ type BaseNetwork struct {
 	explorer string
 
 	rpc       *RPCMap
+	gasCalc   *gas.Calculator
 	tokens    map[string]*TokenConfig
 	evmConfig *EVMConfig
 	isW3      bool
+	dataFeeds map[CurrencyPair]string
 	NetworkAdapter
 }
 
@@ -224,6 +227,16 @@ func (n *BaseNetwork) SetDefaultRPC(defaultEndpoint, defaultExplorer string) *Ba
 		endpoint:  defaultEndpoint,
 		isDefault: true,
 	}
+	return n
+}
+
+func (n *BaseNetwork) SetGasCalculator(calculator gas.Calculator) *BaseNetwork {
+	n.gasCalc = &calculator
+	return n
+}
+
+func (n *BaseNetwork) SetDataFeeds(dataFeeds map[CurrencyPair]string) *BaseNetwork {
+	n.dataFeeds = dataFeeds
 	return n
 }
 

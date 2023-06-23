@@ -251,15 +251,15 @@ func (s *Wallet) ExportMeta() (*resp.AirGapMessageResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	a := airgap.Restore(s.instanceId).
+	airgapMsg := airgap.NewAirGap(airgap.VersionDefault, s.instanceId).
 		CreateMessage().
 		AddOperation(types.OpMetaWallet, data)
-	chunks, err := airgap.NewChunks(a.Bytes(), 192)
+	chunks, err := airgapMsg.MarshalB64Chunks()
 	if err != nil {
 		return nil, err
 	}
 	return &resp.AirGapMessageResponse{
-		Chunks: chunks.ChunksBase64(),
+		Chunks: chunks,
 	}, nil
 }
 
