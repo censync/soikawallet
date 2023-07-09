@@ -6,9 +6,9 @@ import (
 	"errors"
 	"github.com/btcsuite/btcd/btcutil/base58"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
+	airgap "github.com/censync/go-airgap"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/wallet/internal/airgap"
 	"github.com/censync/soikawallet/service/wallet/internal/network"
 	"github.com/censync/soikawallet/service/wallet/meta"
 	"github.com/censync/soikawallet/types"
@@ -22,6 +22,7 @@ const (
 )
 
 type Wallet struct {
+	// instanceId compressed public key for root key, used for identify device instance
 	instanceId []byte
 	bip44Key   *hdkeychain.ExtendedKey
 	addresses  map[string]*address
@@ -36,12 +37,20 @@ func (s *Wallet) getRPCProvider(coinType types.CoinType) types.RPCAdapter {
 	return network.Get(coinType)
 }
 
+// Init initializes static instance of wallet with mnemonic and optional passphrase.
+// If result is successful, will be returned base58 encoded compressed root public key.
 func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
 	var err error
 	dto.Mnemonic = strings.TrimSpace(dto.Mnemonic)
 	dto.Passphrase = strings.TrimSpace(dto.Passphrase)
 
-	if !dto.SkipPrefixCheck {
+	// Check for singleton
+	if s.instanceId != nil {
+		return "", errors.New("wallet already initialized")
+	}
+
+	// SkipMnemonicCheck flag used only for testing vectors
+	if !dto.SkipMnemonicCheck {
 		err = seed.Check(dto.Mnemonic)
 	}
 
@@ -67,9 +76,9 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
 	if err != nil {
 		return "", errors.New("cannot initialize BIP-44 key")
 	}
-	masterPubKey.SerializeCompressed()
+
 	*s = Wallet{
-		instanceId: masterPubKey.SerializeCompressed(), //(masterPubKey.SerializeCompressed()),
+		instanceId: masterPubKey.SerializeCompressed(),
 		bip44Key:   bip44Key,
 		addresses:  map[string]*address{},
 		meta:       meta.InitMeta(),

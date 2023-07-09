@@ -43,5 +43,5 @@ func main() {
 	provider.UI().Start()
 
 	wg.Wait()
-	//ui.Init().Start(*optionVerbose)
+	//tui.Init().Start(*optionVerbose)
 }

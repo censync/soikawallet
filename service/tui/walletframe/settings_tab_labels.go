@@ -1,0 +1,115 @@
+package walletframe
+
+import (
+	"fmt"
+	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/rivo/tview"
+)
+
+func (p *pageSettings) tabLabels() *tview.Flex {
+	var (
+		selectedOption     = uint8(1)
+		selectedLabelIndex = uint32(0)
+	)
+
+	root := tview.NewTreeNode(`Labels`)
+
+	treeLabels := tview.NewTreeView().SetRoot(root)
+	treeLabels.SetBorder(true)
+
+	inputFieldLabel := tview.NewInputField().
+		SetLabel("Name").
+		SetFieldWidth(20)
+
+	updateLabels := func() {
+		var labels map[uint32]string
+		root.ClearChildren()
+
+		// Hide
+
+		if selectedOption == 1 {
+			root.SetText("Account labels")
+			labels = p.API().GetAccountLabels()
+		} else if selectedOption == 2 {
+			root.SetText("Address labels")
+			labels = p.API().GetAddressLabels()
+		}
+		for index, title := range labels {
+			root.AddChild(tview.NewTreeNode(title).SetReference(index))
+		}
+	}
+
+	formControls := tview.NewForm().
+		SetItemPadding(1).
+		AddDropDown("Standard", []string{"Account", "Address"}, 0, func(option string, optionIndex int) {
+			if p.API() != nil {
+				selectedOption = uint8(optionIndex) + 1
+				inputFieldLabel.SetText("")
+				updateLabels()
+			}
+		}).
+		AddFormItem(inputFieldLabel).
+		AddButton(p.Tr().T("tui.button", "add"), func() {
+			if p.API() != nil {
+				_, err := p.API().AddLabel(&dto.AddLabelDTO{
+					LabelType: selectedOption,
+					Title:     inputFieldLabel.GetText(),
+				})
+				if err != nil {
+					p.Emit(
+						event_bus.EventLogError,
+						fmt.Sprintf("Cannot add label: %s", err),
+					)
+				} else {
+					inputFieldLabel.SetText("")
+				}
+				updateLabels()
+			}
+		})
+	formControls.SetBorder(true)
+
+	formDetails := tview.NewForm().
+		SetItemPadding(1).
+		AddInputField("Label", "", 20, nil, nil).
+		AddButton("Save", func() {}).
+		AddButton("Remove", func() {
+			if p.API() != nil && selectedLabelIndex > 0 {
+				err := p.API().RemoveLabel(&dto.RemoveLabelDTO{
+					LabelType: selectedOption,
+					Index:     selectedLabelIndex,
+				})
+				if err != nil {
+					p.Emit(
+						event_bus.EventLogError,
+						fmt.Sprintf("Cannot remove label: %s", err),
+					)
+				}
+				selectedLabelIndex = 0
+				updateLabels()
+			}
+		})
+
+	formDetails.SetBorder(true)
+
+	treeLabels.SetSelectedFunc(func(node *tview.TreeNode) {
+		// Hide
+		formDetails.GetFormItem(0).(*tview.InputField).SetText("")
+
+		reference := node.GetReference()
+		if reference != nil {
+			selectedLabelIndex = reference.(uint32)
+			formDetails.GetFormItem(0).(*tview.InputField).SetText(node.GetText())
+		} else {
+			selectedLabelIndex = 0
+		}
+	})
+
+	layout := tview.NewFlex().
+		SetDirection(tview.FlexColumn).
+		AddItem(formControls, 0, 1, false).
+		AddItem(treeLabels, 0, 1, false).
+		AddItem(formDetails, 0, 1, false)
+
+	return layout
+}

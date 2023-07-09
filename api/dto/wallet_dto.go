@@ -1,9 +1,9 @@
 package dto
 
 type InitWalletDTO struct {
-	Mnemonic        string
-	Passphrase      string
-	SkipPrefixCheck bool
+	Mnemonic          string
+	Passphrase        string
+	SkipMnemonicCheck bool
 }
 
 type GenerateMnemonicDTO struct {

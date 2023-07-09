@@ -29,10 +29,10 @@ func TestWallet_AddAddressesPositive(t *testing.T) {
 	for _, vector := range testVectors {
 		service := &Wallet{}
 
-		err := service.Init(&dto.InitWalletDTO{
-			Mnemonic:        vector.Mnemonic,
-			Passphrase:      testPassphrase,
-			SkipPrefixCheck: true,
+		_, err := service.Init(&dto.InitWalletDTO{
+			Mnemonic:          vector.Mnemonic,
+			Passphrase:        testPassphrase,
+			SkipMnemonicCheck: true,
 		})
 
 		assert.Nil(t, err)

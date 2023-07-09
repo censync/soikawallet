@@ -10,7 +10,7 @@ const testMnemonic = `ceiling code ginger fabric transfer gallery sort deputy en
 
 func TestWalletService_Init(t *testing.T) {
 	service := &Wallet{}
-	err := service.Init(&dto.InitWalletDTO{
+	_, err := service.Init(&dto.InitWalletDTO{
 		Mnemonic:   testMnemonic,
 		Passphrase: ``,
 	})
