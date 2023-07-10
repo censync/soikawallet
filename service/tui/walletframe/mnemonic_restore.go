@@ -6,6 +6,7 @@ import (
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/wallet"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"os"
 	"strings"
@@ -54,21 +55,32 @@ func (p *pageRestoreMnemonic) FuncOnShow() {
 		os.Unsetenv("SOIKAWALLET_MNEMONIC_PASSPHRASE")
 	}
 
-	labelNext := tview.NewForm().
-		SetHorizontal(true).
-		SetItemPadding(1).
-		AddButton(p.Tr().T("tui.button", "back"), func() {
+	btnNext := tview.NewButton(p.Tr().T("tui.button", "next")).
+		SetStyleAttrs(tcell.AttrBold).
+		SetSelectedFunc(p.actionRestoreWithMnemonic)
+
+	btnBack := tview.NewButton(p.Tr().T("tui.button", "back")).
+		SetSelectedFunc(func() {
 			p.SwitchToPage(p.Pages().GetPrevious())
-		}).
-		AddButton(p.Tr().T("tui.button", "next"), p.actionRestoreWithMnemonic)
+		})
+
+	layoutWizard := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(btnNext, 3, 1, false).
+		AddItem(nil, 1, 1, false).
+		AddItem(btnBack, 3, 1, false)
+
+	layoutWizard.SetBorderPadding(1, 1, 2, 2)
 
 	layoutRestoreForm := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(p.inputMnemonic, 10, 1, false).
 		AddItem(p.inputPassword, 3, 1, false)
 
-	p.layout.AddItem(layoutRestoreForm, 40, 1, false).
-		AddItem(labelNext, 20, 1, false)
+	p.layout.AddItem(nil, 0, 1, false).
+		AddItem(layoutRestoreForm, 0, 3, false).
+		AddItem(layoutWizard, 35, 1, false).
+		AddItem(nil, 0, 1, false)
 }
 
 func (p *pageRestoreMnemonic) actionRestoreWithMnemonic() {

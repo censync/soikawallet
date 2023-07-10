@@ -6,6 +6,7 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
+	"github.com/censync/soikawallet/service/tui/widgets/qrview"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -47,7 +48,6 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 
 	f.labelQR = tview.NewTextView().
 		SetWordWrap(false).
-		//SetTextColor(tcell.ColorBlack).
 		SetScrollable(false).
 		SetTextAlign(tview.AlignCenter)
 
@@ -201,5 +201,9 @@ func (f *frameAddressesDetailsAddr) clearAddrQR() {
 }
 
 func (f *frameAddressesDetailsAddr) showAddrQR() {
-	//p.Emit(handler.EventShowModal, modalQR)
+	if f.selectedAddress != nil {
+		f.labelQR.SetTextColor(tcell.ColorBlack).
+			SetBackgroundColor(tcell.ColorLightGray)
+		f.labelQR.SetText(qrview.NewQrViewText(f.selectedAddress.Address))
+	}
 }

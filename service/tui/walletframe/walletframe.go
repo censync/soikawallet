@@ -13,8 +13,8 @@ import (
 const (
 	pageNameSelectInitMode   = `select_init_mode`
 	pageNameSelectInitWallet = `select_init_wallet`
-	pageNameInitMnemonic     = `init_mnemonic`
-	pageNameRestoreMnemonic  = `restore_mnemonic`
+	pageNameMnemonicInit     = `mnemonic_init`
+	pageNameMnemonicRestore  = `mnemonic_restore`
 	pageNameCreateWallets    = `wallets_create`
 	pageNameAddresses        = `addresses`
 	pageNameTransaction      = `transaction`
@@ -68,8 +68,8 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 	prepared := map[string]IExtPage{
 		pageNameSelectInitMode:   newPageInitMode(f.state),
 		pageNameSelectInitWallet: newPageInitWallet(f.state),
-		pageNameInitMnemonic:     newPageInitMnemonic(f.state),
-		pageNameRestoreMnemonic:  newPageRestoreMnemonic(f.state),
+		pageNameMnemonicInit:     newPageInitMnemonic(f.state),
+		pageNameMnemonicRestore:  newPageRestoreMnemonic(f.state),
 		pageNameCreateWallets:    newPageCreateWallet(f.state),
 		pageNameAddresses:        newPageAddresses(f.state),
 		pageNameTransaction:      newPageTransactions(f.state),

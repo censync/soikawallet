@@ -26,13 +26,13 @@ func (p *pageInitWallet) FuncOnShow() {
 
 	btnWalletCreate.SetSelectedFunc(func() {
 		p.SetStatus(state.StateInitLocal)
-		p.SwitchToPage(pageNameInitMnemonic)
+		p.SwitchToPage(pageNameMnemonicInit)
 	})
 	btnWalletRestore := tview.NewButton(p.Tr().T("tui.button", "wallet_restore"))
 
 	btnWalletRestore.SetSelectedFunc(func() {
 		p.SetStatus(state.StateInitLocal)
-		p.SwitchToPage(pageNameRestoreMnemonic)
+		p.SwitchToPage(pageNameMnemonicRestore)
 	})
 
 	layoutButtons := tview.NewFlex().

@@ -126,7 +126,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		AddItem(layoutOptions, 3, 1, false)
 
 	p.layout.AddItem(layoutMnemonicForm, 0, 3, false).
-		AddItem(layoutWizard, 0, 1, false)
+		AddItem(layoutWizard, 35, 1, false)
 
 }
 

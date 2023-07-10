@@ -22,15 +22,18 @@ func (p *pageCreateWallet) tabBulk() *tview.Flex {
 		SetPlaceholderStyle(tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorDarkGrey)).
 		SetPlaceholder("m/44'/60'/0'/0/0\nm/44'/60'/0'/0/1\nm/44'/60'/0'/0/2")
 
-	labelButtons := tview.NewForm().
-		SetHorizontal(true).
-		SetItemPadding(1).
-		AddButton(p.Tr().T("tui.button", "create"), func() {
-			p.actionCreateAddrBulk()
-		})
+	btnNext := tview.NewButton(p.Tr().T("tui.button", "next")).
+		SetStyleAttrs(tcell.AttrBold).
+		SetSelectedFunc(p.actionCreateAddrBulk)
+
+	layoutWizard := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(btnNext, 3, 1, false)
+
+	layoutWizard.SetBorderPadding(1, 1, 2, 2)
 
 	layout.AddItem(p.inputDerivationPaths, 0, 1, false).
-		AddItem(labelButtons, 20, 1, false)
+		AddItem(layoutWizard, 35, 1, false)
 	return layout
 }
 

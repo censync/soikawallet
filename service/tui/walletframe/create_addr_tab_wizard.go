@@ -5,6 +5,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/types"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"strconv"
 )
@@ -18,25 +19,36 @@ func (p *pageCreateWallet) tabWizard() *tview.Flex {
 	p.layoutAddrEntriesForm = tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
+	p.layoutAddrEntriesForm.SetBorder(true).
+		SetTitleAlign(tview.AlignLeft).
+		SetTitle(" Addresses ")
+
 	p.actionUpdateForm()
 
-	labelButtons := tview.NewForm().
-		SetHorizontal(true).
-		SetItemPadding(1).
-		AddButton(p.Tr().T("tui.button", "create"), func() {
-			p.actionCreateAddrWizard()
-		})
+	btnNext := tview.NewButton(p.Tr().T("tui.button", "next")).
+		SetStyleAttrs(tcell.AttrBold).
+		SetSelectedFunc(p.actionCreateAddrWizard)
+
+	layoutWizard := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(btnNext, 3, 1, false)
+
+	layoutWizard.SetBorderPadding(1, 1, 2, 2)
 
 	layout.
 		AddItem(p.uiGlobalSettingsForm(), 40, 1, false).
 		AddItem(p.layoutAddrEntriesForm, 70, 1, false).
-		AddItem(labelButtons, 20, 1, false)
+		AddItem(layoutWizard, 35, 1, false)
 	return layout
 }
 
 func (p *pageCreateWallet) uiGlobalSettingsForm() *tview.Form {
 	layoutGlobalSettings := tview.NewForm().
 		SetHorizontal(false)
+
+	layoutGlobalSettings.SetBorder(true).
+		SetTitleAlign(tview.AlignLeft).
+		SetTitle(" Options ")
 
 	layoutGlobalSettings.SetBorderPadding(0, 1, 3, 1)
 
@@ -108,7 +120,7 @@ func (p *pageCreateWallet) actionUpdateForm() {
 			SetHorizontal(true).
 			SetItemPadding(2).
 			AddInputField("Account", strconv.Itoa(p.accountStartIndex), 10, tview.InputFieldInteger, nil).
-			AddDropDown("Charge", []string{"External", "Internal"}, 0, func(text string, optionIndex int) {
+			AddDropDown("Charge", []string{" External ▼ ", " Internal "}, 0, func(text string, optionIndex int) {
 				if optionIndex == 0 {
 					p.selectedCharge = 0
 				} else {
@@ -130,7 +142,8 @@ func (p *pageCreateWallet) actionCreateAddrWizard() {
 		if p.selectedUseHardened {
 			pathFormat += `'`
 		}
-		dPath := fmt.Sprintf(pathFormat,
+		dPath := fmt.Sprintf(
+			pathFormat,
 			p.selectedChain,
 			entryItem.GetFormItem(0).(*tview.InputField).GetText(),
 			p.selectedCharge,

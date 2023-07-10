@@ -32,22 +32,38 @@ type QrView struct {
 }
 
 func NewQrView(chunks []string, duration time.Duration, redraw func()) *QrView {
-	label := tview.NewTextView().
+	layout := tview.NewTextView().
 		SetWordWrap(false).
 		//SetTextColor(tcell.ColorBlack).
 		SetScrollable(false).
 		SetTextAlign(tview.AlignCenter)
 
-	label.SetTextColor(tcell.ColorBlack).
+	layout.SetTextColor(tcell.ColorBlack).
 		SetBackgroundColor(tcell.ColorLightGray)
 
 	return &QrView{
-		TextView: label,
+		TextView: layout,
 		chunks:   chunks,
 		duration: duration,
 		redraw:   redraw,
 	}
 
+}
+
+func NewQrViewText(data string) string {
+	qrc, err := qrcode.New(data, qrcode.Low)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	bitmap := qrc.Bitmap()
+
+	buf := bytes.NewBufferString("")
+	generateFrame(buf, bitmap)
+	return buf.String()
 }
 
 func (qr *QrView) Start() {
@@ -76,23 +92,32 @@ func (qr *QrView) Start() {
 		qr.chunks[i] = buf.String()
 	}
 
-	go func() {
-		frameId := 0
-		for {
-			select {
-			case <-ticker.C:
-				frame := qr.chunks[frameId%len(qr.chunks)]
-				qr.SetText(frame)
-				qr.redraw()
-				frameId++
-			case <-qr.animDone:
-				qr.isStarted = false
-				ticker.Stop()
-				close(qr.animDone)
-				return
+	if len(qr.chunks) > 1 {
+		// show animation
+		go func() {
+			frameId := 0
+			for {
+				select {
+				case <-ticker.C:
+					frame := qr.chunks[frameId%len(qr.chunks)]
+					qr.SetText(frame)
+					qr.redraw()
+					frameId++
+				case <-qr.animDone:
+					qr.isStarted = false
+					ticker.Stop()
+					close(qr.animDone)
+					return
+				}
 			}
+		}()
+	} else {
+		if len(qr.chunks) == 1 {
+			qr.SetText(qr.chunks[0])
+			qr.redraw()
 		}
-	}()
+	}
+
 }
 
 func (qr *QrView) Stop() {
