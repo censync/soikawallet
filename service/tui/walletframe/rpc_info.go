@@ -13,7 +13,7 @@ type pageNodeInfo struct {
 	*BaseFrame
 	*state.State
 
-	// tui
+	// ui
 	labelRPCInfo    *tview.TextView
 	inputSelectNode *tview.DropDown
 
@@ -50,9 +50,9 @@ func (p *pageNodeInfo) FuncOnShow() {
 		}).
 		SetCurrentOption(0)
 
-	layoutReceipt := tview.NewFlex().
+	layoutResult := tview.NewFlex().
 		SetDirection(tview.FlexRow)
-	layoutReceipt.SetBorder(true)
+	layoutResult.SetBorder(true)
 
 	searchForm := tview.NewForm().
 		SetHorizontal(true).
@@ -65,11 +65,11 @@ func (p *pageNodeInfo) FuncOnShow() {
 	p.labelRPCInfo = tview.NewTextView().
 		SetDynamicColors(true)
 
-	layoutReceipt.AddItem(searchForm, 3, 1, false).
+	layoutResult.AddItem(searchForm, 3, 1, false).
 		AddItem(p.labelRPCInfo, 0, 1, false)
 
 	p.layout.AddItem(nil, 0, 1, false).
-		AddItem(layoutReceipt, 0, 3, false).
+		AddItem(layoutResult, 0, 3, false).
 		AddItem(nil, 0, 1, false)
 }
 

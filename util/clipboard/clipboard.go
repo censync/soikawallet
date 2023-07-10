@@ -6,18 +6,24 @@ import (
 )
 
 var (
-	selectedTool   = -1
-	clipboardTools = [][]string{
+	selectedTool  = -1
+	clipboardCopy = [][]string{
 		{"xsel", "--input", "--clipboard"},
 		{"xclip", "-in", "-selection", "clipboard"},
 		{"wl-copy"},
 		{"termux-clipboard-set"},
 	}
+	clipboardPaste = [][]string{
+		{"xsel", "--output", "--clipboard"},
+		{"xclip", "-o"},
+		{"wl-paste"},
+		{"termux-clipboard-get"},
+	}
 )
 
 func init() {
-	for i := 0; i < len(clipboardTools); i++ {
-		if _, err := exec.LookPath(clipboardTools[0][0]); err == nil {
+	for i := 0; i < len(clipboardCopy); i++ {
+		if _, err := exec.LookPath(clipboardCopy[0][0]); err == nil {
 			selectedTool = i
 			return
 		}
@@ -32,7 +38,7 @@ func CopyToClipboard(str string) error {
 	if selectedTool == -1 {
 		return errors.New(`cannot find clipboard tool, please, install "xsel", "xclip", "wl-copy" or "termux-clipboard-set" package`)
 	}
-	copyCmd := exec.Command(clipboardTools[selectedTool][0], clipboardTools[selectedTool][1:]...)
+	copyCmd := exec.Command(clipboardCopy[selectedTool][0], clipboardCopy[selectedTool][1:]...)
 	in, err := copyCmd.StdinPipe()
 	if err != nil {
 		return err

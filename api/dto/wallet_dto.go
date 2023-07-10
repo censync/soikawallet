@@ -86,8 +86,9 @@ type SendTokensDTO struct {
 }
 
 type GetTxReceiptDTO struct {
-	DerivationPath string
-	Hash           string
+	CoinType  uint32
+	NodeIndex uint32
+	Hash      string
 }
 
 type GetRPCListByIndexDTO struct {

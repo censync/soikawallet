@@ -37,6 +37,7 @@ func main() {
 		log.Println("INTERRUPT")
 		provider.Web3Connection().Stop()
 		provider.UI().Stop()
+		log.Println("Stopped")
 	}()
 
 	provider.Web3Connection().Start()

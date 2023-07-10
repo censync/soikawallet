@@ -80,7 +80,7 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 		pageNameQR:               newPageQr(f.state),
 		pageNameAgreement:        newPageAgreement(f.state),
 		pageNameAbout:            newPageAbout(f.state),
-		// connector
+		// w3 connector
 		pageNameW3ConfirmConnect:  newPageW3ConfirmConnect(f.state),
 		pageNameW3RequestAccounts: newPageW3RequestAccounts(f.state),
 	}

@@ -196,20 +196,7 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 }
 
 func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error) {
-	dto.DerivationPath = strings.TrimSpace(dto.DerivationPath)
-	dto.Hash = strings.TrimSpace(dto.Hash)
-
-	addressPath, err := types.ParsePath(dto.DerivationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	addr, err := s.address(addressPath)
-
-	if err != nil {
-		return nil, err
-	}
-	ctx := types.NewRPCContext(addr.CoinType(), addr.nodeIndex)
+	ctx := types.NewRPCContext(types.CoinType(dto.CoinType), dto.NodeIndex)
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
