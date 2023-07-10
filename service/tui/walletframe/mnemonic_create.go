@@ -77,7 +77,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		AddFormItem(inputDropDownEntropy).
 		AddFormItem(inputDropDownLanguage)
 
-	btnNext := tview.NewButton(p.Tr().T("tui.button", "next")).
+	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
 		SetStyleAttrs(tcell.AttrBold).
 		SetSelectedFunc(func() {
 			instanceId, err := wallet.API().Init(&dto.InitWalletDTO{
@@ -92,7 +92,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 				p.SwitchToPage(pageNameCreateWallets)
 			}
 		})
-	btnBack := tview.NewButton(p.Tr().T("tui.button", "back")).
+	btnBack := tview.NewButton(p.Tr().T("ui.button", "back")).
 		SetSelectedFunc(func() {
 			p.SwitchToPage(p.Pages().GetPrevious())
 		})
@@ -108,10 +108,10 @@ func (p *pageInitMnemonic) FuncOnShow() {
 	layoutOptions := tview.NewForm().
 		SetHorizontal(true).
 		SetItemPadding(1).
-		AddButton(p.Tr().T("tui.button", "generate_mnemonic"), func() {
+		AddButton(p.Tr().T("ui.button", "generate_mnemonic"), func() {
 			p.actionMnemonicUpdate()
 		}).
-		AddButton(p.Tr().T("tui.button", "copy_to_clipboard"), func() {
+		AddButton(p.Tr().T("ui.button", "copy_to_clipboard"), func() {
 			err := clipboard.CopyToClipboard(p.mnemonic)
 			if err != nil {
 				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))

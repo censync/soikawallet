@@ -50,7 +50,7 @@ func (p *pageSettings) tabLabels() *tview.Flex {
 			}
 		}).
 		AddFormItem(inputFieldLabel).
-		AddButton(p.Tr().T("tui.button", "add"), func() {
+		AddButton(p.Tr().T("ui.button", "add"), func() {
 			if p.API() != nil {
 				_, err := p.API().AddLabel(&dto.AddLabelDTO{
 					LabelType: selectedOption,

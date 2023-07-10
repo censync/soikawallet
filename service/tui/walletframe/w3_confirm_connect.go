@@ -66,7 +66,7 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 		AddItem(nil, 2, 1, false).
 		AddItem(labelSelectChains, 0, 1, false)
 
-	btnConnectionAccept := tview.NewButton(p.Tr().T("tui.button", "accept"))
+	btnConnectionAccept := tview.NewButton(p.Tr().T("ui.button", "accept"))
 
 	btnConnectionAccept.SetSelectedFunc(func() {
 		p.EmitW3(event_bus.EventW3ConnAccepted, &dto.ResponseAcceptDTO{
@@ -75,7 +75,7 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 		})
 		p.SwitchToPage(p.Pages().GetPrevious())
 	})
-	btnConnectionReject := tview.NewButton(p.Tr().T("tui.button", "reject"))
+	btnConnectionReject := tview.NewButton(p.Tr().T("ui.button", "reject"))
 
 	btnConnectionReject.SetSelectedFunc(func() {
 		p.EmitW3(event_bus.EventW3ConnRejected, &dto.ResponseRejectDTO{

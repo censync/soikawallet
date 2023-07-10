@@ -22,13 +22,13 @@ func newPageInitWallet(state *state.State) *pageInitWallet {
 }
 
 func (p *pageInitWallet) FuncOnShow() {
-	btnWalletCreate := tview.NewButton(p.Tr().T("tui.button", "wallet_create"))
+	btnWalletCreate := tview.NewButton(p.Tr().T("ui.button", "wallet_create"))
 
 	btnWalletCreate.SetSelectedFunc(func() {
 		p.SetStatus(state.StateInitLocal)
 		p.SwitchToPage(pageNameMnemonicInit)
 	})
-	btnWalletRestore := tview.NewButton(p.Tr().T("tui.button", "wallet_restore"))
+	btnWalletRestore := tview.NewButton(p.Tr().T("ui.button", "wallet_restore"))
 
 	btnWalletRestore.SetSelectedFunc(func() {
 		p.SetStatus(state.StateInitLocal)

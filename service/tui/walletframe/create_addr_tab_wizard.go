@@ -25,7 +25,7 @@ func (p *pageCreateWallet) tabWizard() *tview.Flex {
 
 	p.actionUpdateForm()
 
-	btnNext := tview.NewButton(p.Tr().T("tui.button", "next")).
+	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
 		SetStyleAttrs(tcell.AttrBold).
 		SetSelectedFunc(p.actionCreateAddrWizard)
 

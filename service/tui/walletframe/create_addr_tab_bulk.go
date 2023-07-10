@@ -22,7 +22,7 @@ func (p *pageCreateWallet) tabBulk() *tview.Flex {
 		SetPlaceholderStyle(tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorDarkGrey)).
 		SetPlaceholder("m/44'/60'/0'/0/0\nm/44'/60'/0'/0/1\nm/44'/60'/0'/0/2")
 
-	btnNext := tview.NewButton(p.Tr().T("tui.button", "next")).
+	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
 		SetStyleAttrs(tcell.AttrBold).
 		SetSelectedFunc(p.actionCreateAddrBulk)
 

@@ -55,11 +55,11 @@ func (p *pageRestoreMnemonic) FuncOnShow() {
 		os.Unsetenv("SOIKAWALLET_MNEMONIC_PASSPHRASE")
 	}
 
-	btnNext := tview.NewButton(p.Tr().T("tui.button", "next")).
+	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
 		SetStyleAttrs(tcell.AttrBold).
 		SetSelectedFunc(p.actionRestoreWithMnemonic)
 
-	btnBack := tview.NewButton(p.Tr().T("tui.button", "back")).
+	btnBack := tview.NewButton(p.Tr().T("ui.button", "back")).
 		SetSelectedFunc(func() {
 			p.SwitchToPage(p.Pages().GetPrevious())
 		})

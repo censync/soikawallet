@@ -5,7 +5,7 @@ import (
 )
 
 var english = i18n.Dictionary{
-	"tui.button": {
+	"ui.button": {
 		"ok":                "Ok",
 		"quit":              "Quit",
 		"wallet_create":     "Create wallet",
@@ -22,7 +22,7 @@ var english = i18n.Dictionary{
 		"accept":            "Accept",
 		"reject":            "Reject",
 	},
-	"tui.label": {
+	"ui.label": {
 		"splash_option_airgap":    "Create wallet with Soika AirGap application",
 		"splash_option_no_airgap": "Create wallet without safe AirGap key storage and offline transactions signing",
 		"info":                    "The most secure open source cryptocurrency non-custodial wallet with AirGap support",

@@ -37,8 +37,8 @@ func (p *pageInitMode) FuncOnShow() {
 		p.SwitchToPage(pageNameSelectInitWallet)
 	})
 
-	labelAirGap := tview.NewTextView().SetText(p.Tr().T("tui.label", "splash_option_airgap"))
-	labelLocal := tview.NewTextView().SetText(p.Tr().T("tui.label", "splash_option_no_airgap"))
+	labelAirGap := tview.NewTextView().SetText(p.Tr().T("ui.label", "splash_option_airgap"))
+	labelLocal := tview.NewTextView().SetText(p.Tr().T("ui.label", "splash_option_no_airgap"))
 
 	labelAirGap.SetBorderPadding(0, 1, 2, 2)
 	labelLocal.SetBorderPadding(0, 1, 2, 2)

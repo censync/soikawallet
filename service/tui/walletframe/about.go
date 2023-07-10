@@ -30,7 +30,7 @@ func (p *pageAbout) FuncOnShow() {
 		// SetWordWrap(false).
 		SetScrollable(false).
 		SetTextAlign(tview.AlignCenter).
-		SetText(p.Tr().T("tui.label", "info"))
+		SetText(p.Tr().T("ui.label", "info"))
 
 	viewContacts := tview.NewTextView().
 		SetScrollable(false).

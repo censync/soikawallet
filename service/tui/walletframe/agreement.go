@@ -48,7 +48,7 @@ func (p *pageAgreement) FuncOnShow() {
 		// SetWordWrap(false).
 		SetScrollable(true).
 		SetTextAlign(tview.AlignLeft).
-		SetText(p.Tr().T("tui.label", "terms_of_use"))
+		SetText(p.Tr().T("ui.label", "terms_of_use"))
 
 	viewTermsOfUse.SetBorder(true).
 		SetTitle(" Terms of use ").
@@ -59,7 +59,7 @@ func (p *pageAgreement) FuncOnShow() {
 		// SetWordWrap(false).
 		SetScrollable(false).
 		SetTextAlign(tview.AlignLeft).
-		SetText(p.Tr().T("tui.label", "privacy_policy"))
+		SetText(p.Tr().T("ui.label", "privacy_policy"))
 
 	viewPrivacyPolicy.SetBorder(true).
 		SetTitle(" Privacy policy ").

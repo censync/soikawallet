@@ -48,7 +48,7 @@ func (p *pageAgreement) FuncOnShow() {
 		SetScrollable(true).
 		SetTextAlign(tview.AlignLeft).
 		SetTextColor(tcell.ColorRed).
-		SetText(p.Tr().T("tui.label", "terms_of_use_testnet"))
+		SetText(p.Tr().T("ui.label", "terms_of_use_testnet"))
 
 	viewTermsOfUse.SetBorder(true).
 		SetTitle(" Terms of use ").
@@ -60,7 +60,7 @@ func (p *pageAgreement) FuncOnShow() {
 		SetScrollable(true).
 		SetTextAlign(tview.AlignLeft).
 		SetTextColor(tcell.ColorRed).
-		SetText(p.Tr().T("tui.label", "privacy_policy_testnet"))
+		SetText(p.Tr().T("ui.label", "privacy_policy_testnet"))
 
 	viewPrivacyPolicy.SetBorder(true).
 		SetTitle(" Privacy policy ").
