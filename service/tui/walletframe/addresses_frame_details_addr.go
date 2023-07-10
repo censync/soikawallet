@@ -16,7 +16,7 @@ type frameAddressesDetailsAddr struct {
 	layout *tview.Flex
 	*state.State
 
-	// tui
+	// ui
 	layoutAddrSelected *tview.Flex
 	labelQR            *tview.TextView
 

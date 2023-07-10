@@ -15,7 +15,7 @@ type pageTokenAdd struct {
 	*BaseFrame
 	*state.State
 
-	// tui
+	// ui
 	layoutTokenAdd *tview.Flex
 
 	// vars

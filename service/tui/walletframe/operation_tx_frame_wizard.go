@@ -177,6 +177,9 @@ func (f *frameOperationWizard) actionConfigureGas() {
 			AddFormItem(labelCalcFee).
 			AddButton("Send", func() {
 
+			}).
+			AddButton("Update gas", func() {
+				f.actionConfigureGas()
 			})
 	} else {
 		// add label

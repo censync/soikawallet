@@ -18,7 +18,7 @@ type pageInitMnemonic struct {
 	*BaseFrame
 	*state.State
 
-	// tui
+	// ui
 	inputMnemonic *tview.Form
 
 	// vars

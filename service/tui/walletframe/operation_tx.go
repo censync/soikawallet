@@ -15,7 +15,7 @@ type pageOperationTx struct {
 
 	paramSelectedAddr *responses.AddressResponse
 
-	// tui
+	// ui
 	layoutTokensTreeView *tview.TreeView
 	layoutFrameOperation *tview.Flex
 

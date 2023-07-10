@@ -16,7 +16,7 @@ type pageRestoreMnemonic struct {
 	*BaseFrame
 	*state.State
 
-	// tui
+	// ui
 	inputMnemonic *tview.TextArea
 	inputPassword *tview.InputField
 }

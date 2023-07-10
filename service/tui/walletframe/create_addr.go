@@ -12,7 +12,7 @@ type pageCreateWallet struct {
 	*BaseFrame
 	*state.State
 
-	// tui
+	// ui
 	// wizard
 	layoutAddrEntriesForm *tview.Flex
 	// bulk

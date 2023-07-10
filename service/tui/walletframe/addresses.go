@@ -18,7 +18,7 @@ type pageAddresses struct {
 	*BaseFrame
 	*state.State
 
-	// tui
+	// ui
 
 	layoutAddressesTree *tview.TreeView
 	layoutDetails       *tview.Flex

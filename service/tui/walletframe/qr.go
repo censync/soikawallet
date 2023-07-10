@@ -13,7 +13,7 @@ type pageQr struct {
 	*BaseFrame
 	*state.State
 
-	// tui
+	// ui
 	labelQR *qrview.QrView
 
 	// vars
