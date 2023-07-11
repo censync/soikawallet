@@ -536,14 +536,6 @@ func (e *EVM) GetRPCInfo(ctx *types.RPCContext) (map[string]interface{}, error) 
 
 	price := 0.0
 
-	if e.EVMConfig().DataFeed != "" {
-		price, err = e.GetPrice(ctx, e.EVMConfig().DataFeed)
-
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	gasEstimated := float64(block.GasLimit()*(gasPrice.Uint64()/gwei+gasTipCap.Uint64())/gwei) / float64(gwei)
 	calculatedGas := float64(gasMinLimit*(block.BaseFee().Uint64()/gwei+gasTipCap.Uint64())) / float64(gwei) // BSC check
 	calculatedGasStr := fmt.Sprintf("%d * (%f + %f) = %f (%f USD)",

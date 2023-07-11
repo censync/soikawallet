@@ -21,7 +21,7 @@ type pageTransactions struct {
 	selectedTx string
 
 	// var
-	selectedChain  types.CoinType
+	selectedChain  types.NetworkType
 	availableNodes map[uint32]*types.RPC
 	selectedNode   uint32
 }
@@ -54,10 +54,10 @@ func (p *pageTransactions) FuncOnShow() {
 	inputSelectNetwork := tview.NewDropDown().
 		SetLabel("Select network").
 		SetFieldWidth(10).
-		SetOptions(types.GetCoinNames(), func(text string, index int) {
-			p.selectedChain = types.GetCoinByName(text)
-			p.availableNodes = p.API().AllRPC(&dto.GetRPCListByCoinDTO{
-				CoinType: uint32(p.selectedChain),
+		SetOptions(types.GetNetworksNames(), func(text string, index int) {
+			p.selectedChain = types.GetNetworkByName(text)
+			p.availableNodes = p.API().AllRPC(&dto.GetRPCListByNetworkDTO{
+				NetworkType: uint32(p.selectedChain),
 			})
 			p.actionUpdateNodesList()
 		}).
@@ -119,9 +119,9 @@ func (p *pageTransactions) actionUpdateTxInfo() {
 	if p.API() != nil {
 		p.labelTxReceipt.Clear()
 		receipt, err := p.API().GetTxReceipt(&dto.GetTxReceiptDTO{
-			CoinType:  uint32(p.selectedChain),
-			NodeIndex: p.selectedNode,
-			Hash:      p.selectedTx,
+			NetworkType: uint32(p.selectedChain),
+			NodeIndex:   p.selectedNode,
+			Hash:        p.selectedTx,
 		})
 		if err == nil {
 			str := ""

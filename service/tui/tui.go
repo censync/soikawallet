@@ -189,6 +189,9 @@ func (t *Tui) Start() error {
 }
 
 func (t *Tui) Stop() {
+	//if t.isVerboseMode {
+	fmt.Println("[TUI] Stopping")
+	//}
 	if t.stopped {
 		return
 	}

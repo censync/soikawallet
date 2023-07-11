@@ -11,18 +11,11 @@ var BSC = types.NewNetwork(
 	18,
 	true,
 	&types.EVMConfig{
-		ChainId:  0x38,
-		DataFeed: "0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee",
+		ChainId: 0x38,
 	},
 ).SetDefaultRPC(
 	`https://bsc-dataseed1.binance.org/`,
 	`https://bscscan.com/`, // /block/ /address/ /tx/
-).SetDataFeeds(map[types.CurrencyPair]string{
-	{"BNB", "USD"}:   "0x0567f2323251f0aab15c8dfb1967e4e8a7d42aee",
-	{"BTC", "USD"}:   "0x264990fbd0a4796a3e3d8e37c4d5f87a3aca5ebf",
-	{"ETH", "USD"}:   "0x9ef1b8c0e4f7dc8bf5719ea496883dc6401d5b2e",
-	{"MATIC", "USD"}: "0x7ca57b0ca6367191c94c8914d7df09a57655905f",
-},
 ).SetBuiltinToken(
 	types.TokenBEP20,
 	`Ethereum`,
@@ -37,7 +30,7 @@ var BSC = types.NewNetwork(
 	18,
 ).SetBuiltinToken(
 	types.TokenBEP20,
-	`USD Coin`,
+	`USD Network`,
 	`USDC`,
 	`0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d`,
 	18,

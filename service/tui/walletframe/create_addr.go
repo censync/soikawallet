@@ -20,7 +20,7 @@ type pageCreateWallet struct {
 
 	// var
 	// wizard
-	selectedChain       types.CoinType
+	selectedChain       types.NetworkType
 	selectedCharge      uint8
 	selectedUseHardened bool
 	addrPoolGap         int

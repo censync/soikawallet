@@ -12,9 +12,9 @@ type ConnectDTO struct {
 }
 
 type RequestAccountsDTO struct {
-	InstanceId string
-	Origin     string
-	CoinType   types.CoinType
+	InstanceId  string
+	Origin      string
+	NetworkType types.NetworkType
 }
 
 type ResponseAcceptDTO struct {

@@ -18,7 +18,7 @@ type pageNodeInfo struct {
 	inputSelectNode *tview.DropDown
 
 	// var
-	selectedChain  types.CoinType
+	selectedChain  types.NetworkType
 	availableNodes map[uint32]*types.RPC
 	selectedNode   uint32
 }
@@ -41,10 +41,10 @@ func (p *pageNodeInfo) FuncOnShow() {
 	inputSelectNetwork := tview.NewDropDown().
 		SetLabel("Select network").
 		SetFieldWidth(10).
-		SetOptions(types.GetCoinNames(), func(text string, index int) {
-			p.selectedChain = types.GetCoinByName(text)
-			p.availableNodes = p.API().AllRPC(&dto.GetRPCListByCoinDTO{
-				CoinType: uint32(p.selectedChain),
+		SetOptions(types.GetNetworksNames(), func(text string, index int) {
+			p.selectedChain = types.GetNetworkByName(text)
+			p.availableNodes = p.API().AllRPC(&dto.GetRPCListByNetworkDTO{
+				NetworkType: uint32(p.selectedChain),
 			})
 			p.actionUpdateNodesList()
 		}).
@@ -96,8 +96,8 @@ func (p *pageNodeInfo) actionUpdateNodesList() {
 func (p *pageNodeInfo) actionUpdateInfo() {
 	p.labelRPCInfo.Clear()
 	receipt, err := p.API().GetRPCInfo(&dto.GetRPCInfoDTO{
-		CoinType:  uint32(p.selectedChain),
-		NodeIndex: p.selectedNode,
+		NetworkType: uint32(p.selectedChain),
+		NodeIndex:   p.selectedNode,
 	})
 	if err == nil {
 		str := ""

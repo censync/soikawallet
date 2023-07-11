@@ -23,12 +23,12 @@ func (t *tokens) initTokens() {
 	t.addressesLinks = map[uint32]map[types.AccountIndex][]types.AddressIndex{}
 }
 
-func (t *tokens) AddTokenConfig(coinType types.CoinType, config *types.TokenConfig) error {
+func (t *tokens) AddTokenConfig(networkType types.NetworkType, config *types.TokenConfig) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if !types.IsCoinExists(coinType) {
-		return errors.New("coin type is not set")
+	if !types.IsNetworkExists(networkType) {
+		return errors.New("network type is not set")
 	}
 
 	var lastIndex uint32
@@ -42,8 +42,8 @@ func (t *tokens) AddTokenConfig(coinType types.CoinType, config *types.TokenConf
 	lastIndex++
 
 	tokenIndex := types.TokenIndex{
-		CoinType: coinType,
-		Contract: config.Contract(),
+		NetworkType: networkType,
+		Contract:    config.Contract(),
 	}
 	t.tokens[tokenIndex] = &TokenConfigMeta{
 		TokenConfig: config,
@@ -118,29 +118,29 @@ func (t *tokens) SetTokenConfigAddressLink(tokenIndex types.TokenIndex, accountI
 
 // GetAddressTokens TODO: Add composite index, linked to address,
 // includes labels, node, tokens and other links
-func (t *tokens) GetAddressTokens(coinType types.CoinType, accountIndex types.AccountIndex, addressIndex types.AddressIndex) ([]*types.TokenConfig, error) {
+func (t *tokens) GetAddressTokens(networkType types.NetworkType, accountIndex types.AccountIndex, addressIndex types.AddressIndex) ([]*types.TokenConfig, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
 	var result []*types.TokenConfig
 
-	if !types.IsCoinExists(coinType) {
-		return nil, errors.New("coin type is not set")
+	if !types.IsNetworkExists(networkType) {
+		return nil, errors.New("network type is not set")
 	}
 
-	allContractsPerCoin := map[uint32]types.TokenIndex{}
+	allContractsPerNetwork := map[uint32]types.TokenIndex{}
 
 	for tokenIndex := range t.tokens {
-		if tokenIndex.CoinType == coinType {
-			allContractsPerCoin[t.tokens[tokenIndex].Index] = tokenIndex
+		if tokenIndex.NetworkType == networkType {
+			allContractsPerNetwork[t.tokens[tokenIndex].Index] = tokenIndex
 		}
 	}
 
-	if len(allContractsPerCoin) == 0 {
+	if len(allContractsPerNetwork) == 0 {
 		return result, nil
 	}
 
-	for index, tokenIndex := range allContractsPerCoin {
+	for index, tokenIndex := range allContractsPerNetwork {
 		for _, linkedAddressIndex := range t.addressesLinks[index][accountIndex] {
 			if linkedAddressIndex == addressIndex {
 				result = append(result, t.tokens[tokenIndex].TokenConfig)
@@ -176,7 +176,7 @@ func (t *tokens) MarshalJSON() ([]byte, error) {
 
 	tokensExport := map[string]*types.TokenConfig{}
 	for tokenIndex, token := range t.tokens {
-		tokensExport[fmt.Sprintf("%d:%d", tokenIndex.CoinType, token.Index)] = token.TokenConfig
+		tokensExport[fmt.Sprintf("%d:%d", tokenIndex.NetworkType, token.Index)] = token.TokenConfig
 	}
 
 	result := map[string]interface{}{

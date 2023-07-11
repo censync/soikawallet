@@ -10,7 +10,7 @@ import (
 
 var (
 	metaTokens        *tokens
-	testCoin          = types.Ethereum
+	testNetwork       = types.Ethereum
 	testTokenDecimals = 18
 	testDataTokens    = [][]string{
 		{
@@ -50,7 +50,7 @@ func TestTokens_AddTokenConfig_Positive(t *testing.T) {
 			testTokenDecimals,
 		)
 
-		err := metaTokens.AddTokenConfig(testCoin, tokenConfig)
+		err := metaTokens.AddTokenConfig(testNetwork, tokenConfig)
 
 		assert.Nil(t, err)
 	}
@@ -82,8 +82,8 @@ func TestTokens_SetTokenConfigAddressLink_Positive(t *testing.T) {
 
 	for index, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			CoinType: testCoin,
-			Contract: entry[2],
+			NetworkType: testNetwork,
+			Contract:    entry[2],
 		}
 		addressIndex := types.AddressIndex{
 			Index:      uint32(index) + 1,
@@ -110,8 +110,8 @@ func TestTokens_SetTokenConfigAddressLink_Negative_Duplicate(t *testing.T) {
 
 	for index, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			CoinType: testCoin,
-			Contract: entry[2],
+			NetworkType: testNetwork,
+			Contract:    entry[2],
 		}
 		addressIndex := types.AddressIndex{
 			Index:      uint32(index) + 1,
@@ -130,8 +130,8 @@ func TestTokens_RemoveTokenConfigAddressLink_Positive(t *testing.T) {
 
 	for index, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			CoinType: testCoin,
-			Contract: entry[2],
+			NetworkType: testNetwork,
+			Contract:    entry[2],
 		}
 		addressIndex := types.AddressIndex{
 			Index:      uint32(index) + 1,
@@ -166,8 +166,8 @@ func TestTokens_RemoveTokenConfig_Positive(t *testing.T) {
 
 	for _, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			CoinType: testCoin,
-			Contract: entry[2],
+			NetworkType: testNetwork,
+			Contract:    entry[2],
 		}
 
 		err := metaTokens.RemoveTokenConfig(tokenIndex)

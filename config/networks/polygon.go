@@ -11,18 +11,11 @@ var Polygon = types.NewNetwork(
 	18,
 	true,
 	&types.EVMConfig{
-		ChainId:  0x89,
-		DataFeed: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
+		ChainId: 0x89,
 	},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/polygon`, // https://polygon-rpc.com
 	`https://polygonscan.com/`,                 // /block/ /address/ /tx/
-).SetDataFeeds(map[types.CurrencyPair]string{
-	{"MATIC", "USD"}: "0xab594600376ec9fd91f8e885dadf0ce036862de0",
-	{"BTC", "USD"}:   "0xc907e116054ad103354f2d350fd2514433d57f6f",
-	{"ETH", "USD"}:   "0xf9680d99d6c9589e2a93a78a04a279e509205945",
-	{"BNB", "USD"}:   "0x82a6c4af830caa6c97bb504425f6a66165c2c26e",
-},
 ).SetBuiltinToken(
 	types.TokenERC20,
 	`(PoS) Tether USD`,
@@ -31,7 +24,7 @@ var Polygon = types.NewNetwork(
 	6,
 ).SetBuiltinToken(
 	types.TokenERC20,
-	`USD Coin (PoS)`,
+	`USD Network (PoS)`,
 	`USDC`,
 	`0x2791bca1f2de4661ed88a30c99a7a9449aa84174`,
 	6,

@@ -20,7 +20,7 @@ type WalletAdapter interface {
 	SendTokens(dto *dto.SendTokensDTO) (txId string, err error)
 	GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error)
 	// GetAllAccounts() []types.AccountIndex
-	GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []*resp.AccountResponse
+	GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.AccountResponse
 
 	GetAccountLabels() map[uint32]string
 	GetAddressLabels() map[uint32]string
@@ -38,7 +38,7 @@ type WalletAdapter interface {
 	UnsetAddressW3(dto *dto.SetAddressW3DTO) error
 
 	// RPC operations
-	AllRPC(dto *dto.GetRPCListByCoinDTO) map[uint32]*types.RPC
+	AllRPC(dto *dto.GetRPCListByNetworkDTO) map[uint32]*types.RPC
 	AddRPC(dto *dto.AddRPCDTO) error
 	RemoveRPC(dto *dto.RemoveRPCDTO) error
 

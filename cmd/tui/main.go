@@ -43,6 +43,6 @@ func main() {
 	provider.Web3Connection().Start()
 	provider.UI().Start()
 
-	wg.Wait()
+	//wg.Wait()
 	//tui.Init().Start(*optionVerbose)
 }

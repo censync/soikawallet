@@ -26,12 +26,12 @@ var (
 		TokenTRC10:   `TRC-10`,
 		TokenTRC20:   `TRC-20`,
 	}
-	activesTokenStandards = map[CoinType][]TokenStandard{
+	activesTokenStandards = map[NetworkType][]TokenStandard{
 		Ethereum: {TokenERC20, TokenERC721, TokenERC1155},
 		Tron:     {TokenTRC20, TokenTRC10},
 		Polygon:  {TokenERC20, TokenERC721, TokenERC1155},
 	}
-	registeredTokenStandardNames = map[CoinType][]string{}
+	registeredTokenStandardNames = map[NetworkType][]string{}
 	registeredTokenIndexes       = map[string]TokenStandard{}
 )
 
@@ -42,22 +42,22 @@ func init() {
 		registeredTokenIndexes[tokenStandardName] = tokenStandard
 	}
 
-	for coinType, activeTokenStandards := range activesTokenStandards {
+	for networkType, activeTokenStandards := range activesTokenStandards {
 		names := make([]string, 0)
 		for _, tokenStandard := range activeTokenStandards {
 			names = append(names, registeredTokenStandards[tokenStandard])
 		}
 		//sort.Strings(names)
-		registeredTokenStandardNames[coinType] = names
+		registeredTokenStandardNames[networkType] = names
 	}
 }
 
-func GetTokenStandardNames(coinType CoinType) []string {
-	return registeredTokenStandardNames[coinType]
+func GetTokenStandardNames(networkType NetworkType) []string {
+	return registeredTokenStandardNames[networkType]
 }
 
-func GetTokenStandards(coinType CoinType) []TokenStandard {
-	return activesTokenStandards[coinType]
+func GetTokenStandards(networkType NetworkType) []TokenStandard {
+	return activesTokenStandards[networkType]
 }
 
 func GetTokenStandByName(str string) TokenStandard {

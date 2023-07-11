@@ -37,16 +37,16 @@ func (p *pageAddresses) actionUpdateAddresses() {
 	p.actionUpdateFrameDetails()
 
 	if p.API() != nil {
-		for _, coin := range types.GetCoinTypes() {
-			accounts := p.API().GetAccountsByCoin(&dto.GetAccountsByCoinDTO{
-				CoinType: uint32(coin),
+		for _, network := range types.GetNetworks() {
+			accounts := p.API().GetAccountsByNetwork(&dto.GetAccountsByNetworkDTO{
+				NetworkType: uint32(network),
 			})
 
 			if len(accounts) == 0 {
 				continue
 			}
 
-			coinNode := tview.NewTreeNode(types.GetCoinNameByIndex(coin))
+			networkNode := tview.NewTreeNode(types.GetNetworkNameByIndex(network))
 
 			for _, account := range accounts {
 				accountNodeTitle := ""
@@ -64,7 +64,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 				})
 				stripColor := strip_color.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
 				for _, address := range p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
-					CoinType:     uint32(coin),
+					NetworkType:  uint32(network),
 					AccountIndex: uint32(account.Account),
 				}) {
 					addrIndexFormat := "%d - %s"
@@ -90,9 +90,9 @@ func (p *pageAddresses) actionUpdateAddresses() {
 					accountNode.AddChild(addressNode)
 				}
 
-				coinNode.AddChild(accountNode)
+				networkNode.AddChild(accountNode)
 			}
-			p.addrTree.AddChild(coinNode)
+			p.addrTree.AddChild(networkNode)
 		}
 		p.Emit(event_bus.EventDrawForce, nil)
 
@@ -102,8 +102,8 @@ func (p *pageAddresses) actionUpdateAddresses() {
 }
 
 func (p *pageAddresses) actionUpdateBalances() {
-	for _, coinTree := range p.addrTree.GetChildren() {
-		for _, accountTree := range coinTree.GetChildren() {
+	for _, networkTree := range p.addrTree.GetChildren() {
+		for _, accountTree := range networkTree.GetChildren() {
 			for _, addrTree := range accountTree.GetChildren() {
 				if addrTree.GetReference() != nil {
 					addrView := addrTree.GetReference().(*addrNodeViewEntry)
@@ -147,8 +147,8 @@ func (p *pageAddresses) actionUpdateBalances() {
 
 func (p *pageAddresses) actionTreeSpinnersUpdate(frame string) {
 	var isSpinnable bool
-	for _, coinTree := range p.addrTree.GetChildren() {
-		for _, accountTree := range coinTree.GetChildren() {
+	for _, networkTree := range p.addrTree.GetChildren() {
+		for _, accountTree := range networkTree.GetChildren() {
 			for _, addrTree := range accountTree.GetChildren() {
 				if addrTree.GetReference() != nil {
 					addrView := addrTree.GetReference().(*addrNodeViewEntry)

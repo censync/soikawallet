@@ -227,9 +227,9 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 		case reqCodeRequestAccounts:
 			payload := parsedRequest.Data.(*GetAccountsRequest)
 			c.uiEvents.Emit(event_bus.EventW3RequestAccounts, &dto.RequestAccountsDTO{
-				InstanceId: extensionId,
-				Origin:     r.Header.Get("Origin"),
-				CoinType:   payload.CoinType,
+				InstanceId:  extensionId,
+				Origin:      r.Header.Get("Origin"),
+				NetworkType: payload.NetworkType,
 			})
 		/*
 			case "stop":
@@ -282,6 +282,7 @@ func (c *Web3Connection) walletStatus() uint8 {
 
 func (c *Web3Connection) Stop() {
 	defer c.wg.Done()
-	c.uiEvents.Emit(event_bus.EventLogInfo, "Trying stopping socket server")
+	fmt.Println("[Web3] Stopping")
+	// c.uiEvents.Emit(event_bus.EventLogInfo, "Trying stopping socket server")
 	c.done <- true
 }

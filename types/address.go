@@ -2,7 +2,7 @@ package types
 
 import "fmt"
 
-type CoinType uint32
+type NetworkType uint32
 
 type AccountIndex uint32
 
@@ -31,13 +31,13 @@ func (i *AddressIndex) MarshalJSON() ([]byte, error) {
 }
 
 type NodeIndex struct {
-	CoinType
+	NetworkType
 	Index uint32
 }
 
 // meta
 
 type TokenIndex struct {
-	CoinType
+	NetworkType
 	Contract string
 }

@@ -33,8 +33,8 @@ func (s *Wallet) getNetworkProvider(ctx *types.RPCContext) (types.NetworkAdapter
 	return network.WithContext(ctx)
 }
 
-func (s *Wallet) getRPCProvider(coinType types.CoinType) types.RPCAdapter {
-	return network.Get(coinType)
+func (s *Wallet) getRPCProvider(networkType types.NetworkType) types.RPCAdapter {
+	return network.Get(networkType)
 }
 
 // Init initializes static instance of wallet with mnemonic and optional passphrase.
@@ -102,7 +102,7 @@ func (s *Wallet) GetGasPriceBaseTx(dto *dto.GetGasPriceBaseTxDTO) (map[string]fl
 		return nil, err
 	}
 
-	ctx := types.NewRPCContext(addr.CoinType(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -129,7 +129,7 @@ func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 		return 0, errors.New("incorrect recipient address")
 	}
 
-	ctx := types.NewRPCContext(addr.CoinType(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -172,7 +172,7 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 		return ``, errors.New("incorrect recipient address")
 	}
 
-	ctx := types.NewRPCContext(addr.CoinType(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -196,7 +196,7 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 }
 
 func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error) {
-	ctx := types.NewRPCContext(types.CoinType(dto.CoinType), dto.NodeIndex)
+	ctx := types.NewRPCContext(types.NetworkType(dto.NetworkType), dto.NodeIndex)
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -205,11 +205,11 @@ func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{},
 	return provider.TxGetReceipt(ctx, dto.Hash)
 }
 
-func (s *Wallet) GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []*resp.AccountResponse {
+func (s *Wallet) GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.AccountResponse {
 	accountsIndex := map[types.AccountIndex]bool{}
 
 	for _, addr := range s.addresses {
-		if addr.Path().Coin() == types.CoinType(dto.CoinType) {
+		if addr.Path().Network() == types.NetworkType(dto.NetworkType) {
 			accountsIndex[addr.Path().Account()] = true
 		}
 	}
@@ -217,15 +217,15 @@ func (s *Wallet) GetAccountsByCoin(dto *dto.GetAccountsByCoinDTO) []*resp.Accoun
 	accounts := make([]*resp.AccountResponse, 0)
 
 	for accountIndex := range accountsIndex {
-		accountPath, err := types.CreateAccountPath(types.CoinType(dto.CoinType), accountIndex)
+		accountPath, err := types.CreateAccountPath(types.NetworkType(dto.NetworkType), accountIndex)
 		if err != nil {
 			continue
 		}
 		accounts = append(accounts, &resp.AccountResponse{
-			Path:     accountPath.String(),
-			CoinType: accountPath.Coin(),
-			Account:  accountPath.Account(),
-			Label:    s.meta.GetAccountLabel(accountPath.String()),
+			Path:        accountPath.String(),
+			NetworkType: accountPath.Network(),
+			Account:     accountPath.Account(),
+			Label:       s.meta.GetAccountLabel(accountPath.String()),
 		})
 	}
 

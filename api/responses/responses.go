@@ -8,7 +8,7 @@ type AddressResponse struct {
 	Path           string
 	IsExternal     bool
 	AddressIndex   types.AddressIndex
-	CoinType       types.CoinType
+	NetworkType    types.NetworkType
 	Account        types.AccountIndex
 	Label          string
 	IsW3           bool
@@ -16,10 +16,10 @@ type AddressResponse struct {
 }
 
 type AccountResponse struct {
-	Path     string
-	CoinType types.CoinType
-	Account  types.AccountIndex
-	Label    string
+	Path        string
+	NetworkType types.NetworkType
+	Account     types.AccountIndex
+	Label       string
 }
 
 type AirGapMessageResponse struct {
@@ -56,7 +56,7 @@ type TokenConfig struct {
 }
 
 type ChainInfo struct {
-	ChainId  string         `json:"chain_id"`
-	Name     string         `json:"name"`
-	CoinType types.CoinType `json:"coin_type"`
+	ChainId     string            `json:"chain_id"`
+	Name        string            `json:"name"`
+	NetworkType types.NetworkType `json:"network_type"`
 }

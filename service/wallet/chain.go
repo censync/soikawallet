@@ -16,9 +16,9 @@ func (s *Wallet) GetAllChains(dto *dto.GetChainsDTO) []*resp.ChainInfo {
 				chainId = provider.EVMConfig().ChainId
 			}
 			result = append(result, &resp.ChainInfo{
-				CoinType: coiType,
-				Name:     provider.Name(),
-				ChainId:  "0x" + strconv.FormatUint(uint64(chainId), 16),
+				NetworkType: coiType,
+				Name:        provider.Name(),
+				ChainId:     "0x" + strconv.FormatUint(uint64(chainId), 16),
 			})
 		}
 	}

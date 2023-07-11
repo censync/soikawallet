@@ -52,8 +52,8 @@ func (a *address) IsHardenedAddress() bool {
 	return a.path.IsHardenedAddress()
 }
 
-func (a *address) CoinType() types.CoinType {
-	return a.path.Coin()
+func (a *address) Network() types.NetworkType {
+	return a.path.Network()
 }
 
 func (a *address) Account() types.AccountIndex {
@@ -77,7 +77,7 @@ func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err erro
 		return nil, errors.New("BIP-44 key is not set")
 	}
 
-	if !types.IsCoinExists(path.Coin()) {
+	if !types.IsNetworkExists(path.Network()) {
 		return nil, errors.New("coin is not exists in SLIP-44 list")
 	}
 
@@ -110,7 +110,7 @@ func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err erro
 
 	pubKey := ecAddrKey.ToECDSA().Public().(*ecdsa.PublicKey)
 
-	ctx := types.NewRPCContext(path.Coin(), 0)
+	ctx := types.NewRPCContext(path.Network(), 0)
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -143,13 +143,13 @@ func (s *Wallet) chargeDeriveKey(path *types.DerivationPath) (*hdkeychain.Extend
 	}
 
 	// m/44'/60'
-	coinKey, err := s.bip44Key.Derive(hardenedKeyStart + uint32(path.Coin()))
+	networkKey, err := s.bip44Key.Derive(hardenedKeyStart + uint32(path.Network()))
 	if err != nil {
 		return nil, errors.New("cannot initialize coin key")
 	}
 
 	// m/44'/60'/0'
-	accountKey, err := coinKey.Derive(hardenedKeyStart + uint32(path.Account()))
+	accountKey, err := networkKey.Derive(hardenedKeyStart + uint32(path.Account()))
 	if err != nil {
 		return nil, errors.New("cannot initialize account key")
 	}
@@ -161,9 +161,9 @@ func (s *Wallet) chargeDeriveKey(path *types.DerivationPath) (*hdkeychain.Extend
 	return chargeKey, nil
 }
 
-func (s *Wallet) isAccountExists(coinType types.CoinType, accountIndex types.AccountIndex) bool {
+func (s *Wallet) isAccountExists(networkType types.NetworkType, accountIndex types.AccountIndex) bool {
 	for _, addr := range s.addresses {
-		if addr.CoinType() == coinType && addr.Account() == accountIndex {
+		if addr.Network() == networkType && addr.Account() == accountIndex {
 			return true
 		}
 	}
@@ -188,7 +188,7 @@ func (s *Wallet) AddAddresses(dto *dto.AddAddressesDTO) (addresses []*resp.Addre
 			Path:         addr.Path().String(),
 			IsExternal:   addr.IsExternal(),
 			AddressIndex: addr.AddressIndex(),
-			CoinType:     addr.CoinType(),
+			NetworkType:  addr.Network(),
 			Account:      addr.Account(),
 			Label:        s.meta.GetAddressLabel(addr.Path().String()),
 			IsW3:         addr.IsW3(),
@@ -201,14 +201,14 @@ func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*res
 	var addresses []*resp.AddressResponse
 
 	for _, addr := range s.addresses {
-		if addr.Path().Coin() == types.CoinType(dto.CoinType) &&
+		if addr.Path().Network() == types.NetworkType(dto.NetworkType) &&
 			addr.Path().Account() == types.AccountIndex(dto.AccountIndex) {
 			addresses = append(addresses, &resp.AddressResponse{
 				Address:      addr.Address(),
 				Path:         addr.Path().String(),
 				IsExternal:   addr.IsExternal(),
 				AddressIndex: addr.AddressIndex(),
-				CoinType:     addr.CoinType(),
+				NetworkType:  addr.Network(),
 				Account:      addr.Account(),
 				Label:        s.meta.GetAddressLabel(addr.Path().String()),
 				IsW3:         addr.IsW3(),
@@ -227,7 +227,7 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 			Path:         addr.Path().String(),
 			IsExternal:   addr.IsExternal(),
 			AddressIndex: addr.AddressIndex(),
-			CoinType:     addr.CoinType(),
+			NetworkType:  addr.Network(),
 			Account:      addr.Account(),
 			Label:        s.meta.GetAddressLabel(addr.Path().String()),
 			IsW3:         addr.IsW3(),
@@ -249,7 +249,7 @@ func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (to
 		return nil, err
 	}
 
-	ctx := types.NewRPCContext(addr.CoinType(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -264,7 +264,7 @@ func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (to
 
 	result[provider.Currency()] = balance
 
-	addressLinkedTokenConfigs, err := s.meta.GetAddressTokens(addrPath.Coin(), addrPath.Account(), addrPath.AddressIndex())
+	addressLinkedTokenConfigs, err := s.meta.GetAddressTokens(addrPath.Network(), addrPath.Account(), addrPath.AddressIndex())
 
 	if len(addressLinkedTokenConfigs) > 0 {
 		for _, tokenConfig := range addressLinkedTokenConfigs {

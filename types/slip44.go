@@ -3,15 +3,15 @@ package types
 import "sort"
 
 const (
-	Bitcoin  = CoinType(1)
-	Ethereum = CoinType(60)
-	Tron     = CoinType(195)
-	Polygon  = CoinType(966)
-	BSC      = CoinType(9006)
+	Bitcoin  = NetworkType(1)
+	Ethereum = NetworkType(60)
+	Tron     = NetworkType(195)
+	Polygon  = NetworkType(966)
+	BSC      = NetworkType(9006)
 )
 
 var (
-	registeredCoins = map[string]CoinType{
+	registeredNetworks = map[string]NetworkType{
 		`Bitcoin`:  Bitcoin,
 		`Ethereum`: Ethereum,
 		`Tron`:     Tron,
@@ -19,47 +19,43 @@ var (
 		`BSC`:      BSC,
 	}
 
-	registeredCoinsIndexes = map[CoinType]string{}
-	registeredCoinsTypes   []CoinType
-	registeredCoinsNames   []string
+	registeredNetworksIndexes = map[NetworkType]string{}
+	registeredNetworksTypes   []NetworkType
+	registeredNetworksNames   []string
 )
 
 func init() {
-	for name, coinType := range registeredCoins {
-		registeredCoinsIndexes[coinType] = name
-		registeredCoinsTypes = append(registeredCoinsTypes, coinType)
-		registeredCoinsNames = append(registeredCoinsNames, name)
+	for name, networkType := range registeredNetworks {
+		registeredNetworksIndexes[networkType] = name
+		registeredNetworksTypes = append(registeredNetworksTypes, networkType)
+		registeredNetworksNames = append(registeredNetworksNames, name)
 	}
-	sort.Strings(registeredCoinsNames)
+	sort.Strings(registeredNetworksNames)
 }
 
-func GetCoins() map[string]CoinType {
-	return registeredCoins
+func GetNetworksNames() []string {
+	return registeredNetworksNames
 }
 
-func GetCoinNames() []string {
-	return registeredCoinsNames
+func GetNetworks() []NetworkType {
+	return registeredNetworksTypes
 }
 
-func GetCoinTypes() []CoinType {
-	return registeredCoinsTypes
-}
-
-func GetCoinByName(str string) CoinType {
-	if coinType, ok := registeredCoins[str]; ok {
-		return coinType
+func GetNetworkByName(str string) NetworkType {
+	if networkType, ok := registeredNetworks[str]; ok {
+		return networkType
 	} else {
 		return 0
 	}
 }
 
-func GetCoinNameByIndex(coinType CoinType) string {
-	return registeredCoinsIndexes[coinType]
+func GetNetworkNameByIndex(networkType NetworkType) string {
+	return registeredNetworksIndexes[networkType]
 }
 
-func IsCoinExists(val CoinType) bool {
-	for i := range registeredCoinsTypes {
-		if registeredCoinsTypes[i] == val {
+func IsNetworkExists(val NetworkType) bool {
+	for i := range registeredNetworksTypes {
+		if registeredNetworksTypes[i] == val {
 			return true
 		}
 	}

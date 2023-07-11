@@ -48,8 +48,8 @@ func TestNodes_AddRPCNode_Positive(t *testing.T) {
 		rpc := types.NewRPC(testDataRPC[index][0], testDataRPC[index][1], false)
 
 		nodeIndex := types.NodeIndex{
-			CoinType: types.Ethereum,
-			Index:    uint32(index + 1),
+			NetworkType: types.Ethereum,
+			Index:       uint32(index + 1),
 		}
 		metaNodes.AddRPCNode(nodeIndex, rpc)
 	}
@@ -77,8 +77,8 @@ func TestNodes_SetRPCAccountLink_Positive(t *testing.T) {
 
 	for accountIndex := types.AccountIndex(0); accountIndex < types.AccountIndex(len(testDataRPC)); accountIndex++ {
 		nodeIndex := types.NodeIndex{
-			CoinType: types.Ethereum,
-			Index:    uint32(accountIndex + 1),
+			NetworkType: types.Ethereum,
+			Index:       uint32(accountIndex + 1),
 		}
 
 		err := metaNodes.SetRPCAccountLink(nodeIndex, accountIndex)
@@ -103,8 +103,8 @@ func TestNodes_RemoveRPCAccountLink_Positive(t *testing.T) {
 
 	for accountIndex := types.AccountIndex(0); accountIndex < types.AccountIndex(len(testDataRPC)); accountIndex++ {
 		nodeIndex := types.NodeIndex{
-			CoinType: types.Ethereum,
-			Index:    uint32(accountIndex + 1),
+			NetworkType: types.Ethereum,
+			Index:       uint32(accountIndex + 1),
 		}
 		exists := metaNodes.IsRPCAccountLinkExists(nodeIndex, accountIndex)
 
@@ -134,8 +134,8 @@ func TestNodes_RemoveRPCNode_Positive(t *testing.T) {
 
 	for index := len(testDataRPC); index > 0; index-- {
 		nodeIndex := types.NodeIndex{
-			CoinType: types.Ethereum,
-			Index:    uint32(index),
+			NetworkType: types.Ethereum,
+			Index:       uint32(index),
 		}
 
 		err := metaNodes.RemoveRPCNode(nodeIndex)

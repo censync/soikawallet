@@ -46,7 +46,7 @@ var Tron = types.NewNetwork(
 	6,
 ).SetBuiltinToken(
 	types.TokenTRC20,
-	`USD Coin`,
+	`USD Network`,
 	`USDC`,
 	`TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8`,
 	6,

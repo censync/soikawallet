@@ -26,9 +26,9 @@ func (p *pageSettings) tabNodes() *tview.Flex {
 
 	btnAdd := tview.NewButton("Add").SetSelectedFunc(func() {
 		err := p.API().AddRPC(&dto.AddRPCDTO{
-			CoinType: 60,
-			Title:    inputTitle.GetText(),
-			Endpoint: inputRPC.GetText(),
+			NetworkType: 60,
+			Title:       inputTitle.GetText(),
+			Endpoint:    inputRPC.GetText(),
 		})
 		if err != nil {
 			p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot add rpc \"%s\"", err))
@@ -62,14 +62,14 @@ func (p *pageSettings) actionUpdateRPCList() {
 	p.layoutRPCList.Clear()
 
 	if p.API() != nil {
-		rpcList := p.API().AllRPC(&dto.GetRPCListByCoinDTO{
-			CoinType: uint32(types.Ethereum),
+		rpcList := p.API().AllRPC(&dto.GetRPCListByNetworkDTO{
+			NetworkType: uint32(types.Ethereum),
 		})
 
 		for index, rpc := range rpcList {
 			linkedAccountCount := p.API().GetRPCLinkedAccountCount(&dto.GetRPCLinkedAccountCountDTO{
-				CoinType:  uint32(types.Ethereum),
-				NodeIndex: index,
+				NetworkType: uint32(types.Ethereum),
+				NodeIndex:   index,
 			})
 			btnEditEntry := tview.NewButton("Edit")
 			btnRemoveEntry := tview.NewButton("Remove")

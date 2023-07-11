@@ -60,10 +60,10 @@ func (n *nodes) GetRPCAccountLinks(nodeIndex types.NodeIndex) []types.AccountInd
 	return n.accountsLinks[nodeIndex]
 }
 
-func (n *nodes) GetRPCAccountLinksCount(coinType types.CoinType, nodeIndex uint32) int {
+func (n *nodes) GetRPCAccountLinksCount(networkType types.NetworkType, nodeIndex uint32) int {
 	return len(n.accountsLinks[types.NodeIndex{
-		CoinType: coinType,
-		Index:    nodeIndex,
+		NetworkType: networkType,
+		Index:       nodeIndex,
 	}])
 }
 
@@ -96,13 +96,13 @@ func (n *nodes) MarshalJSON() ([]byte, error) {
 
 	nodesExport := map[string]*types.RPC{}
 	for nodeIndex, node := range n.nodes {
-		nodesExport[fmt.Sprintf("%d:%d", nodeIndex.CoinType, nodeIndex.Index)] = node
+		nodesExport[fmt.Sprintf("%d:%d", nodeIndex.NetworkType, nodeIndex.Index)] = node
 	}
 
 	linksExport := map[string][]types.AccountIndex{}
 	for nodeIndex, link := range n.accountsLinks {
 		if len(link) > 0 {
-			linksExport[fmt.Sprintf("%d:%d", nodeIndex.CoinType, nodeIndex.Index)] = link
+			linksExport[fmt.Sprintf("%d:%d", nodeIndex.NetworkType, nodeIndex.Index)] = link
 		}
 	}
 

@@ -19,7 +19,7 @@ type pageTokenAdd struct {
 	layoutTokenAdd *tview.Flex
 
 	// vars
-	paramSelectedCoin           types.CoinType
+	paramSelectedNetwork        types.NetworkType
 	selectedTokenStandard       types.TokenStandard
 	paramSelectedDerivationPath string
 }
@@ -50,7 +50,7 @@ func (p *pageTokenAdd) FuncOnShow() {
 		p.SwitchToPage(p.Pages().GetPrevious())
 	}
 
-	p.paramSelectedCoin = p.Params()[0].(types.CoinType)
+	p.paramSelectedNetwork = p.Params()[0].(types.NetworkType)
 	p.paramSelectedDerivationPath = p.Params()[1].(string)
 
 	p.layoutTokenAdd.AddItem(p.uiTokenAddForm(), 0, 1, false)
@@ -72,7 +72,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 	inputSelectTokenStandard := tview.NewDropDown().
 		SetLabel("Type").
 		SetFieldWidth(10).
-		SetOptions(types.GetTokenStandardNames(p.paramSelectedCoin), func(text string, index int) {
+		SetOptions(types.GetTokenStandardNames(p.paramSelectedNetwork), func(text string, index int) {
 			p.selectedTokenStandard = types.GetTokenStandByName(text)
 		}).
 		SetCurrentOption(0)
@@ -82,8 +82,8 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 		AddFormItem(inputSelectTokenStandard).
 		AddButton("Check contract", func() {
 			tokenInfo, err := p.API().GetToken(&dto.GetTokenDTO{
-				CoinType: uint32(p.paramSelectedCoin),
-				Contract: inputContractAddr.GetText(),
+				NetworkType: uint32(p.paramSelectedNetwork),
+				Contract:    inputContractAddr.GetText(),
 			})
 			if err != nil {
 				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get token data: %s", err))
@@ -113,7 +113,7 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 		AddButton("Add token", func() {
 			err := p.API().UpsertToken(&dto.AddTokenDTO{
 				Standard:       uint8(p.selectedTokenStandard),
-				CoinType:       uint32(p.paramSelectedCoin),
+				NetworkType:    uint32(p.paramSelectedNetwork),
 				Contract:       tokenConfig.Contract,
 				DerivationPath: p.paramSelectedDerivationPath,
 			})

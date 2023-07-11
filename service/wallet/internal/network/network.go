@@ -12,12 +12,12 @@ import (
 
 type Provider struct {
 	mu              sync.RWMutex
-	networks        map[types.CoinType]types.NetworkAdapter
+	networks        map[types.NetworkType]types.NetworkAdapter
 	defaultCurrency string
 }
 
 var networkProviders = &Provider{
-	networks: map[types.CoinType]types.NetworkAdapter{
+	networks: map[types.NetworkType]types.NetworkAdapter{
 		types.Bitcoin:  btc.NewBTC(networks.Bitcoin),
 		types.Ethereum: evm.NewEVM(networks.Ethereum),
 		types.Tron:     tron.NewTron(networks.Tron),
@@ -27,7 +27,7 @@ var networkProviders = &Provider{
 	defaultCurrency: `USD`,
 }
 
-func (s *Provider) IsExists(index types.CoinType) bool {
+func (s *Provider) IsExists(index types.NetworkType) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -35,7 +35,7 @@ func (s *Provider) IsExists(index types.CoinType) bool {
 	return ok
 }
 
-func Get(index types.CoinType) types.NetworkAdapter {
+func Get(index types.NetworkType) types.NetworkAdapter {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 
@@ -49,11 +49,11 @@ func WithContext(ctx *types.RPCContext) (types.NetworkAdapter, error) {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 
-	if !types.IsCoinExists(ctx.CoinType()) {
-		return nil, errors.New("coin type is not set")
+	if !types.IsNetworkExists(ctx.Network()) {
+		return nil, errors.New("network type is not set")
 	}
 
-	network, ok := networkProviders.networks[ctx.CoinType()]
+	network, ok := networkProviders.networks[ctx.Network()]
 
 	if !ok {
 		return nil, errors.New("network is not defined")
@@ -61,7 +61,7 @@ func WithContext(ctx *types.RPCContext) (types.NetworkAdapter, error) {
 	return network, nil
 }
 
-func GetAll() map[types.CoinType]types.NetworkAdapter {
+func GetAll() map[types.NetworkType]types.NetworkAdapter {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 

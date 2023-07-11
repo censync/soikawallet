@@ -48,12 +48,12 @@ type UnsetAddressW3DTO struct {
 	DerivationPath string
 }
 
-type GetAccountsByCoinDTO struct {
-	CoinType uint32
+type GetAccountsByNetworkDTO struct {
+	NetworkType uint32
 }
 
 type GetAddressesByAccountDTO struct {
-	CoinType     uint32
+	NetworkType  uint32
 	AccountIndex uint32
 }
 
@@ -86,52 +86,57 @@ type SendTokensDTO struct {
 }
 
 type GetTxReceiptDTO struct {
-	CoinType  uint32
-	NodeIndex uint32
-	Hash      string
+	NetworkType uint32
+	NodeIndex   uint32
+	Hash        string
 }
 
 type GetRPCListByIndexDTO struct {
-	Index    uint32
-	CoinType uint32
+	Index       uint32
+	NetworkType uint32
 }
 
-type GetRPCListByCoinDTO struct {
-	CoinType uint32
+type GetRPCListByNetworkDTO struct {
+	NetworkType uint32
 }
 
 type SetRPCLinkedAccountDTO struct {
-	CoinType     uint32
+	NetworkType  uint32
 	AccountIndex uint32
 	NodeIndex    uint32
 }
 
 type RemoveRPCLinkedAccountDTO struct {
-	CoinType     uint32
+	NetworkType  uint32
 	AccountIndex uint32
 }
 
 type GetRPCLinkedAccountCountDTO struct {
-	CoinType  uint32
-	NodeIndex uint32
+	NetworkType uint32
+	NodeIndex   uint32
 }
 
 type AddRPCDTO struct {
-	CoinType uint32
-	Title    string
-	Endpoint string
+	NetworkType uint32
+	Title       string
+	Endpoint    string
 }
 
 type RemoveRPCDTO struct {
-	CoinType uint32
-	Index    uint32
+	NetworkType uint32
+	Index       uint32
 }
 
 type GetRPCInfoDTO struct {
-	CoinType  uint32
-	NodeIndex uint32
+	NetworkType uint32
+	NodeIndex   uint32
 }
 
 type FlushKeysDTO struct {
 	Force bool
+}
+
+type GetTokenPriceDTO struct {
+	NetworkType uint32
+	Currency    string
 }

@@ -18,34 +18,34 @@ var (
 )
 
 type DerivationPath struct {
-	coin    CoinType
+	network NetworkType
 	account AccountIndex
 	charge  ChargeType
 	index   AddressIndex
 }
 
 func CreatePath(
-	coin CoinType,
+	network NetworkType,
 	account AccountIndex,
 	charge ChargeType,
 	index AddressIndex,
 ) (*DerivationPath, error) {
-	if !IsCoinExists(coin) {
-		return nil, errors.New("coin is not exists in SLIP-44 list")
+	if !IsNetworkExists(network) {
+		return nil, errors.New("network is not exists in SLIP-44 list")
 	}
 	if charge > 1 {
 		return nil, errors.New("charge can be 0 or 1")
 	}
 	return &DerivationPath{
-		coin:    coin,
+		network: network,
 		account: account,
 		charge:  charge,
 		index:   index,
 	}, nil
 }
 
-func (p *DerivationPath) Coin() CoinType {
-	return p.coin
+func (p *DerivationPath) Network() NetworkType {
+	return p.network
 }
 
 func (p *DerivationPath) Account() AccountIndex {
@@ -69,7 +69,7 @@ func (p *DerivationPath) String() string {
 	if p.index.IsHardened {
 		format += `'`
 	}
-	return fmt.Sprintf(format, p.coin, p.account, p.charge, p.index.Index)
+	return fmt.Sprintf(format, p.network, p.account, p.charge, p.index.Index)
 }
 
 func ParsePath(path string) (*DerivationPath, error) {
@@ -78,7 +78,7 @@ func ParsePath(path string) (*DerivationPath, error) {
 	if len(matches) < 5 {
 		return nil, errors.New(fmt.Sprintf("cannot parse path: %s", path))
 	}
-	coinType, err := strconv.ParseUint(matches[1], 10, 32)
+	networkType, err := strconv.ParseUint(matches[1], 10, 32)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func ParsePath(path string) (*DerivationPath, error) {
 	}
 
 	return CreatePath(
-		CoinType(coinType),
+		NetworkType(networkType),
 		AccountIndex(accountIndex),
 		ChargeType(chargeType),
 		AddressIndex{
@@ -115,25 +115,25 @@ func Validate(path string) bool {
 }
 
 type AccountDerivationPath struct {
-	coin    CoinType
+	network NetworkType
 	account AccountIndex
 }
 
 func CreateAccountPath(
-	coin CoinType,
+	network NetworkType,
 	account AccountIndex,
 ) (*AccountDerivationPath, error) {
-	if !IsCoinExists(coin) {
-		return nil, errors.New("coin is not exists in SLIP-44 list")
+	if !IsNetworkExists(network) {
+		return nil, errors.New("network is not exists in SLIP-44 list")
 	}
 	return &AccountDerivationPath{
-		coin:    coin,
+		network: network,
 		account: account,
 	}, nil
 }
 
-func (p *AccountDerivationPath) Coin() CoinType {
-	return p.coin
+func (p *AccountDerivationPath) Network() NetworkType {
+	return p.network
 }
 
 func (p *AccountDerivationPath) Account() AccountIndex {
@@ -141,7 +141,7 @@ func (p *AccountDerivationPath) Account() AccountIndex {
 }
 
 func (p *AccountDerivationPath) String() string {
-	return fmt.Sprintf("m/44'/%d'/%d'", p.coin, p.account)
+	return fmt.Sprintf("m/44'/%d'/%d'", p.network, p.account)
 }
 
 func ParseAccountPath(path string) (*AccountDerivationPath, error) {
@@ -149,14 +149,14 @@ func ParseAccountPath(path string) (*AccountDerivationPath, error) {
 	if len(matches) < 5 {
 		return nil, errors.New(fmt.Sprintf("cannot parse path: %s", path))
 	}
-	coinType, err := strconv.ParseUint(matches[1], 10, 32)
+	networkType, err := strconv.ParseUint(matches[1], 10, 32)
 	if err != nil {
 		return nil, err
 	}
 	accountIndex, err := strconv.ParseUint(matches[2], 10, 32)
 
 	return CreateAccountPath(
-		CoinType(coinType),
+		NetworkType(networkType),
 		AccountIndex(accountIndex),
 	)
 }

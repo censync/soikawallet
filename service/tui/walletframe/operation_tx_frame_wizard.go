@@ -74,7 +74,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 		SetFieldWidth(10).
 		SetOptions(tokensList, func(text string, index int) {
 			if index == len(tokensList)-1 {
-				f.SwitchToPage(pageNameTokenAdd, f.selectedAddress.CoinType, f.selectedAddress.Path)
+				f.SwitchToPage(pageNameTokenAdd, f.selectedAddress.NetworkType, f.selectedAddress.Path)
 			} else {
 				if contract, ok := tokensMap[index]; ok {
 					f.selectedToken = (*availableTokens)[contract]

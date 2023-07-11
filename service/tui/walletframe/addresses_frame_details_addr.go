@@ -124,7 +124,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		AddButton("!S node!", func() {
 			if f.API() != nil {
 				err := f.API().AccountLinkRPCSet(&dto.SetRPCLinkedAccountDTO{
-					CoinType:     uint32(f.selectedAddress.CoinType),
+					NetworkType:  uint32(f.selectedAddress.NetworkType),
 					AccountIndex: uint32(f.selectedAddress.Account),
 					NodeIndex:    1,
 				})
@@ -141,7 +141,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		AddButton("Label set", func() {
 			if f.API() != nil {
 				err := f.API().AccountLinkRPCSet(&dto.SetRPCLinkedAccountDTO{
-					CoinType:     uint32(f.selectedAddress.CoinType),
+					NetworkType:  uint32(f.selectedAddress.NetworkType),
 					AccountIndex: uint32(f.selectedAddress.Account),
 					NodeIndex:    1,
 				})
@@ -158,7 +158,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		AddButton("!R node!", func() {
 			if f.API() != nil {
 				err := f.API().RemoveAccountLinkRPC(&dto.RemoveRPCLinkedAccountDTO{
-					CoinType:     uint32(f.selectedAddress.CoinType),
+					NetworkType:  uint32(f.selectedAddress.NetworkType),
 					AccountIndex: uint32(f.selectedAddress.Account),
 				})
 				if err != nil {

@@ -16,7 +16,7 @@ const (
 
 type BaseNetwork struct {
 	// Slip 44 index
-	index    CoinType
+	index    NetworkType
 	name     string
 	currency string
 	decimals int
@@ -27,23 +27,21 @@ type BaseNetwork struct {
 	tokens    map[string]*TokenConfig
 	evmConfig *EVMConfig
 	isW3      bool
-	dataFeeds map[CurrencyPair]string
 	NetworkAdapter
 }
 
 type EVMConfig struct {
-	ChainId  uint32
-	DataFeed string // ChainLink contract address
+	ChainId uint32
 }
 
 type RPCContext struct {
 	context.Context
-	coinType       CoinType
+	network        NetworkType
 	nodeId         uint32
 	currentAccount string
 }
 
-func NewRPCContext(coinType CoinType, nodeId uint32, address ...string) *RPCContext {
+func NewRPCContext(network NetworkType, nodeId uint32, address ...string) *RPCContext {
 	var currentAccount string
 	if address != nil {
 		if len(address) != 1 {
@@ -53,14 +51,14 @@ func NewRPCContext(coinType CoinType, nodeId uint32, address ...string) *RPCCont
 	}
 	return &RPCContext{
 		Context:        context.Background(),
-		coinType:       coinType,
+		network:        network,
 		nodeId:         nodeId,
 		currentAccount: currentAccount,
 	}
 }
 
-func (c *RPCContext) CoinType() CoinType {
-	return c.coinType
+func (c *RPCContext) Network() NetworkType {
+	return c.network
 }
 
 func (c *RPCContext) NodeId() uint32 {
@@ -206,7 +204,7 @@ type NetworkAdapter interface {
 	GetRPCInfo(ctx *RPCContext) (map[string]interface{}, error)
 }
 
-func NewNetwork(index CoinType, name, currency string, decimals int, isW3 bool, evmConfig *EVMConfig) *BaseNetwork {
+func NewNetwork(index NetworkType, name, currency string, decimals int, isW3 bool, evmConfig *EVMConfig) *BaseNetwork {
 	return &BaseNetwork{
 		index:    index,
 		name:     name,
@@ -232,11 +230,6 @@ func (n *BaseNetwork) SetDefaultRPC(defaultEndpoint, defaultExplorer string) *Ba
 
 func (n *BaseNetwork) SetGasCalculator(calculator gas.Calculator) *BaseNetwork {
 	n.gasCalc = &calculator
-	return n
-}
-
-func (n *BaseNetwork) SetDataFeeds(dataFeeds map[CurrencyPair]string) *BaseNetwork {
-	n.dataFeeds = dataFeeds
 	return n
 }
 
