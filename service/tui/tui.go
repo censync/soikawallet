@@ -9,6 +9,7 @@ import (
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/walletframe"
 	"github.com/censync/soikawallet/service/tui/widgets/statusview"
+	"github.com/censync/soikawallet/service/wallet"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"sync"
@@ -120,6 +121,15 @@ func (t *Tui) initLayout() *tview.Flex {
 					t.app.Draw()
 				case event_bus.EventShowModal:
 					t.app.SetRoot(event.Data().(*tview.Modal), false)
+				case event_bus.EventUpdateCurrencies:
+					go func() {
+						currencies := wallet.API().UpdateFiatCurrencies()
+						if currencies != nil {
+							layoutStatus.Success(fmt.Sprintf("Currencies loaded: %v", currencies))
+						} else {
+							layoutStatus.Error("Cannot retrieve currencies data")
+						}
+					}()
 				case event_bus.EventW3Connect:
 					t.frame.State().SwitchToPage("w3_confirm_connect", event.Data())
 				case event_bus.EventW3RequestAccounts:

@@ -9,6 +9,8 @@ const (
 	EventLogWarning
 	EventLogError
 
+	EventUpdateCurrencies
+
 	EventWalletInitialized
 	EventDrawForce
 	EventShowModal
