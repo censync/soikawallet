@@ -56,7 +56,7 @@ type WalletAdapter interface {
 	GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error)
 	GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error)
 
-	// Chain opertions
+	// Chain operations
 
 	GetAllChains(dto *dto.GetChainsDTO) []*resp.ChainInfo
 
@@ -65,6 +65,9 @@ type WalletAdapter interface {
 	RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error
 	GetRPCLinkedAccountCount(dto *dto.GetRPCLinkedAccountCountDTO) int
 	GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, error)
+
+	// Currencies
+	UpdateFiatCurrencies() map[string]float64
 
 	// AirGap
 	ExportMeta() (*resp.AirGapMessageResponse, error)

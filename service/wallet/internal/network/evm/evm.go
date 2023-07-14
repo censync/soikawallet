@@ -586,6 +586,7 @@ func (e *EVM) IsContractAddr(ctx *types.RPCContext, addr string) (bool, error) {
 	return len(bytecode) > 0, nil
 }
 
+// GetPrice Deprecated
 func (e *EVM) GetPrice(ctx *types.RPCContext, contract string) (float64, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
@@ -599,6 +600,29 @@ func (e *EVM) GetPrice(ctx *types.RPCContext, contract string) (float64, error) 
 
 	if !isContract {
 		return 0, errors.New("address is not contract")
+	}
+
+	chainlinkPriceFeedProxy, err := chainlink.NewChainlink(common.HexToAddress(contract), client)
+	if err != nil {
+		return 0, nil
+	}
+	decimals, err := chainlinkPriceFeedProxy.Decimals(&bind.CallOpts{})
+	if err != nil {
+		return 0, nil
+	}
+
+	roundData, err := chainlinkPriceFeedProxy.LatestRoundData(&bind.CallOpts{})
+	if err != nil {
+		return 0, nil
+	}
+
+	return float64(roundData.Answer.Uint64()) / math.Pow(10, float64(decimals)), nil
+}
+
+func (e *EVM) ChainLinkGetPrice(ctx *types.RPCContext, contract string) (float64, error) {
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return 0, err
 	}
 
 	chainlinkPriceFeedProxy, err := chainlink.NewChainlink(common.HexToAddress(contract), client)

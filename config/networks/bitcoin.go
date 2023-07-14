@@ -1,3 +1,5 @@
+//go:build !testnet
+
 package networks
 
 import (

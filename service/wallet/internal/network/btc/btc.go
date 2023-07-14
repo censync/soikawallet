@@ -10,15 +10,15 @@ import (
 
 // base58.Encode()
 
-type BTC struct {
+type Bitcoin struct {
 	*types.BaseNetwork
 }
 
-func NewBTC(baseNetwork *types.BaseNetwork) *BTC {
-	return &BTC{BaseNetwork: baseNetwork}
+func NewBTC(baseNetwork *types.BaseNetwork) *Bitcoin {
+	return &Bitcoin{BaseNetwork: baseNetwork}
 }
 
-func (b *BTC) Address(pub *ecdsa.PublicKey) string {
+func (b *Bitcoin) Address(pub *ecdsa.PublicKey) string {
 	serializedAddr := crypto.FromECDSAPub(pub)
 	addr, err := btcutil.NewAddressPubKey(serializedAddr, &chaincfg.MainNetParams)
 	if err != nil {

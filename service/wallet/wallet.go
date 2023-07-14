@@ -12,6 +12,7 @@ import (
 	"github.com/censync/soikawallet/service/wallet/internal/network"
 	"github.com/censync/soikawallet/service/wallet/meta"
 	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/types/currencies"
 	"github.com/censync/soikawallet/util/seed"
 	"golang.org/x/crypto/pbkdf2"
 	"strings"
@@ -19,14 +20,16 @@ import (
 
 const (
 	hardenedKeyStart = uint32(0x80000000) // 2^31
+	fiatSymbol       = "USD"
 )
 
 type Wallet struct {
 	// instanceId compressed public key for root key, used for identify device instance
-	instanceId []byte
-	bip44Key   *hdkeychain.ExtendedKey
-	addresses  map[string]*address
-	meta       *meta.Meta
+	instanceId     []byte
+	bip44Key       *hdkeychain.ExtendedKey
+	addresses      map[string]*address
+	meta           *meta.Meta
+	currenciesFiat *currencies.FiatCurrencies
 }
 
 func (s *Wallet) getNetworkProvider(ctx *types.RPCContext) (types.NetworkAdapter, error) {
@@ -78,10 +81,11 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
 	}
 
 	*s = Wallet{
-		instanceId: masterPubKey.SerializeCompressed(),
-		bip44Key:   bip44Key,
-		addresses:  map[string]*address{},
-		meta:       meta.InitMeta(),
+		instanceId:     masterPubKey.SerializeCompressed(),
+		bip44Key:       bip44Key,
+		addresses:      map[string]*address{},
+		meta:           meta.InitMeta(),
+		currenciesFiat: currencies.NewFiatCurrencies(fiatSymbol),
 	}
 	return s.getInstanceId(), nil
 }

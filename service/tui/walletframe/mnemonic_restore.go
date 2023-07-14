@@ -6,6 +6,7 @@ import (
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/wallet"
+	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"os"
@@ -92,6 +93,15 @@ func (p *pageRestoreMnemonic) actionRestoreWithMnemonic() {
 		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot restore wallet: %s", err))
 	} else {
 		//p.SetWallet(wallet)
+		go func() {
+			currencies := wallet.API().UpdateFiatCurrencies()
+			if currencies != nil {
+				p.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Currencies loaded: %v", currencies))
+			} else {
+				p.Emit(event_bus.EventLogError, "Cannot retrieve currencies data")
+			}
+		}()
+		clipboard.Clear()
 		p.Emit(event_bus.EventWalletInitialized, instanceId)
 		p.SwitchToPage(pageNameCreateWallets)
 	}

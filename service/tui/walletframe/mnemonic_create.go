@@ -87,6 +87,14 @@ func (p *pageInitMnemonic) FuncOnShow() {
 			if err != nil {
 				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot init wallet: %s", err))
 			} else {
+				go func() {
+					currencies := wallet.API().UpdateFiatCurrencies()
+					if currencies != nil {
+						p.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Currencies loaded: %v", currencies))
+					} else {
+						p.Emit(event_bus.EventLogError, "Cannot retrieve currencies data")
+					}
+				}()
 				clipboard.Clear()
 				p.Emit(event_bus.EventWalletInitialized, instanceId)
 				p.SwitchToPage(pageNameCreateWallets)
