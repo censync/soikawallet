@@ -22,6 +22,10 @@ type BaseNetwork struct {
 	decimals int
 	explorer string
 
+	// gas
+	gasUnits  uint64
+	gasSymbol string
+
 	rpc       *RPCMap
 	gasCalc   *gas.Calculator
 	tokens    map[string]*TokenConfig
@@ -207,13 +211,15 @@ type NetworkAdapter interface {
 	GetRPCInfo(ctx *RPCContext) (map[string]interface{}, error)
 }
 
-func NewNetwork(index NetworkType, name, currency string, decimals int, isW3 bool, evmConfig *EVMConfig) *BaseNetwork {
+func NewNetwork(index NetworkType, name, currency string, decimals int, gasUnits uint64, gasSymbol string, isW3 bool, evmConfig *EVMConfig) *BaseNetwork {
 	return &BaseNetwork{
-		index:    index,
-		name:     name,
-		currency: currency,
-		decimals: decimals,
-		isW3:     isW3,
+		index:     index,
+		name:      name,
+		currency:  currency,
+		decimals:  decimals,
+		gasUnits:  gasUnits,
+		gasSymbol: gasSymbol,
+		isW3:      isW3,
 		rpc: &RPCMap{
 			data: map[uint32]*RPC{},
 		},
@@ -228,11 +234,6 @@ func (n *BaseNetwork) SetDefaultRPC(defaultEndpoint, defaultExplorer string) *Ba
 		endpoint:  defaultEndpoint,
 		isDefault: true,
 	}
-	return n
-}
-
-func (n *BaseNetwork) SetGasCalculator(calculator gas.Calculator) *BaseNetwork {
-	n.gasCalc = &calculator
 	return n
 }
 
@@ -279,6 +280,14 @@ func (n *BaseNetwork) Currency() string {
 
 func (n *BaseNetwork) Decimals() int {
 	return n.decimals
+}
+
+func (n *BaseNetwork) GasUnits() uint64 {
+	return n.gasUnits
+}
+
+func (n *BaseNetwork) GasSymbol() string {
+	return n.gasSymbol
 }
 
 func (n *BaseNetwork) IsW3() bool {

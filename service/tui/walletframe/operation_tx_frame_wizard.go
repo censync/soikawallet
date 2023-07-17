@@ -8,6 +8,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/widgets/formtextview"
 	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/types/gas"
 	"github.com/rivo/tview"
 	"strconv"
 )
@@ -47,7 +48,8 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 
 	inputValue := tview.NewInputField().
 		SetAcceptanceFunc(tview.InputFieldFloat).
-		SetLabel(`Amount`)
+		SetLabel(`Amount`).
+		SetText("0.001")
 
 	tokensList := make([]string, 0)
 	tokensMap := map[int]string{}
@@ -140,51 +142,80 @@ func (f *frameOperationWizard) actionConfigureGas() {
 
 	layoutForm.AddTextView("title", "actionConfigureGas", 30, 1, true, false)
 
-	gasConfig, err := f.API().GetGasPriceBaseTx(&dto.GetGasPriceBaseTxDTO{
+	/*gasConfig, err := f.API().GetGasPriceBaseTx(&dto.GetGasPriceBaseTxDTO{
 		DerivationPath: f.selectedAddress.Path,
 	})
 
 	if err == nil || gasConfig == nil {
 		f.Emit(event_bus.EventLogInfo, gasConfig)
 
-		/*
-			gasCalc := types.NewGasCalculator(types.GasAlgEVML1v1, &types.GasCalcOpts{
-				GasSuffix:    "gwei",
-				TokenSuffix:  "Eth",
-				FiatSuffix:   "USD",
-				FiatCurrency: 1700,
-			})
-		*/
+		fiatCurrency, suffix, _ := f.API().GetFiatCurrency(&dto.GetFiatCurrencyDTO{
+			NetworkType: uint32(f.selectedAddress.NetworkType),
+		})
+
+		gasCalc := gas.NewCalcEVML1V1(&gas.CalcEVML1V1{
+			CalcOpts: &gas.CalcOpts{
+				GasSymbol:    "gwei",
+				GasUnits:     10e9,
+				TokenSuffix:  suffix,
+				FiatCurrency: fiatCurrency,
+			},
+			Units:       gasConfig["units"],
+			BaseFee:     gasConfig["base_fee"],
+			PriorityFee: gasConfig["priority_fee"],
+			GasLimit:      30000, // 30e6?
+		})
 
 		calculatedFee := gasConfig["units"] * (gasConfig["base_fee"] + gasConfig["priority_fee"]) / 1e9
+	*/
 
-		labelCalcFee := tview.NewTextView().
-			SetText(fmt.Sprintf("Total fee: %f", calculatedFee))
+	calcConfig, err := f.API().GetGasCalculatorConfig(&dto.GetAddressCalculatorConfigDTO{
+		DerivationPath: f.selectedAddress.Path,
+	})
 
-		inputBaseFee := tview.NewInputField().
-			SetFieldWidth(10).
-			SetLabel("Base fee").
-			SetText(fmt.Sprintf("%f", gasConfig["base_fee"]))
-
-		inputPriorityFee := tview.NewInputField().
-			SetFieldWidth(10).
-			SetLabel("Priority fee"). // 0.1 ../ 0.25 / 3 / 4 / .. 5 (ETH)
-			SetText(fmt.Sprintf("%f", gasConfig["priority_fee"]))
-
-		layoutForm.
-			AddFormItem(inputBaseFee).
-			AddFormItem(inputPriorityFee).
-			AddFormItem(labelCalcFee).
-			AddButton("Send", func() {
-
-			}).
-			AddButton("Update gas", func() {
-				f.actionConfigureGas()
-			})
-	} else {
-		// add label
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot send transaction: %s", err))
+	if err != nil {
+		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get gas calculator instance: %s", err))
 	}
+
+	gasCalc, err := gas.Unmarshal(calcConfig.Calculator)
+
+	if err != nil {
+		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot unmarshal gas calculator: %s", err))
+		return
+	}
+
+	f.Emit(event_bus.EventLogInfo, fmt.Sprintf("SuggestSlow: %f SuggestRegular: %f SuggestPriority: %f LimitMin: %f LimitMax: %f Format: %s",
+		gasCalc.SuggestSlow(),
+		gasCalc.SuggestRegular(),
+		gasCalc.SuggestPriority(),
+		gasCalc.LimitMin(),
+		gasCalc.LimitMax(),
+		gasCalc.Format()),
+	)
+
+	labelCalcFee := tview.NewTextView().
+		SetText(fmt.Sprintf("Total fee: %s", gasCalc.Format()))
+
+	inputBaseFee := tview.NewInputField().
+		SetFieldWidth(10).
+		SetLabel("Base fee").
+		SetText(fmt.Sprintf("%f", gasCalc.SuggestRegular()))
+
+	inputPriorityFee := tview.NewInputField().
+		SetFieldWidth(10).
+		SetLabel("Priority fee"). // 0.1 ../ 0.25 / 3 / 4 / .. 5 (ETH)
+		SetText(fmt.Sprintf("%f", gasCalc.SuggestPriority()))
+
+	layoutForm.
+		AddFormItem(inputBaseFee).
+		AddFormItem(inputPriorityFee).
+		AddFormItem(labelCalcFee).
+		AddButton("Send", func() {
+
+		}).
+		AddButton("Update gas", func() {
+			f.actionConfigureGas()
+		})
 
 	f.layout.Clear()
 	f.layout.AddItem(layoutForm, 0, 1, false)

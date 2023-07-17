@@ -34,7 +34,7 @@ func (p *pageAbout) FuncOnShow() {
 
 	viewContacts := tview.NewTextView().
 		SetScrollable(false).
-		SetText("Website: https://soikawallet.app\n\nGitHub: https://github.com/censync/soikawallet\n\nTwitter: https://twitter.com/SoikaWallet")
+		SetText("Website: https://soikawallet.app\n\nGitHub: https://github.com/censync/soikawallet\n\nTwitter: https://twitter.com/SoikaWallet\n\n\n\nCreated by immigrants with ♥")
 
 	layoutAbout.AddItem(viewInfo, 0, 1, false).
 		AddItem(viewContacts, 0, 1, false)

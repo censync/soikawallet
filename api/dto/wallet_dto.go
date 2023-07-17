@@ -136,7 +136,10 @@ type FlushKeysDTO struct {
 	Force bool
 }
 
-type GetTokenFiatPriceDTO struct {
+type GetFiatCurrencyDTO struct {
 	NetworkType uint32
-	Currency    string
+}
+
+type GetAddressCalculatorConfigDTO struct {
+	DerivationPath string
 }

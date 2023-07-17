@@ -211,8 +211,8 @@ func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]float64, error) {
 		"base_fee":     0,
 		"priority_fee": 0,
 		"units":        21000,
-		"limit":        0,
-		"currency":     0,
+		"gas_limit":    0,
+		"gas_used":     0,
 	}
 
 	height, err := e.getHeight(ctx)
@@ -223,12 +223,14 @@ func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]float64, error) {
 
 	block, err := e.getBlock(ctx, height)
 
+	result["gas_used"] = float64(block.GasUsed())
+
 	if err != nil {
 		return result, err
 	}
 
 	gasLimit := block.GasLimit()
-	result["limit"] = float64(gasLimit)
+	result["gas_limit"] = float64(gasLimit)
 
 	baseFee := block.BaseFee()
 	if baseFee != nil {
@@ -456,9 +458,9 @@ func (e *EVM) TxPrepare(ctx *types.RPCContext, to string, value float64) (interf
 		Nonce: nonce,
 		To:    &addrTo,
 		Value: weiValue,
-		Data:  nil,
+		Cfg:  nil,
 	})
-	return tx.Data(), nil*/
+	return tx.Cfg(), nil*/
 	/*
 		signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
 

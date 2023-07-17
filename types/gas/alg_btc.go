@@ -1,5 +1,7 @@
 package gas
 
+import "encoding/json"
+
 const AlgBTCL1v1 = AlgorithmType(`alg_btc_l1_1`)
 
 type CalcBTCL1V1 struct {
@@ -26,7 +28,7 @@ func (c CalcBTCL1V1) LimitMin() float64 {
 	return 4770
 }
 
-func (c CalcBTCL1V1) LimitMax() float64 {
+func (c CalcBTCL1V1) LimitMax() uint64 {
 	//TODO implement me
 	return 10e8
 }
@@ -36,6 +38,13 @@ func (c CalcBTCL1V1) Format() string {
 	return "{gas}"
 }
 
-func (c CalcBTCL1V1) SetPair(currency float64, suffix string) {
-
+func (c CalcBTCL1V1) Marshal() ([]byte, error) {
+	var export = struct {
+		Type   AlgorithmType `json:"alg"`
+		Config *CalcBTCL1V1  `json:"config"`
+	}{
+		Type:   AlgBTCL1v1,
+		Config: &c,
+	}
+	return json.Marshal(export)
 }

@@ -60,3 +60,7 @@ type ChainInfo struct {
 	Name        string            `json:"name"`
 	NetworkType types.NetworkType `json:"network_type"`
 }
+
+type CalculatorConfig struct {
+	Calculator []byte
+}

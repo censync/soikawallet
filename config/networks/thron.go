@@ -9,6 +9,8 @@ var Tron = types.NewNetwork(
 	`Tron`,
 	`TRX`,
 	6,
+	10e6,
+	"SUN",
 	false,
 	nil,
 ).SetDefaultRPC(

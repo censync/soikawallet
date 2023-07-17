@@ -40,11 +40,6 @@ func InitState(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator) *Sta
 	}
 }
 
-func (s *State) SetWallet(wallet *wallet.Wallet) {
-	s.isInitialised = true
-	s.uiEvents.Emit(event_bus.EventWalletInitialized, "xxxx-xxxxx-xxxx") // GetInstanceId()
-}
-
 func (s *State) Emit(event event_bus.EventType, data interface{}) {
 	s.uiEvents.Emit(event, data)
 }

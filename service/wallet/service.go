@@ -68,6 +68,8 @@ type WalletAdapter interface {
 
 	// Currencies
 	UpdateFiatCurrencies() map[string]float64
+	GetFiatCurrency(dto *dto.GetFiatCurrencyDTO) (float64, string, string)
+	GetGasCalculatorConfig(dto *dto.GetAddressCalculatorConfigDTO) (*resp.CalculatorConfig, error)
 
 	// AirGap
 	ExportMeta() (*resp.AirGapMessageResponse, error)

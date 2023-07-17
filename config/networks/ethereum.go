@@ -4,7 +4,6 @@ package networks
 
 import (
 	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/gas"
 )
 
 var Ethereum = types.NewNetwork(
@@ -12,21 +11,12 @@ var Ethereum = types.NewNetwork(
 	`Ethereum`,
 	`ETH`,
 	18,
+	10e9,
+	"gwei",
 	true,
 	&types.EVMConfig{
 		ChainId: 0x1,
 	},
-).SetGasCalculator(&gas.CalcEVML1V1{
-	CalcOpts: &gas.CalcOpts{
-		GasSuffix:     "gwei",
-		TokenCurrency: 10e9,
-		TokenSuffix:   "Eth",
-	},
-	Units:       21000,
-	BaseFee:     0,
-	PriorityFee: 0,
-	MaxFee:      30e6,
-},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/eth`,
 	`https://etherscan.io/`, // /block/ /address/ /tx/
