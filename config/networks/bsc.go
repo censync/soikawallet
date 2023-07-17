@@ -9,7 +9,7 @@ var BSC = types.NewNetwork(
 	`Binance Smart Chain`,
 	`BNB`,
 	18,
-	10e9,
+	1e9,
 	"gwei",
 	true,
 	&types.EVMConfig{

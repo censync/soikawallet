@@ -11,7 +11,7 @@ var Bitcoin = types.NewNetwork(
 	`Bitcoin`,
 	`BTC`,
 	8,
-	10e8,
+	1e8,
 	"satoshi",
 	false,
 	nil,

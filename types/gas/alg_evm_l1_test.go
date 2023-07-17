@@ -8,8 +8,8 @@ func TestCalcEVML1V1_MarshalJSON(t *testing.T) {
 	gasInstance := NewCalcEVML1V1(&CalcEVML1V1{
 		CalcOpts: &CalcOpts{
 			GasSymbol:    "gwei",
-			GasUnits:     10e9,
-			TokenSuffix:  "$",
+			GasUnits:     1e9,
+			FiatSymbol:   "$",
 			FiatCurrency: 1900,
 		},
 		Units:       2100,

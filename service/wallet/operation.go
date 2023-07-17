@@ -75,7 +75,7 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 	}
 
 	if types.TokenStandard(dto.Standard) == types.TokenBase {
-		return provider.TxSendBase(ctx, dto.To, dto.Value, addr.key.Get())
+		return provider.TxSendBase(ctx, dto.To, dto.Value, dto.GasTipCap, dto.GasFeeCap, addr.key.Get())
 	} else {
 		tokenConfig := provider.GetTokenConfig(dto.Contract)
 

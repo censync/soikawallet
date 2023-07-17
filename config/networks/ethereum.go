@@ -11,7 +11,7 @@ var Ethereum = types.NewNetwork(
 	`Ethereum`,
 	`ETH`,
 	18,
-	10e9,
+	1e9,
 	"gwei",
 	true,
 	&types.EVMConfig{

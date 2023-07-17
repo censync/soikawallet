@@ -234,7 +234,7 @@ func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]float64, error) {
 
 	baseFee := block.BaseFee()
 	if baseFee != nil {
-		result["base_fee"] = float64(baseFee.Int64()) / float64(gwei)
+		result["base_fee"] = float64(baseFee.Int64())
 	}
 
 	gasTipCap, err := e.getGasTipCap(ctx)
@@ -242,31 +242,13 @@ func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]float64, error) {
 		return result, err
 	}
 	if gasTipCap != nil {
-		result["priority_fee"] = float64(gasTipCap.Int64()) / float64(gwei)
+		result["priority_fee"] = float64(gasTipCap.Int64())
 	}
 	return result, nil
 }
 
-func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, key *ecdsa.PrivateKey) (txId string, err error) {
+func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (txId string, err error) {
 	chainId, err := e.getChainId(ctx)
-
-	if err != nil {
-		return "", err
-	}
-
-	height, err := e.getHeight(ctx)
-
-	if err != nil {
-		return "", err
-	}
-
-	block, err := e.getBlock(ctx, height)
-
-	if err != nil {
-		return "", err
-	}
-
-	gasTipCap, err := e.getGasTipCap(ctx)
 
 	if err != nil {
 		return "", err
@@ -278,19 +260,14 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, key *e
 		return "", err
 	}
 
-	gasLimit := block.GasLimit()
-
 	addrTo := common.HexToAddress(to)
 	weiValue := big.NewInt(int64(value * float64(wei)))
-	maxGas := big.NewInt(int64(gasLimit - 1000000))
-
-	// both gasPrice and (maxFeePerGas or maxPriorityFeePerGas) specified
 
 	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
 		ChainID:   chainId,
-		GasFeeCap: maxGas,
-		GasTipCap: gasTipCap,
-		Gas:       gasTipCap.Uint64() + 10000000, // 10000000
+		GasTipCap: big.NewInt(int64(gasTipCap)), // gasTipCap = (priorityFee)
+		GasFeeCap: big.NewInt(int64(gasFeeCap)), // a.k.a. maxFeePerGas limit commission gasFeeCap = gasTipCap + pendingHeader.BaseFee * 2
+		Gas:       21000,
 		Nonce:     nonce,
 		To:        &addrTo,
 		Value:     weiValue,

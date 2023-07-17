@@ -9,7 +9,7 @@ var BSC = types.NewNetwork(
 	`BSC (Testnet)`,
 	`BNBBT`,
 	18,
-	10e9,
+	1e9,
 	"gwei",
 	true,
 	&types.EVMConfig{

@@ -9,7 +9,7 @@ var Polygon = types.NewNetwork(
 	`Polygon`,
 	`MATIC`,
 	18,
-	10e9,
+	1e9,
 	"gwei",
 	true,
 	&types.EVMConfig{

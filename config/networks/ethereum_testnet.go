@@ -9,7 +9,7 @@ var Ethereum = types.NewNetwork(
 	`Ethereum (Testnet)`,
 	`SepETH`,
 	18,
-	10e9,
+	1e9,
 	"gwei",
 	true,
 	&types.EVMConfig{

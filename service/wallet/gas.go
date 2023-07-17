@@ -68,8 +68,8 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetAddressCalculatorConfigDTO) 
 		gasCalculator = gas.NewCalcEVML1V1(&gas.CalcEVML1V1{
 			CalcOpts: &gas.CalcOpts{
 				GasSymbol:    "gwei",
-				GasUnits:     10e9,
-				TokenSuffix:  fiatSuffix,
+				GasUnits:     1e9,
+				FiatSymbol:   fiatSuffix,
 				FiatCurrency: fiatCurrency,
 			},
 			Units:       gasConfig["units"],

@@ -9,22 +9,26 @@ import (
 type AlgorithmType string
 
 type Calculator interface {
+	BaseGas() float64
 	SuggestSlow() float64
 	SuggestRegular() float64
 	SuggestPriority() float64
 	LimitMin() float64
 	LimitMax() uint64
-	Format() string
+	Debug() string
+	LimitMaxGasFee(gasTipCap float64) float64
+	FormatHumanGas(gas float64) string
+	FormatHumanFiatPrice(gas float64) string
 	Marshal() ([]byte, error)
 }
 
 type CalcOpts struct {
 	// GasSymbol is a network defined gas unit name, e.g. "gwei", "satoshi"
 	GasSymbol string `json:"gas_symbol"`
-	// GasUnits is a units count per one base token
+	// GasUnits is a units count per one base token, for evm = 1e9
 	GasUnits uint64 `json:"gas_units"`
-	// TokenSuffix is a short fiat currency suffix, e.g. $, €
-	TokenSuffix string `json:"token_suffix"`
+	// FiatSymbol is a short fiat currency suffix, e.g. $, €
+	FiatSymbol string `json:"token_suffix"`
 	// FiatCurrency is a fiat currency per one base token
 	FiatCurrency float64 `json:"fiat_currency"`
 }
