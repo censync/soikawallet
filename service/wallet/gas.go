@@ -9,8 +9,9 @@ import (
 	"github.com/censync/soikawallet/types/gas"
 )
 
+// GetGasPriceBaseTx Deprecated
 func (s *Wallet) GetGasPriceBaseTx(dto *dto.GetGasPriceBaseTxDTO) (map[string]float64, error) {
-	addressPath, err := types.ParsePath(dto.DerivationPath)
+	/*addressPath, err := types.ParsePath(dto.DerivationPath)
 	if err != nil {
 		return nil, err
 	}
@@ -27,8 +28,8 @@ func (s *Wallet) GetGasPriceBaseTx(dto *dto.GetGasPriceBaseTxDTO) (map[string]fl
 	if err != nil {
 		return nil, err
 	}
-
-	return provider.GetGasBaseTx(ctx)
+	*/
+	return nil, nil // provider.GetGasBaseTx(ctx)
 }
 
 func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetAddressCalculatorConfigDTO) (*resp.CalculatorConfig, error) {

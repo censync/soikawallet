@@ -199,13 +199,13 @@ type NetworkAdapter interface {
 	GetTokenBalance(ctx *RPCContext, contract string, decimals int) (*big.Float, error)
 	GetToken(ctx *RPCContext, contract string) (*TokenConfig, error)
 	GetTokenAllowance(ctx *RPCContext, contract, to string) (uint64, error)
-	GetGasBaseTx(ctx *RPCContext) (map[string]float64, error)
+	GetGasBaseTx(ctx *RPCContext) (map[string]uint64, error)
 	TxSendBase(ctx *RPCContext, to string, value float64, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (string, error)
 	TxSendToken(ctx *RPCContext, to string, value float64, token *TokenConfig, key *ecdsa.PrivateKey) (string, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
 
 	// Chainlink
-	ChainLinkGetPrice(ctx *RPCContext, contract string) (float64, error)
+	ChainLinkGetPrice(ctx *RPCContext, contract string) (uint64, uint8, error)
 
 	// RPC info
 	GetRPCInfo(ctx *RPCContext) (map[string]interface{}, error)

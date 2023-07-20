@@ -206,8 +206,8 @@ func (e *EVM) getGasEstimate(ctx *types.RPCContext, msg *ethereum.CallMsg) (uint
 	return client.EstimateGas(ctx, *msg)
 }
 
-func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]float64, error) {
-	result := map[string]float64{
+func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]uint64, error) {
+	result := map[string]uint64{
 		"base_fee":     0,
 		"priority_fee": 0,
 		"units":        21000,
@@ -223,18 +223,18 @@ func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]float64, error) {
 
 	block, err := e.getBlock(ctx, height)
 
-	result["gas_used"] = float64(block.GasUsed())
+	result["gas_used"] = block.GasUsed()
 
 	if err != nil {
 		return result, err
 	}
 
 	gasLimit := block.GasLimit()
-	result["gas_limit"] = float64(gasLimit)
+	result["gas_limit"] = gasLimit
 
 	baseFee := block.BaseFee()
 	if baseFee != nil {
-		result["base_fee"] = float64(baseFee.Int64())
+		result["base_fee"] = baseFee.Uint64()
 	}
 
 	gasTipCap, err := e.getGasTipCap(ctx)
@@ -242,7 +242,7 @@ func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]float64, error) {
 		return result, err
 	}
 	if gasTipCap != nil {
-		result["priority_fee"] = float64(gasTipCap.Int64())
+		result["priority_fee"] = gasTipCap.Uint64()
 	}
 	return result, nil
 }
@@ -598,25 +598,25 @@ func (e *EVM) GetPrice(ctx *types.RPCContext, contract string) (float64, error) 
 	return float64(roundData.Answer.Uint64()) / math.Pow(10, float64(decimals)), nil
 }
 
-func (e *EVM) ChainLinkGetPrice(ctx *types.RPCContext, contract string) (float64, error) {
+func (e *EVM) ChainLinkGetPrice(ctx *types.RPCContext, contract string) (uint64, uint8, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	chainlinkPriceFeedProxy, err := chainlink.NewChainlink(common.HexToAddress(contract), client)
 	if err != nil {
-		return 0, nil
+		return 0, 0, err
 	}
 	decimals, err := chainlinkPriceFeedProxy.Decimals(&bind.CallOpts{})
 	if err != nil {
-		return 0, nil
+		return 0, 0, err
 	}
 
 	roundData, err := chainlinkPriceFeedProxy.LatestRoundData(&bind.CallOpts{})
 	if err != nil {
-		return 0, nil
+		return 0, 0, err
 	}
 
-	return float64(roundData.Answer.Uint64()) / math.Pow(10, float64(decimals)), nil
+	return roundData.Answer.Uint64(), decimals, nil
 }

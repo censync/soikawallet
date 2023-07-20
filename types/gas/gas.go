@@ -9,16 +9,15 @@ import (
 type AlgorithmType string
 
 type Calculator interface {
-	BaseGas() float64
-	SuggestSlow() float64
-	SuggestRegular() float64
-	SuggestPriority() float64
-	LimitMin() float64
+	BaseGas() uint64
+	SuggestSlow() uint64
+	SuggestRegular() uint64
+	SuggestPriority() uint64
 	LimitMax() uint64
 	Debug() string
-	LimitMaxGasFee(gasTipCap float64) float64
-	FormatHumanGas(gas float64) string
-	FormatHumanFiatPrice(gas float64) string
+	LimitMaxGasFee(gasTipCap uint64) uint64
+	FormatHumanGas(gas uint64) string
+	FormatHumanFiatPrice(gas uint64) string
 	Marshal() ([]byte, error)
 }
 

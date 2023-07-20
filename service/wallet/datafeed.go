@@ -4,6 +4,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/config/datafeed"
 	"github.com/censync/soikawallet/types"
+	"math"
 )
 
 func (s *Wallet) UpdateFiatCurrencies() map[string]float64 {
@@ -20,10 +21,11 @@ func (s *Wallet) UpdateFiatCurrencies() map[string]float64 {
 				provider, err := s.getNetworkProvider(ctx)
 
 				if err == nil {
-					value, err := provider.ChainLinkGetPrice(ctx, pair.Address)
+					value, decimals, err := provider.ChainLinkGetPrice(ctx, pair.Address)
 					if err == nil {
-						s.currenciesFiat.Set(pair.Symbol, value, pair.Type, pair.Address, pair.Network)
-						loadedPairs[pair.Pair] = value
+						calculatedPrice := float64(value) / (math.Pow(10, float64(decimals)))
+						s.currenciesFiat.Set(pair.Symbol, calculatedPrice, pair.Type, pair.Address, pair.Network)
+						loadedPairs[pair.Pair] = calculatedPrice
 					}
 				}
 			}
