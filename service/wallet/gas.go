@@ -76,8 +76,8 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetAddressCalculatorConfigDTO) 
 			Units:       gasConfig["units"],
 			BaseFee:     gasConfig["base_fee"],
 			PriorityFee: gasConfig["priority_fee"],
-			GasUsed:     uint64(gasConfig["gas_used"]),
-			GasLimit:    uint64(gasConfig["gas_limit"]), // 30000 or 30e6?
+			GasUsed:     gasConfig["gas_used"],
+			GasLimit:    gasConfig["gas_limit"], // 30000 or 30e6?
 		})
 	default:
 		return nil, errors.New(fmt.Sprintf("gas calculator for network (%d) is not defined", addr.Network()))
