@@ -265,9 +265,9 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gasTip
 
 	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
 		ChainID:   chainId,
-		GasTipCap: big.NewInt(int64(gasTipCap)), // gasTipCap = (priorityFee)
+		GasTipCap: big.NewInt(int64(gasTipCap)), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
 		GasFeeCap: big.NewInt(int64(gasFeeCap)), // a.k.a. maxFeePerGas limit commission gasFeeCap = gasTipCap + pendingHeader.BaseFee * 2
-		Gas:       21000,
+		Gas:       21000,                        // units
 		Nonce:     nonce,
 		To:        &addrTo,
 		Value:     weiValue,

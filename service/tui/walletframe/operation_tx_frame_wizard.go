@@ -159,7 +159,7 @@ func (f *frameOperationWizard) actionConfigureGas() {
 
 	f.Emit(event_bus.EventLogInfo, gasCalc.Debug())
 
-	templateGas := fmt.Sprintf("Base: %s [%.5f]\nSuggestSlow: %s [%.5f]\nSuggestRegular: %s [%.5f]\nSuggestPriority: %s [%.5f]\nEst gas price: %s Limit gas price: %s",
+	templateGas := fmt.Sprintf("Base: %s [%d]\nSuggestSlow: %s [%d]\nSuggestRegular: %s [%d]\nSuggestPriority: %s [%d]\nEst gas price: %s Limit gas price: %s",
 		gasCalc.FormatHumanGas(gasCalc.BaseGas()),
 		gasCalc.BaseGas(),
 		gasCalc.FormatHumanGas(gasCalc.SuggestSlow()),
@@ -208,6 +208,16 @@ func (f *frameOperationWizard) actionConfigureGas() {
 		}).
 		AddButton("Update gas", func() {
 			f.actionConfigureGas()
+		}).
+		AddButton("Send", func() {
+			f.Emit(event_bus.EventLogInfo, fmt.Sprintf("SuggestRegular: %s [%d] Est gas price: %s Limit gas price: %s",
+				gasCalc.FormatHumanGas(gasCalc.BaseGas()+gasCalc.SuggestRegular()),
+				gasCalc.SuggestRegular(),
+				gasCalc.FormatHumanFiatPrice(gasCalc.BaseGas()+gasCalc.SuggestRegular()),
+				gasCalc.FormatHumanFiatPrice(gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular())),
+			),
+			)
+			f.actionSendTransaction(gasCalc.SuggestSlow(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
 		})
 
 	f.layout.Clear()
@@ -226,11 +236,13 @@ func (f *frameOperationWizard) actionConfigureAllowance() {
 	//f.Emit(event_bus.EventDrawForce, nil)
 }
 
-func (f *frameOperationWizard) actionSendTransaction() {
+func (f *frameOperationWizard) actionSendTransaction(gasTipCap, gasFeePrice uint64) {
 	txId, err := f.API().SendTokens(&dto.SendTokensDTO{
 		DerivationPath: f.selectedAddress.Path,
 		To:             f.selectedRecipient,
 		Value:          f.selectedAmount,
+		GasTipCap:      gasTipCap,
+		GasFeeCap:      gasFeePrice,
 		Standard:       f.selectedToken.Standard,
 		Contract:       f.selectedToken.Contract,
 	})
