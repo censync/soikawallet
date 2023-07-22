@@ -290,6 +290,47 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gasTip
 	return signedTX.Hash().Hex(), err
 }
 
+func (e *EVM) TxSendBaseLegacy(ctx *types.RPCContext, to string, value float64, gasPrice uint64, key *ecdsa.PrivateKey) (txId string, err error) {
+	chainId, err := e.getChainId(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
+
+	if err != nil {
+		return "", err
+	}
+
+	addrTo := common.HexToAddress(to)
+	weiValue := big.NewInt(int64(value * float64(wei)))
+
+	tx := ethTypes.NewTx(&ethTypes.LegacyTx{
+		GasPrice: big.NewInt(int64(gasPrice)),
+		Gas:      21000, // units
+		Nonce:    nonce,
+		To:       &addrTo,
+		Value:    weiValue,
+		Data:     nil,
+	})
+
+	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
+
+	if err != nil {
+		return ``, nil
+	}
+
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return ``, err
+	}
+
+	err = client.SendTransaction(ctx, signedTX)
+
+	return signedTX.Hash().Hex(), err
+}
+
 func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, key *ecdsa.PrivateKey) (txId string, err error) {
 	chainId, err := e.getChainId(ctx)
 

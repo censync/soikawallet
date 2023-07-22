@@ -79,6 +79,46 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetAddressCalculatorConfigDTO) 
 			GasUsed:     gasConfig["gas_used"],
 			GasLimit:    gasConfig["gas_limit"], // 30000 or 30e6?
 		})
+	case types.Polygon:
+		gasConfig, err := provider.GetGasBaseTx(ctx)
+
+		if err != nil {
+			return nil, err
+		}
+
+		gasCalculator = gas.NewCalcEVML1V1(&gas.CalcEVML1V1{
+			CalcOpts: &gas.CalcOpts{
+				GasSymbol:    "gwei",
+				GasUnits:     1e9,
+				FiatSymbol:   fiatSuffix,
+				FiatCurrency: fiatCurrency,
+			},
+			Units:       gasConfig["units"],
+			BaseFee:     gasConfig["base_fee"],
+			PriorityFee: gasConfig["priority_fee"],
+			GasUsed:     gasConfig["gas_used"],
+			GasLimit:    gasConfig["gas_limit"], // 30000 or 30e6?
+		})
+	case types.BSC:
+		gasConfig, err := provider.GetGasBaseTx(ctx)
+
+		if err != nil {
+			return nil, err
+		}
+
+		gasCalculator = gas.NewCalcEVML1V1(&gas.CalcEVML1V1{
+			CalcOpts: &gas.CalcOpts{
+				GasSymbol:    "gwei",
+				GasUnits:     1e9,
+				FiatSymbol:   fiatSuffix,
+				FiatCurrency: fiatCurrency,
+			},
+			Units:       gasConfig["units"],
+			BaseFee:     gasConfig["base_fee"],
+			PriorityFee: gasConfig["priority_fee"],
+			GasUsed:     gasConfig["gas_used"],
+			GasLimit:    gasConfig["gas_limit"], // 30000 or 30e6?
+		})
 	default:
 		return nil, errors.New(fmt.Sprintf("gas calculator for network (%d) is not defined", addr.Network()))
 	}

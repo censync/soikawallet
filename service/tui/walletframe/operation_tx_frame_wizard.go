@@ -44,7 +44,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 
 	inputAddrReceiver := tview.NewInputField().
 		SetLabel(`Receiver`).
-		SetText("0x8680C23520C3731024a0632277FcB7303cD1A00f")
+		SetText("0x25069a186417DA4d9a273c6F7c94CD64a11E0CA8")
 
 	inputValue := tview.NewInputField().
 		SetAcceptanceFunc(tview.InputFieldFloat).
@@ -174,35 +174,8 @@ func (f *frameOperationWizard) actionConfigureGas() {
 
 	labelInfo := tview.NewTextView().SetText(templateGas)
 
-	/*labelSuggestSlow := tview.NewTextView().
-		//SetLabel("SuggestSlow:").
-		SetText(fmt.Sprintf("%f", gasCalc.SuggestSlow()))
-	//SetText(gasCalc.FormatHumanFiatPrice(gasCalc.SuggestPriority()))
-
-	labelSuggestRegular := tview.NewTextView().
-		//SetLabel("SuggestRegular").
-		SetText(fmt.Sprintf("%f", gasCalc.SuggestRegular()))
-
-	labelPriorityFee := tview.NewTextView().
-		//SetLabel("SuggestPriority"). // 0.1 ../ 0.25 / 3 / 4 / .. 5 (ETH)
-		SetText(fmt.Sprintf("%f", gasCalc.SuggestPriority()))
-
-
-	labelGasPrice := tview.NewTextView().
-		//SetLabel("Est gas price:").
-		SetText(gasCalc.FormatHumanFiatPrice(gasCalc.SuggestRegular()))
-
-	labelGasPriceLimit := tview.NewTextView().
-		//SetLabel("Limit gas price:").
-		SetText(gasCalc.FormatHumanFiatPrice(gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular())))
-	*/
 	layoutForm.
 		AddFormItem(labelInfo).
-		/*AddFormItem(labelSuggestSlow).
-		AddFormItem(labelSuggestRegular).
-		AddFormItem(labelPriorityFee).
-		AddFormItem(labelGasPrice).
-		AddFormItem(labelGasPriceLimit).*/
 		AddButton("Send", func() {
 
 		}).
@@ -217,7 +190,7 @@ func (f *frameOperationWizard) actionConfigureGas() {
 				gasCalc.FormatHumanFiatPrice(gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular())),
 			),
 			)
-			f.actionSendTransaction(gasCalc.SuggestSlow(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
+			f.actionSendTransaction(gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
 		})
 
 	f.layout.Clear()

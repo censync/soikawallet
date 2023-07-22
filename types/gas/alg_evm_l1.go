@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-const AlgEVML1v1 = AlgorithmType(`alg_evm_l1_1`)
+const AlgEVML1V1 = AlgorithmType(`alg_evm_l1_1`)
 
 type CalcEVML1V1 struct {
 	*CalcOpts
@@ -25,22 +25,15 @@ func (c CalcEVML1V1) BaseGas() uint64 {
 }
 
 func (c CalcEVML1V1) SuggestSlow() uint64 {
-	// return c.Units * (c.BaseFee) // low tip
 	return uint64(float64(c.PriorityFee) * 1.05) // low tip
 }
 
 func (c CalcEVML1V1) SuggestRegular() uint64 {
-	//return c.Units * (c.BaseFee + c.PriorityFee*1.05) // suggest tip 5%
-	return uint64(float64(c.PriorityFee) * 1.55) // suggest tip 55%
+	return uint64(float64(c.PriorityFee) * 1.45) // suggest tip 45%
 }
 
 func (c CalcEVML1V1) SuggestPriority() uint64 {
-	/*if c.PriorityFee >= 1 {
-		return c.Units * (c.BaseFee + c.PriorityFee*1.7) //  priority max 170%
-	} else {
-		return c.Units * (c.BaseFee + 1)
-	}*/
-	return uint64(float64(c.PriorityFee) * 1.8)
+	return uint64(float64(c.PriorityFee) * 1.7) // max tip 170%
 }
 
 func (c CalcEVML1V1) LimitMax() uint64 {
@@ -71,7 +64,7 @@ func (c CalcEVML1V1) Marshal() ([]byte, error) {
 		Type   AlgorithmType `json:"alg"`
 		Config *CalcEVML1V1  `json:"config"`
 	}{
-		Type:   AlgEVML1v1,
+		Type:   AlgEVML1V1,
 		Config: &c,
 	}
 	return json.Marshal(&export)

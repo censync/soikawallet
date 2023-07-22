@@ -40,7 +40,7 @@ func (o CalcOpts) MarshalJSON() ([]byte, error) {
 /*
 func NewGasCalculator(algorithm AlgorithmType, opts *CalcOpts) Calculator {
 	switch algorithm {
-	case AlgEVML1v1:
+	case AlgEVML1V1:
 		return CalcEVML1V1{
 			CalcOpts: opts,
 		}
@@ -71,7 +71,7 @@ func Unmarshal(data []byte) (instance Calculator, err error) {
 	tmpCfg, _ := json.Marshal(tmp.Config)
 
 	switch tmp.Type {
-	case AlgEVML1v1:
+	case AlgEVML1V1:
 		instance = &CalcEVML1V1{}
 		err = json.Unmarshal(tmpCfg, instance)
 	case AlgBTCL1v1:
