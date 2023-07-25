@@ -9,7 +9,6 @@ const AlgEVML1V1 = AlgorithmType(`alg_evm_l1_1`)
 
 type CalcEVML1V1 struct {
 	*CalcOpts
-	Units       uint64 `json:"units"`
 	BaseFee     uint64 `json:"base_fee"`
 	PriorityFee uint64 `json:"priority_fee"`
 	GasUsed     uint64 `json:"gas_used"`
@@ -18,6 +17,10 @@ type CalcEVML1V1 struct {
 
 func NewCalcEVML1V1(calcOpts *CalcEVML1V1) Calculator {
 	return calcOpts
+}
+
+func (c CalcEVML1V1) EstimateGas() uint64 {
+	return c.GasEstimate
 }
 
 func (c CalcEVML1V1) BaseGas() uint64 {

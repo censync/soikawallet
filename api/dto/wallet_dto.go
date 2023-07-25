@@ -65,8 +65,12 @@ type GetAddressTokensBalanceByPathDTO struct {
 	DerivationPath string
 }
 
-type GetGasPriceBaseTxDTO struct {
+type GetGasCalculatorConfigDTO struct {
 	DerivationPath string
+	To             string
+	Value          float64
+	Standard       uint8
+	Contract       string
 }
 
 type GetTokenAllowanceDTO struct {
@@ -140,8 +144,4 @@ type FlushKeysDTO struct {
 
 type GetFiatCurrencyDTO struct {
 	NetworkType uint32
-}
-
-type GetAddressCalculatorConfigDTO struct {
-	DerivationPath string
 }

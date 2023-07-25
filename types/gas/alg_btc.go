@@ -10,6 +10,10 @@ type CalcBTCL1V1 struct {
 	*CalcOpts
 }
 
+func (c CalcBTCL1V1) EstimateGas() uint64 {
+	return 0
+}
+
 func (c CalcBTCL1V1) BaseGas() uint64 {
 	return 0
 }

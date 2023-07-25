@@ -206,7 +206,7 @@ func (e *EVM) getGasEstimate(ctx *types.RPCContext, msg *ethereum.CallMsg) (uint
 	return client.EstimateGas(ctx, *msg)
 }
 
-func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]uint64, error) {
+func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[string]uint64, error) {
 	result := map[string]uint64{
 		"base_fee":     0,
 		"priority_fee": 0,
@@ -243,6 +243,16 @@ func (e *EVM) GetGasBaseTx(ctx *types.RPCContext) (map[string]uint64, error) {
 	}
 	if gasTipCap != nil {
 		result["priority_fee"] = gasTipCap.Uint64()
+	}
+	if len(args) > 0 {
+		switch args[0].(string) {
+		case "approve(address,uint256)":
+			result["units"], _ = e.TxGasUnitsApprove(ctx, args[1].(float64), args[2].(*types.TokenConfig))
+		case "transfer(address,uint256)":
+			result["units"], _ = e.TxGasUnitsTransfer(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+		case "transferFrom(address,address,uint256)":
+			result["units"], _ = e.TxGasUnitsTransferFrom(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+		}
 	}
 	return result, nil
 }
@@ -331,6 +341,102 @@ func (e *EVM) TxSendBaseLegacy(ctx *types.RPCContext, to string, value float64, 
 	return signedTX.Hash().Hex(), err
 }
 
+func (e *EVM) TxGasUnitsApprove(ctx *types.RPCContext, value float64, token *types.TokenConfig) (uint64, error) {
+	approveFnSignature := []byte("approve(address,uint256)")
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(approveFnSignature)
+	methodID := hash.Sum(nil)[:4]
+
+	addrFrom := common.HexToAddress(ctx.CurrentAccount())
+	paddedAddress := common.LeftPadBytes(addrFrom.Bytes(), 32)
+
+	weiValue := floatToWei(value)
+
+	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
+
+	var data []byte
+	data = append(data, methodID...)
+	data = append(data, paddedAddress...)
+	data = append(data, paddedAmount...)
+
+	tokenContract := common.HexToAddress(token.Contract())
+
+	dataTx := ethereum.CallMsg{
+		To:   &tokenContract,
+		Data: data,
+	}
+
+	gas, err := e.getGasEstimate(ctx, &dataTx)
+	return gas, err
+}
+
+func (e *EVM) TxGasUnitsTransfer(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
+	transferFnSignature := []byte("transfer(address,uint256)")
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(transferFnSignature)
+	methodID := hash.Sum(nil)[:4]
+
+	addrTo := common.HexToAddress(to)
+	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
+
+	weiValue := floatToWei(value)
+
+	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
+
+	var data []byte
+	data = append(data, methodID...)
+	data = append(data, paddedAddress...)
+	data = append(data, paddedAmount...)
+
+	tokenContract := common.HexToAddress(token.Contract())
+
+	addrFrom := common.HexToAddress(ctx.CurrentAccount())
+
+	dataTx := ethereum.CallMsg{
+		From: addrFrom,
+		To:   &tokenContract,
+		Data: data,
+	}
+
+	gas, err := e.getGasEstimate(ctx, &dataTx)
+	return gas, err
+}
+
+func (e *EVM) TxGasUnitsTransferFrom(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
+	transferFnSignature := []byte("transferFrom(address,address,uint256)")
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(transferFnSignature)
+	methodID := hash.Sum(nil)[:4]
+
+	addrTo := common.HexToAddress(to)
+	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
+
+	weiValue := floatToWei(value)
+
+	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
+
+	addrFrom := common.HexToAddress(ctx.CurrentAccount())
+
+	paddedAddressFrom := common.LeftPadBytes(addrFrom.Bytes(), 32)
+
+	var data []byte
+	data = append(data, methodID...)
+	data = append(data, paddedAddress...)
+	data = append(data, paddedAddressFrom...)
+	data = append(data, paddedAmount...)
+
+	tokenContract := common.HexToAddress(token.Contract())
+
+	dataTx := ethereum.CallMsg{
+		From: addrFrom,
+		To:   &tokenContract,
+		Data: data,
+	}
+
+	gas, err := e.getGasEstimate(ctx, &dataTx)
+	return gas, err
+}
+
 func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, key *ecdsa.PrivateKey) (txId string, err error) {
 	chainId, err := e.getChainId(ctx)
 
@@ -338,7 +444,7 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 		return "", err
 	}
 
-	/*height, err := e.getHeight(ctx)
+	height, err := e.getHeight(ctx)
 
 	if err != nil {
 		return "", err
@@ -346,7 +452,7 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 
 	block, err := e.getBlock(ctx, height)
 
-	gasLimit := block.GasLimit()*/
+	baseFee := block.BaseFee()
 
 	if err != nil {
 		return "", err
@@ -383,12 +489,13 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 	hash.Write(transferFnSignature)
 	methodID := hash.Sum(nil)[:4]
 
-	addrFrom := common.HexToAddress(to)
-	paddedAddress := common.LeftPadBytes(addrFrom.Bytes(), 32)
+	//addrFrom := common.HexToAddress(to)
+	//paddedAddress := common.LeftPadBytes(addrFrom.Bytes(), 32)
 
 	addrTo := common.HexToAddress(to)
+	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
 
-	weiValue := big.NewInt(int64(value * float64(wei)))
+	weiValue := floatToWei(value)
 
 	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
 
@@ -399,7 +506,10 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 
 	tokenContract := common.HexToAddress(token.Contract())
 
+	addrFrom := common.HexToAddress(ctx.CurrentAccount())
+
 	dataTx := ethereum.CallMsg{
+		From: addrFrom,
 		To:   &tokenContract,
 		Data: data,
 	}
@@ -412,13 +522,13 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 
 	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
 		ChainID:   chainId,
-		GasFeeCap: big.NewInt(int64(gasEstimate)),
-		GasTipCap: gasTipCap,
-		Gas:       gasTipCap.Uint64() + 10000000, // 10000000
+		GasTipCap: new(big.Int).Add(gasTipCap, big.NewInt(20)), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
+		GasFeeCap: new(big.Int).Add(baseFee, new(big.Int).Mul(gasTipCap, big.NewInt(2))),
+		Gas:       gasEstimate, //  35048,  52139 // 10000000
 		Nonce:     nonce,
-		To:        &addrTo,
-		Value:     weiValue,
-		Data:      data,
+		To:        &tokenContract,
+		//Value: weiValue,
+		Data: data,
 	})
 
 	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
@@ -472,7 +582,7 @@ func (e *EVM) TxPrepare(ctx *types.RPCContext, to string, value float64) (interf
 		ChainID:   chainId,
 		GasFeeCap: maxGas,
 		GasTipCap: gasTipCap,
-		//Gas:       maxGas * gasTipCap.Uint64(), // 10000000
+		//GasEstimate:       maxGas * gasTipCap.Uint64(), // 10000000
 		Nonce: nonce,
 		To:    &addrTo,
 		Value: weiValue,
@@ -660,4 +770,16 @@ func (e *EVM) ChainLinkGetPrice(ctx *types.RPCContext, contract string) (uint64,
 	}
 
 	return roundData.Answer.Uint64(), decimals, nil
+}
+
+func floatToWei(value float64) *big.Int {
+	result := new(big.Int)
+	weiValue := new(big.Float).Mul(
+		big.NewFloat(value),
+		new(big.Float).SetUint64(wei),
+	)
+
+	weiValue.Int(result)
+
+	return result
 }

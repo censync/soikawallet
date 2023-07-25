@@ -19,6 +19,10 @@ func NewCalcEVMLegacyV1(calcOpts *CalcEVMLegacyV1) Calculator {
 	return calcOpts
 }
 
+func (c CalcEVMLegacyV1) EstimateGas() uint64 {
+	return c.GasEstimate
+}
+
 func (c CalcEVMLegacyV1) BaseGas() uint64 {
 	return c.GasPrice
 }

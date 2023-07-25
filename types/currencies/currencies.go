@@ -1,8 +1,7 @@
 package currencies
 
 const (
-	FeedHttp = DataFeedType(1) + iota
-	FeedChainLink
+	FeedChainLink = DataFeedType(1) + iota
 	FeedCurve
 	FeedUniswap
 )

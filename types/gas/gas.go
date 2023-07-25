@@ -9,6 +9,7 @@ import (
 type AlgorithmType string
 
 type Calculator interface {
+	EstimateGas() uint64
 	BaseGas() uint64
 	SuggestSlow() uint64
 	SuggestRegular() uint64
@@ -22,6 +23,8 @@ type Calculator interface {
 }
 
 type CalcOpts struct {
+	// GasEstimate is a count of gas, required for transaction
+	GasEstimate uint64 `json:"gas_estimate"`
 	// GasSymbol is a network defined gas unit name, e.g. "gwei", "satoshi"
 	GasSymbol string `json:"gas_symbol"`
 	// GasUnits is a units count per one base token, for evm = 1e9

@@ -7,7 +7,7 @@ import "github.com/censync/soikawallet/types"
 var Ethereum = types.NewNetwork(
 	types.Ethereum,
 	`Ethereum (Testnet)`,
-	`SepETH`,
+	`ETH`, // SepETH
 	18,
 	1e9,
 	"gwei",
@@ -20,8 +20,14 @@ var Ethereum = types.NewNetwork(
 	`https://sepolia.etherscan.io/`, // /block/ /address/ /tx/
 ).SetBuiltinToken(
 	types.TokenERC20,
-	`CenTest Token v1`,
-	`CEN_TV1`,
-	`0x91B268bd44c6a16b2E518060b44eFF33cB17f84d`,
+	`CenTest Claimable Token v4`,
+	`CEN_TV4`,
+	`0x8D2973D91C48540E9b7d1175885D97f38D03d0e8`,
+	18,
+).SetBuiltinToken(
+	types.TokenERC20,
+	`CenTest Claimable Token v5`,
+	`CEN_TV5`,
+	`0x73F5Eb3092bd3D79D9b15EcEB1C560a72969142D`,
 	18,
 )

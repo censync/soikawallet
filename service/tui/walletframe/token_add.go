@@ -6,7 +6,6 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/widgets/formtextview"
 	"github.com/censync/soikawallet/types"
 	"github.com/rivo/tview"
 )
@@ -67,7 +66,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 
 	inputContractAddr := tview.NewInputField().
 		SetLabel(`Contract address`).
-		SetText("0x91B268bd44c6a16b2E518060b44eFF33cB17f84d") // debug
+		SetText("0x8D2973D91C48540E9b7d1175885D97f38D03d0e8") // debug
 
 	inputSelectTokenStandard := tview.NewDropDown().
 		SetLabel("Type").
@@ -100,7 +99,7 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 		SetHorizontal(false)
 	layoutForm.SetBorder(true)
 
-	inputContractAddr := formtextview.NewFormTextView(
+	inputContractAddr := tview.NewTextView().SetText(
 		fmt.Sprintf("[yellow]Contract: [white]%s\n[yellow]Name: [white]%s\n[yellow]Symbol: [white]%s\n[yellow]Decimals: [white]%d",
 			tokenConfig.Contract,
 			tokenConfig.Name,
