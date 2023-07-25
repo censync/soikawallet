@@ -66,6 +66,7 @@ type GetAddressTokensBalanceByPathDTO struct {
 }
 
 type GetGasCalculatorConfigDTO struct {
+	Operation      string
 	DerivationPath string
 	To             string
 	Value          float64

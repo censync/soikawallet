@@ -45,6 +45,49 @@ func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 	}
 	return provider.GetTokenAllowance(ctx, tokenConfig.Contract(), dto.To)
 }
+func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) {
+	dto.To = strings.TrimSpace(dto.To)
+	addressPath, err := types.ParsePath(dto.DerivationPath)
+	if err != nil {
+		return ``, err
+	}
+
+	addr, err := s.address(addressPath)
+
+	if err != nil {
+		return ``, err
+	}
+
+	if addr.key == nil {
+		return ``, errors.New("empty key for sign, use airgap option")
+	}
+
+	if len(dto.To) < 4 {
+		return ``, errors.New("incorrect recipient address")
+	}
+
+	if dto.Contract == "" {
+		return "", errors.New("contract not set")
+	}
+	if types.TokenStandard(dto.Standard) == types.TokenBase {
+		return "", errors.New("cannot approve for base token")
+	}
+
+	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
+	provider, err := s.getNetworkProvider(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	tokenConfig := provider.GetTokenConfig(dto.Contract)
+
+	if tokenConfig == nil {
+		return ``, errors.New("token not configured")
+	}
+
+	return provider.TxApproveToken(ctx, dto.To, dto.Value, tokenConfig, dto.Gas, dto.GasTipCap, dto.GasFeeCap, addr.key.Get())
+}
 
 func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 	dto.To = strings.TrimSpace(dto.To)

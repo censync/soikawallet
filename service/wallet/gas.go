@@ -7,50 +7,7 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/soikawallet/types/gas"
-	"strings"
 )
-
-func (s *Wallet) GetGasCalculatorUnits(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
-	dto.To = strings.TrimSpace(dto.To)
-	addressPath, err := types.ParsePath(dto.DerivationPath)
-	if err != nil {
-		return 0, err
-	}
-
-	addr, err := s.address(addressPath)
-
-	if err != nil {
-		return 0, err
-	}
-
-	if len(dto.To) < 4 {
-		return 0, errors.New("incorrect recipient address")
-	}
-
-	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
-	provider, err := s.getNetworkProvider(ctx)
-
-	if err != nil {
-		return 0, err
-	}
-
-	if types.TokenStandard(dto.Standard) == types.TokenBase {
-		return 0, errors.New("allowance not available for base tokens")
-	}
-	tokenConfig := provider.GetTokenConfig(dto.Contract)
-
-	if tokenConfig == nil {
-		return 0, errors.New("token not configured")
-	}
-
-	if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
-		return 0, errors.New("incorrect token type")
-	}
-
-	approveGas, err := provider.TxGasUnitsApprove(ctx, dto.Value, tokenConfig)
-
-	return approveGas, err
-}
 
 func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*resp.CalculatorConfig, error) {
 	var (
@@ -80,15 +37,32 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 	}
 
 	// TODO: Optimize method
-	if types.TokenStandard(dto.Standard) == types.TokenBase {
-		gasConfig, err = provider.GetGasConfig(ctx)
-	} else {
-		tokenConfig := provider.GetTokenConfig(dto.Contract)
+	if dto.Operation == "transfer" {
+		if types.TokenStandard(dto.Standard) == types.TokenBase {
+			gasConfig, err = provider.GetGasConfig(ctx)
+		} else {
+			tokenConfig := provider.GetTokenConfig(dto.Contract)
 
-		if tokenConfig == nil {
-			return nil, errors.New("token not configured")
+			if tokenConfig == nil {
+				return nil, errors.New("token not configured")
+			}
+			gasConfig, err = provider.GetGasConfig(ctx, "transfer(address,uint256)", dto.To, dto.Value, tokenConfig)
 		}
-		gasConfig, err = provider.GetGasConfig(ctx, "transfer(address,uint256)", dto.To, dto.Value, tokenConfig)
+	} else if dto.Operation == "approve" {
+		if types.TokenStandard(dto.Standard) != types.TokenBase {
+			tokenConfig := provider.GetTokenConfig(dto.Contract)
+
+			if tokenConfig == nil {
+				return nil, errors.New("token not configured")
+			}
+
+			gasConfig, err = provider.GetGasConfig(ctx, "approve(address,uint256)", dto.To, dto.Value, tokenConfig)
+		} else {
+			return nil, errors.New("cannot approve for base token")
+		}
+
+	} else {
+		return nil, errors.New("undefined operation")
 	}
 
 	if err != nil {

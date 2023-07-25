@@ -44,7 +44,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 
 	inputAddrReceiver := tview.NewInputField().
 		SetLabel(`Receiver`).
-		SetText("0xd43c8A1870CC06fc7dA7C68Eed0a4D7d73BC2DE6")
+		SetText("0x5078178cB856f3b88e972bbB36e9601E249F65Eb")
 
 	inputValue := tview.NewInputField().
 		SetAcceptanceFunc(tview.InputFieldFloat).
@@ -127,6 +127,7 @@ func (f *frameOperationWizard) actionCheckAllowancePermission() bool {
 			return false
 		}
 
+		// TODO: Add human check
 		if allowance == 0 {
 			f.Emit(event_bus.EventLogWarning, "Not approved, zero allowance")
 			return false
@@ -145,6 +146,7 @@ func (f *frameOperationWizard) actionConfigureGas() {
 	layoutForm.AddTextView("title", "actionConfigureGas", 30, 1, true, false)
 
 	calcConfig, err := f.API().GetGasCalculatorConfig(&dto.GetGasCalculatorConfigDTO{
+		Operation:      "transfer",
 		DerivationPath: f.selectedAddress.Path,
 		To:             f.selectedRecipient,
 		Value:          f.selectedAmount,
@@ -154,6 +156,7 @@ func (f *frameOperationWizard) actionConfigureGas() {
 
 	if err != nil {
 		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get gas calculator instance: %s", err))
+		return
 	}
 
 	gasCalc, err := gas.Unmarshal(calcConfig.Calculator)
@@ -206,51 +209,74 @@ func (f *frameOperationWizard) actionConfigureGas() {
 }
 
 func (f *frameOperationWizard) actionConfigureAllowance() {
+
+	calcConfig, err := f.API().GetGasCalculatorConfig(&dto.GetGasCalculatorConfigDTO{
+		Operation:      "approve",
+		DerivationPath: f.selectedAddress.Path,
+		To:             f.selectedRecipient,
+		Value:          f.selectedAmount,
+		Standard:       f.selectedToken.Standard,
+		Contract:       f.selectedToken.Contract,
+	})
+
+	if err != nil {
+		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get gas calculator instance: %s", err))
+		return
+	}
+
+	gasCalc, err := gas.Unmarshal(calcConfig.Calculator)
+
+	if err != nil {
+		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot unmarshal gas calculator: %s", err))
+		return
+	}
+
+	templateGas := fmt.Sprintf("GasEstimate: %d Base: %s [%d]\nSuggestSlow: %s [%d]\nSuggestRegular: %s [%d]\nSuggestPriority: %s [%d]\nEst gas price: %s Limit gas price: %s",
+		gasCalc.EstimateGas(),
+		gasCalc.FormatHumanGas(gasCalc.BaseGas()),
+		gasCalc.BaseGas(),
+		gasCalc.FormatHumanGas(gasCalc.SuggestSlow()),
+		gasCalc.SuggestSlow(),
+		gasCalc.FormatHumanGas(gasCalc.SuggestRegular()),
+		gasCalc.SuggestRegular(),
+		gasCalc.FormatHumanGas(gasCalc.SuggestPriority()),
+		gasCalc.SuggestPriority(),
+		gasCalc.FormatHumanFiatPrice(gasCalc.EstimateGas()*(gasCalc.BaseGas()+gasCalc.SuggestRegular())),
+		gasCalc.FormatHumanFiatPrice(gasCalc.EstimateGas()*gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular())),
+	)
+
+	labelInfo := tview.NewTextView().SetText(templateGas)
+
 	layoutForm := tview.NewForm().
 		SetHorizontal(false)
 	layoutForm.SetBorder(true)
 	layoutForm.AddTextView("title", "actionConfigureAllowance", 30, 1, true, false)
 
-	layoutForm.AddButton("gas units", func() {
-		approveGas, err := f.API().GetGasCalculatorUnits(&dto.GetTokenAllowanceDTO{
-			DerivationPath: f.selectedAddress.Path,
-			To:             f.selectedRecipient,
-			Value:          f.selectedAmount,
-			Standard:       f.selectedToken.Standard,
-			Contract:       f.selectedToken.Contract,
-		})
-		if err != nil {
-			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot calculate gas units: %s", err))
-		} else {
-			fmt.Sprintf("actionConfigureAllowance approve[%d]", approveGas)
-		}
-	})
+	layoutForm.AddFormItem(labelInfo)
 	layoutForm.AddButton("approve", func() {
-		calcConfig, err := f.API().GetGasCalculatorConfig(&dto.GetGasCalculatorConfigDTO{
-			DerivationPath: f.selectedAddress.Path,
-			To:             f.selectedRecipient,
-			Value:          f.selectedAmount,
-			Standard:       f.selectedToken.Standard,
-			Contract:       f.selectedToken.Contract,
-		})
-
-		if err != nil {
-			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get gas calculator instance: %s", err))
-		}
-
-		gasCalc, err := gas.Unmarshal(calcConfig.Calculator)
-
-		if err != nil {
-			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot unmarshal gas calculator: %s", err))
-			return
-		}
-
-		f.actionSendTransaction(gasCalc.EstimateGas(), gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
+		f.actionSendApprove(gasCalc.EstimateGas(), gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
 	})
 
 	f.layout.Clear()
 	f.layout.AddItem(layoutForm, 0, 1, false)
-	//f.Emit(event_bus.EventDrawForce, nil)
+}
+func (f *frameOperationWizard) actionSendApprove(gas, gasTipCap, gasFeePrice uint64) {
+	txId, err := f.API().ApproveTokens(&dto.SendTokensDTO{
+		DerivationPath: f.selectedAddress.Path,
+		To:             f.selectedRecipient,
+		Value:          f.selectedAmount,
+		Gas:            gas,
+		GasTipCap:      gasTipCap,
+		GasFeeCap:      gasFeePrice,
+		Standard:       f.selectedToken.Standard,
+		Contract:       f.selectedToken.Contract,
+	})
+	if err == nil {
+		f.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Transaction approve sent: %s", txId))
+		f.actionConfigureGas()
+	} else {
+		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot send approve transaction: %s", err))
+	}
 }
 
 func (f *frameOperationWizard) actionSendTransaction(gas, gasTipCap, gasFeePrice uint64) {

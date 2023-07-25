@@ -203,11 +203,8 @@ type NetworkAdapter interface {
 	TxSendBase(ctx *RPCContext, to string, value float64, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (string, error)
 	TxSendBaseLegacy(ctx *RPCContext, to string, value float64, gasPrice uint64, key *ecdsa.PrivateKey) (string, error)
 	TxSendToken(ctx *RPCContext, to string, value float64, token *TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (string, error)
+	TxApproveToken(ctx *RPCContext, to string, value float64, token *TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (string, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
-
-	// Tmp
-	TxGasUnitsApprove(ctx *RPCContext, value float64, token *TokenConfig) (uint64, error)
-	TxGasUnitsTransfer(ctx *RPCContext, to string, value float64, token *TokenConfig) (uint64, error)
 
 	// Chainlink
 	ChainLinkGetPrice(ctx *RPCContext, contract string) (uint64, uint8, error)

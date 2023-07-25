@@ -146,21 +146,6 @@ func (e *EVM) GetTokenAllowance(ctx *types.RPCContext, contract, to string) (uin
 	return allowance.Uint64(), nil
 }
 
-func (e *EVM) ApproveToken(ctx *types.RPCContext, contract string, value float64) (string, error) {
-	client, err := e.getClient(ctx.NodeId())
-	if err != nil {
-		return ``, err
-	}
-	instance, err := erc20.NewErc20(common.HexToAddress(contract), client)
-	if err != nil {
-		return ``, err
-	}
-	weiValue := big.NewInt(int64(value * float64(wei)))
-	signedTX, err := instance.Approve(&bind.TransactOpts{}, common.HexToAddress(ctx.CurrentAccount()), weiValue)
-
-	return signedTX.Hash().Hex(), err
-}
-
 func (e *EVM) getGasPrice(ctx *types.RPCContext) (*big.Int, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
@@ -247,11 +232,14 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 	if len(args) > 0 {
 		switch args[0].(string) {
 		case "approve(address,uint256)":
-			result["units"], _ = e.TxGasUnitsApprove(ctx, args[1].(float64), args[2].(*types.TokenConfig))
+			result["units"], err = e.gasEstimateApprove(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
 		case "transfer(address,uint256)":
-			result["units"], _ = e.TxGasUnitsTransfer(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+			result["units"], err = e.gasEstimateTransfer(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
 		case "transferFrom(address,address,uint256)":
-			result["units"], _ = e.TxGasUnitsTransferFrom(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+			result["units"], err = e.gasEstimateTransferFrom(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
 	return result, nil
@@ -341,14 +329,15 @@ func (e *EVM) TxSendBaseLegacy(ctx *types.RPCContext, to string, value float64, 
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxGasUnitsApprove(ctx *types.RPCContext, value float64, token *types.TokenConfig) (uint64, error) {
+func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
 	approveFnSignature := []byte("approve(address,uint256)")
 	hash := sha3.NewLegacyKeccak256()
 	hash.Write(approveFnSignature)
 	methodID := hash.Sum(nil)[:4]
 
 	addrFrom := common.HexToAddress(ctx.CurrentAccount())
-	paddedAddress := common.LeftPadBytes(addrFrom.Bytes(), 32)
+	addrTo := common.HexToAddress(to)
+	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
 
 	weiValue := floatToWei(value)
 
@@ -362,6 +351,7 @@ func (e *EVM) TxGasUnitsApprove(ctx *types.RPCContext, value float64, token *typ
 	tokenContract := common.HexToAddress(token.Contract())
 
 	dataTx := ethereum.CallMsg{
+		From: addrFrom,
 		To:   &tokenContract,
 		Data: data,
 	}
@@ -370,7 +360,7 @@ func (e *EVM) TxGasUnitsApprove(ctx *types.RPCContext, value float64, token *typ
 	return gas, err
 }
 
-func (e *EVM) TxGasUnitsTransfer(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
+func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
 	transferFnSignature := []byte("transfer(address,uint256)")
 	hash := sha3.NewLegacyKeccak256()
 	hash.Write(transferFnSignature)
@@ -402,7 +392,7 @@ func (e *EVM) TxGasUnitsTransfer(ctx *types.RPCContext, to string, value float64
 	return gas, err
 }
 
-func (e *EVM) TxGasUnitsTransferFrom(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
+func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
 	transferFnSignature := []byte("transferFrom(address,address,uint256)")
 	hash := sha3.NewLegacyKeccak256()
 	hash.Write(transferFnSignature)
@@ -495,6 +485,64 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 		To:        &tokenContract,
 		//Value: weiValue,
 		Data: data,
+	})
+
+	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
+
+	if err != nil {
+		return ``, err
+	}
+
+	err = client.SendTransaction(ctx, signedTX)
+
+	return signedTX.Hash().Hex(), err
+}
+
+func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (txId string, err error) {
+	chainId, err := e.getChainId(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
+
+	if err != nil {
+		return "", err
+	}
+
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return ``, err
+	}
+
+	transferFnSignature := []byte("approve(address,uint256)")
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(transferFnSignature)
+	methodID := hash.Sum(nil)[:4]
+
+	addrTo := common.HexToAddress(to)
+	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
+
+	weiValue := floatToWei(value)
+
+	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
+
+	var data []byte
+	data = append(data, methodID...)
+	data = append(data, paddedAddress...)
+	data = append(data, paddedAmount...)
+
+	tokenContract := common.HexToAddress(token.Contract())
+
+	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
+		ChainID:   chainId,
+		GasTipCap: new(big.Int).SetUint64(gasTipCap),
+		GasFeeCap: new(big.Int).SetUint64(gasFeeCap),
+		Gas:       gas,
+		Nonce:     nonce,
+		To:        &tokenContract,
+		Data:      data,
 	})
 
 	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
