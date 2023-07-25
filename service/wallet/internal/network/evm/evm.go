@@ -257,7 +257,7 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 	return result, nil
 }
 
-func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (txId string, err error) {
+func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (txId string, err error) {
 	chainId, err := e.getChainId(ctx)
 
 	if err != nil {
@@ -271,13 +271,13 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gasTip
 	}
 
 	addrTo := common.HexToAddress(to)
-	weiValue := big.NewInt(int64(value * float64(wei)))
+	weiValue := floatToWei(value)
 
 	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
 		ChainID:   chainId,
-		GasTipCap: big.NewInt(int64(gasTipCap)), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
-		GasFeeCap: big.NewInt(int64(gasFeeCap)), // a.k.a. maxFeePerGas limit commission gasFeeCap = gasTipCap + pendingHeader.BaseFee * 2
-		Gas:       21000,                        // units
+		GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
+		GasFeeCap: new(big.Int).SetUint64(gasFeeCap), // a.k.a. maxFeePerGas limit commission gasFeeCap = gasTipCap + pendingHeader.BaseFee * 2
+		Gas:       gas,                               // units
 		Nonce:     nonce,
 		To:        &addrTo,
 		Value:     weiValue,
@@ -437,28 +437,8 @@ func (e *EVM) TxGasUnitsTransferFrom(ctx *types.RPCContext, to string, value flo
 	return gas, err
 }
 
-func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, key *ecdsa.PrivateKey) (txId string, err error) {
+func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (txId string, err error) {
 	chainId, err := e.getChainId(ctx)
-
-	if err != nil {
-		return "", err
-	}
-
-	height, err := e.getHeight(ctx)
-
-	if err != nil {
-		return "", err
-	}
-
-	block, err := e.getBlock(ctx, height)
-
-	baseFee := block.BaseFee()
-
-	if err != nil {
-		return "", err
-	}
-
-	gasTipCap, err := e.getGasTipCap(ctx)
 
 	if err != nil {
 		return "", err
@@ -506,25 +486,11 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 
 	tokenContract := common.HexToAddress(token.Contract())
 
-	addrFrom := common.HexToAddress(ctx.CurrentAccount())
-
-	dataTx := ethereum.CallMsg{
-		From: addrFrom,
-		To:   &tokenContract,
-		Data: data,
-	}
-
-	gasEstimate, err := e.getGasEstimate(ctx, &dataTx)
-
-	if err != nil {
-		return ``, err
-	}
-
 	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
 		ChainID:   chainId,
-		GasTipCap: new(big.Int).Add(gasTipCap, big.NewInt(20)), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
-		GasFeeCap: new(big.Int).Add(baseFee, new(big.Int).Mul(gasTipCap, big.NewInt(2))),
-		Gas:       gasEstimate, //  35048,  52139 // 10000000
+		GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
+		GasFeeCap: new(big.Int).SetUint64(gasFeeCap),
+		Gas:       gas, //  35048,  52139 // 10000000
 		Nonce:     nonce,
 		To:        &tokenContract,
 		//Value: weiValue,

@@ -85,6 +85,7 @@ type SendTokensDTO struct {
 	DerivationPath string
 	To             string
 	Value          float64
+	Gas            uint64
 	GasTipCap      uint64
 	GasFeeCap      uint64
 	Standard       uint8

@@ -197,7 +197,7 @@ func (f *frameOperationWizard) actionConfigureGas() {
 				gasCalc.FormatHumanFiatPrice(gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular())),
 			),
 			)
-			f.actionSendTransaction(gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
+			f.actionSendTransaction(gasCalc.EstimateGas(), gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
 		})
 
 	f.layout.Clear()
@@ -245,7 +245,7 @@ func (f *frameOperationWizard) actionConfigureAllowance() {
 			return
 		}
 
-		f.actionSendTransaction(gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
+		f.actionSendTransaction(gasCalc.EstimateGas(), gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
 	})
 
 	f.layout.Clear()
@@ -253,11 +253,12 @@ func (f *frameOperationWizard) actionConfigureAllowance() {
 	//f.Emit(event_bus.EventDrawForce, nil)
 }
 
-func (f *frameOperationWizard) actionSendTransaction(gasTipCap, gasFeePrice uint64) {
+func (f *frameOperationWizard) actionSendTransaction(gas, gasTipCap, gasFeePrice uint64) {
 	txId, err := f.API().SendTokens(&dto.SendTokensDTO{
 		DerivationPath: f.selectedAddress.Path,
 		To:             f.selectedRecipient,
 		Value:          f.selectedAmount,
+		Gas:            gas,
 		GasTipCap:      gasTipCap,
 		GasFeeCap:      gasFeePrice,
 		Standard:       f.selectedToken.Standard,

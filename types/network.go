@@ -200,9 +200,9 @@ type NetworkAdapter interface {
 	GetToken(ctx *RPCContext, contract string) (*TokenConfig, error)
 	GetTokenAllowance(ctx *RPCContext, contract, to string) (uint64, error)
 	GetGasConfig(ctx *RPCContext, args ...interface{}) (map[string]uint64, error)
-	TxSendBase(ctx *RPCContext, to string, value float64, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (string, error)
+	TxSendBase(ctx *RPCContext, to string, value float64, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (string, error)
 	TxSendBaseLegacy(ctx *RPCContext, to string, value float64, gasPrice uint64, key *ecdsa.PrivateKey) (string, error)
-	TxSendToken(ctx *RPCContext, to string, value float64, token *TokenConfig, key *ecdsa.PrivateKey) (string, error)
+	TxSendToken(ctx *RPCContext, to string, value float64, token *TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (string, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
 
 	// Tmp

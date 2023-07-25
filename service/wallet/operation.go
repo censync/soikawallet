@@ -76,7 +76,7 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 
 	if types.TokenStandard(dto.Standard) == types.TokenBase {
 		if addr.Network() != types.BSC {
-			return provider.TxSendBase(ctx, dto.To, dto.Value, dto.GasTipCap, dto.GasFeeCap, addr.key.Get())
+			return provider.TxSendBase(ctx, dto.To, dto.Value, dto.Gas, dto.GasTipCap, dto.GasFeeCap, addr.key.Get())
 		} else {
 			// TODO: Optimize to AlgEVMLegacyV1
 			return provider.TxSendBaseLegacy(ctx, dto.To, dto.Value, dto.GasTipCap, addr.key.Get())
@@ -92,6 +92,6 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 		if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
 			return ``, errors.New("incorrect token type")
 		}
-		return provider.TxSendToken(ctx, dto.To, dto.Value, tokenConfig, addr.key.Get())
+		return provider.TxSendToken(ctx, dto.To, dto.Value, tokenConfig, dto.Gas, dto.GasTipCap, dto.GasFeeCap, addr.key.Get())
 	}
 }
