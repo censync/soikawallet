@@ -9,13 +9,14 @@ import (
 )
 
 type tokens struct {
-	mu             sync.RWMutex
-	tokens         map[types.TokenIndex]*TokenConfigMeta
+	mu     sync.RWMutex
+	tokens map[types.TokenIndex]*TokenConfigMeta
+	// addressesLinks represents map[internal_map_enum_index]map[bip_account_index][]{slice_of_addresses}
 	addressesLinks map[uint32]map[types.AccountIndex][]types.AddressIndex
 }
 type TokenConfigMeta struct {
 	*types.TokenConfig
-	Index uint32
+	InternalIndex uint32
 }
 
 func (t *tokens) initTokens() {
@@ -34,8 +35,8 @@ func (t *tokens) AddTokenConfig(networkType types.NetworkType, config *types.Tok
 	var lastIndex uint32
 
 	for _, tokenConfig := range t.tokens {
-		if tokenConfig.Index > lastIndex {
-			lastIndex = tokenConfig.Index
+		if tokenConfig.InternalIndex > lastIndex {
+			lastIndex = tokenConfig.InternalIndex
 		}
 	}
 
@@ -46,8 +47,8 @@ func (t *tokens) AddTokenConfig(networkType types.NetworkType, config *types.Tok
 		Contract:    config.Contract(),
 	}
 	t.tokens[tokenIndex] = &TokenConfigMeta{
-		TokenConfig: config,
-		Index:       lastIndex,
+		TokenConfig:   config,
+		InternalIndex: lastIndex,
 	}
 	if _, ok := t.addressesLinks[lastIndex]; !ok {
 		t.addressesLinks[lastIndex] = map[types.AccountIndex][]types.AddressIndex{}
@@ -63,7 +64,7 @@ func (t *tokens) RemoveTokenConfig(index types.TokenIndex) error {
 		return errors.New("token is not IsLabelExists")
 	}
 
-	delete(t.addressesLinks, t.tokens[index].Index)
+	delete(t.addressesLinks, t.tokens[index].InternalIndex)
 	delete(t.tokens, index)
 
 	return nil
@@ -77,8 +78,8 @@ func (t *tokens) IsTokenConfigAddressLinkExists(tokenIndex types.TokenIndex, acc
 		return false, errors.New("token is not IsLabelExists")
 	}
 
-	if t.addressesLinks[metaTokenConfig.Index] != nil {
-		for _, index := range t.addressesLinks[metaTokenConfig.Index][accountIndex] {
+	if t.addressesLinks[metaTokenConfig.InternalIndex] != nil {
+		for _, index := range t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex] {
 			if index == addressIndex {
 				return true, nil
 			}
@@ -95,7 +96,7 @@ func (t *tokens) GetTokenConfigAddressLinks(tokenIndex types.TokenIndex, account
 		return nil, errors.New("token is not IsLabelExists")
 	}
 
-	return t.addressesLinks[metaTokenConfig.Index][accountIndex], nil
+	return t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex], nil
 }
 
 func (t *tokens) SetTokenConfigAddressLink(tokenIndex types.TokenIndex, accountIndex types.AccountIndex, addressIndex types.AddressIndex) error {
@@ -112,7 +113,7 @@ func (t *tokens) SetTokenConfigAddressLink(tokenIndex types.TokenIndex, accountI
 	}
 
 	metaTokenConfig := t.tokens[tokenIndex]
-	t.addressesLinks[metaTokenConfig.Index][accountIndex] = append(t.addressesLinks[metaTokenConfig.Index][accountIndex], addressIndex)
+	t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex] = append(t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex], addressIndex)
 	return nil
 }
 
@@ -132,7 +133,7 @@ func (t *tokens) GetAddressTokens(networkType types.NetworkType, accountIndex ty
 
 	for tokenIndex := range t.tokens {
 		if tokenIndex.NetworkType == networkType {
-			allContractsPerNetwork[t.tokens[tokenIndex].Index] = tokenIndex
+			allContractsPerNetwork[t.tokens[tokenIndex].InternalIndex] = tokenIndex
 		}
 	}
 
@@ -162,9 +163,9 @@ func (t *tokens) RemoveTokenConfigAddressLink(tokenIndex types.TokenIndex, accou
 		return errors.New("token is not IsLabelExists")
 	}
 
-	for index := range t.addressesLinks[metaTokenConfig.Index][accountIndex] {
-		if t.addressesLinks[metaTokenConfig.Index][accountIndex][index] == addressIndex {
-			t.addressesLinks[metaTokenConfig.Index][accountIndex] = append(t.addressesLinks[metaTokenConfig.Index][accountIndex][:index], t.addressesLinks[metaTokenConfig.Index][accountIndex][index+1:]...)
+	for index := range t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex] {
+		if t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex][index] == addressIndex {
+			t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex] = append(t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex][:index], t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex][index+1:]...)
 		}
 	}
 	return nil
@@ -176,7 +177,7 @@ func (t *tokens) MarshalJSON() ([]byte, error) {
 
 	tokensExport := map[string]*types.TokenConfig{}
 	for tokenIndex, token := range t.tokens {
-		tokensExport[fmt.Sprintf("%d:%d", tokenIndex.NetworkType, token.Index)] = token.TokenConfig
+		tokensExport[fmt.Sprintf("%d:%d", tokenIndex.NetworkType, token.InternalIndex)] = token.TokenConfig
 	}
 
 	result := map[string]interface{}{

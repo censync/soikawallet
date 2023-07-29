@@ -113,27 +113,28 @@ func (f *frameOperationWizard) actionCheckAndStart() {
 }
 
 func (f *frameOperationWizard) actionCheckAllowancePermission() bool {
-	if types.TokenStandard(f.selectedToken.Standard) != types.TokenBase {
-		allowance, err := f.API().GetAllowance(&dto.GetTokenAllowanceDTO{
-			DerivationPath: f.selectedAddress.Path,
-			To:             f.selectedRecipient,
-			Value:          f.selectedAmount,
-			Standard:       f.selectedToken.Standard,
-			Contract:       f.selectedToken.Contract,
-		})
+	if types.TokenStandard(f.selectedToken.Standard) == types.TokenBase {
+		return true
+	}
+	allowance, err := f.API().GetAllowance(&dto.GetTokenAllowanceDTO{
+		DerivationPath: f.selectedAddress.Path,
+		To:             f.selectedRecipient,
+		Value:          f.selectedAmount,
+		Standard:       f.selectedToken.Standard,
+		Contract:       f.selectedToken.Contract,
+	})
 
-		if err != nil {
-			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get allowance: %e", err))
-			return false
-		}
+	if err != nil {
+		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get allowance: %e", err))
+		return false
+	}
 
-		// TODO: Add human check
-		if allowance == 0 {
-			f.Emit(event_bus.EventLogWarning, "Not approved, zero allowance")
-			return false
-		} else {
-			f.Emit(event_bus.EventLogInfo, fmt.Sprintf("Allowance: %d ", allowance))
-		}
+	// TODO: Add human check
+	if allowance == 0 {
+		f.Emit(event_bus.EventLogWarning, "Not approved, zero allowance")
+		return false
+	} else {
+		f.Emit(event_bus.EventLogInfo, fmt.Sprintf("Allowance: %d ", allowance))
 	}
 	return true
 }
@@ -186,21 +187,14 @@ func (f *frameOperationWizard) actionConfigureGas() {
 
 	layoutForm.
 		AddFormItem(labelInfo).
-		AddButton("Send", func() {
-
-		}).
 		AddButton("Update gas", func() {
 			f.actionConfigureGas()
 		}).
 		AddButton("Send", func() {
-			f.Emit(event_bus.EventLogInfo, fmt.Sprintf("SuggestRegular: %s [%d] Est gas price: %s Limit gas price: %s",
-				gasCalc.FormatHumanGas(gasCalc.BaseGas()+gasCalc.SuggestRegular()),
-				gasCalc.SuggestRegular(),
-				gasCalc.FormatHumanFiatPrice(gasCalc.BaseGas()+gasCalc.SuggestRegular()),
-				gasCalc.FormatHumanFiatPrice(gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular())),
-			),
-			)
-			f.actionSendTransaction(gasCalc.EstimateGas(), gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()))
+			f.actionSendTransaction(gasCalc.EstimateGas(), gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()), false)
+		}).
+		AddButton("Send AirGap", func() {
+			f.actionSendTransaction(gasCalc.EstimateGas(), gasCalc.SuggestRegular(), gasCalc.LimitMaxGasFee(gasCalc.SuggestRegular()), true)
 		})
 
 	f.layout.Clear()
@@ -279,8 +273,8 @@ func (f *frameOperationWizard) actionSendApprove(gas, gasTipCap, gasFeePrice uin
 	}
 }
 
-func (f *frameOperationWizard) actionSendTransaction(gas, gasTipCap, gasFeePrice uint64) {
-	txId, err := f.API().SendTokens(&dto.SendTokensDTO{
+func (f *frameOperationWizard) actionSendTransaction(gas, gasTipCap, gasFeePrice uint64, isAirGap bool) {
+	request := &dto.SendTokensDTO{
 		DerivationPath: f.selectedAddress.Path,
 		To:             f.selectedRecipient,
 		Value:          f.selectedAmount,
@@ -289,10 +283,26 @@ func (f *frameOperationWizard) actionSendTransaction(gas, gasTipCap, gasFeePrice
 		GasFeeCap:      gasFeePrice,
 		Standard:       f.selectedToken.Standard,
 		Contract:       f.selectedToken.Contract,
-	})
-	if err == nil {
-		f.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Transaction sent: %s", txId))
+	}
+
+	if !isAirGap {
+
+		txId, err := f.API().SendTokens(request)
+
+		if err == nil {
+			f.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Transaction sent: %s", txId))
+		} else {
+			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot send transaction: %s", err))
+		}
 	} else {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot send transaction: %s", err))
+
+		airGapData, err := f.API().SendTokensPrepare(request)
+
+		if err == nil {
+			f.Emit(event_bus.EventLogSuccess, "Transaction prepared")
+			f.SwitchToPage(pageNameAirGapShow, airGapData)
+		} else {
+			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot prepare transaction: %s", err))
+		}
 	}
 }

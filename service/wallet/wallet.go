@@ -142,7 +142,7 @@ func (s *Wallet) FlushKeys(dto *dto.FlushKeysDTO) {
 	}
 }
 
-func (s *Wallet) ExportMeta() (*resp.AirGapMessageResponse, error) {
+func (s *Wallet) ExportMeta() (*resp.AirGapMessage, error) {
 	data, err := s.meta.MarshalJSON()
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (s *Wallet) ExportMeta() (*resp.AirGapMessageResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &resp.AirGapMessageResponse{
+	return &resp.AirGapMessage{
 		Chunks: chunks,
 	}, nil
 }

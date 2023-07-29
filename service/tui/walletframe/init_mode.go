@@ -27,7 +27,7 @@ func (p *pageInitMode) FuncOnShow() {
 	btnModeAirGap.SetSelectedFunc(func() {
 		p.SetWalletMode(state.ModeWithAirGap)
 		p.SetStatus(state.StateInitAirGap)
-		p.SwitchToPage(pageNameQR)
+		p.SwitchToPage(pageNameAirGapShow)
 	})
 
 	btnModeLocal := tview.NewButton("Do not use AirGap [[red]less secure[white]]")

@@ -22,7 +22,7 @@ type AccountResponse struct {
 	Label       string
 }
 
-type AirGapMessageResponse struct {
+type AirGapMessage struct {
 	Chunks []string
 }
 

@@ -17,7 +17,7 @@ type accountNodeViewEntry struct {
 
 type addrNodeViewEntry struct {
 	addr     *resp.AddressResponse
-	balances *int // *resp.AddressTokensBalanceListResponse
+	balances map[string]float64 //*resp.AddressTokensBalanceListResponse
 }
 
 func (p *pageAddresses) actionUpdateAddresses() {
@@ -112,12 +112,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 							DerivationPath: addrView.addr.Path,
 						})
 						//p.Emit(handler.EventLog, "actionUpdateBalances get data")
-						if err != nil {
-							p.Emit(
-								event_bus.EventLogError,
-								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Path, err),
-							)
-						} else {
+						if err == nil {
 							balancesStr := ""
 							for key, value := range balances {
 								balancesStr += fmt.Sprintf("$%s - %f ", key, value)
@@ -135,8 +130,12 @@ func (p *pageAddresses) actionUpdateBalances() {
 								p.addrTruncate(addrView.addr.Address), // format long addr
 								balancesStr,
 							))
-							x := 22
-							addrView.balances = &x
+							addrView.balances = balances
+						} else {
+							p.Emit(
+								event_bus.EventLogError,
+								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Path, err),
+							)
 						}
 					}
 				}

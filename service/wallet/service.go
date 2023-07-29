@@ -18,6 +18,7 @@ type WalletAdapter interface {
 
 	ApproveTokens(dto *dto.SendTokensDTO) (string, error)
 	SendTokens(dto *dto.SendTokensDTO) (string, error)
+	SendTokensPrepare(dto *dto.SendTokensDTO) (*resp.AirGapMessage, error)
 	GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error)
 	// GetAllAccounts() []types.AccountIndex
 	GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.AccountResponse
@@ -72,6 +73,6 @@ type WalletAdapter interface {
 	GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*resp.CalculatorConfig, error)
 
 	// AirGap
-	ExportMeta() (*resp.AirGapMessageResponse, error)
+	ExportMeta() (*resp.AirGapMessage, error)
 	ExportMetaDebug() ([]byte, error)
 }

@@ -30,4 +30,10 @@ var Ethereum = types.NewNetwork(
 	`CEN_TV5`,
 	`0x73F5Eb3092bd3D79D9b15EcEB1C560a72969142D`,
 	18,
+).SetBuiltinToken(
+	types.TokenERC20,
+	`CenTest Claimable Token v6`,
+	`CEN_TV6`,
+	`0xE639832e14644c273c1e51667947dFFB8B30EA6E`,
+	18,
 )

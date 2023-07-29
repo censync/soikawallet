@@ -22,7 +22,8 @@ const (
 	pageNameTokenAdd         = `token_add`
 	pageNameNodeInfo         = `node_info`
 	pageNameSettings         = `settings`
-	pageNameQR               = `qr`
+	pageNameAirGapShow       = `airgap_show`
+	pageNameAirGapScan       = `airgap_scan`
 	pageNameAgreement        = `agreement`
 	pageNameAbout            = `about`
 
@@ -77,7 +78,8 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 		pageNameTokenAdd:         newPageTokenAdd(f.state),
 		pageNameNodeInfo:         newPageNodeInfo(f.state),
 		pageNameSettings:         newPageSettings(f.state),
-		pageNameQR:               newPageQr(f.state),
+		pageNameAirGapShow:       newPageAirGapShow(f.state),
+		pageNameAirGapScan:       newPageAirGapScan(f.state),
 		pageNameAgreement:        newPageAgreement(f.state),
 		pageNameAbout:            newPageAbout(f.state),
 		// w3 connector
@@ -104,7 +106,8 @@ func (f *WalletFrame) Layout() *tview.Flex {
 	layoutMenu := flexmenu.NewFlexMenu(false)
 
 	layoutMenu.
-		AddMenuItem("QR Dst", 0, func() { f.state.SwitchToPage(pageNameQR) }).
+		// AddMenuItem("QR Show", 0, func() { f.state.SwitchToPage(pageNameAirGapShow) }).
+		AddMenuItem("AirGap Scan", 0, func() { f.state.SwitchToPage(pageNameAirGapScan) }).
 		AddMenuItem("Addresses", tcell.KeyF5, func() { f.state.SwitchToPage(pageNameAddresses) }).
 		AddMenuItem("Create", tcell.KeyF2, func() { f.state.SwitchToPage(pageNameCreateWallets) }).
 		AddMenuItem("Transactions", tcell.KeyF6, func() { f.state.SwitchToPage(pageNameTransaction) }).

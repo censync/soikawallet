@@ -7,6 +7,7 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/censync/go-airgap v0.0.0-00010101000000-000000000000
 	github.com/censync/go-i18n v1.1.0
+	github.com/censync/go-zbar v0.0.0-20230729001432-1a756b569f38
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/gorilla/websocket v1.5.0

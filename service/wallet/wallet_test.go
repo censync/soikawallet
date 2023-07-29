@@ -35,7 +35,7 @@ func TestWalletService_MarshalJSON(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		dPath, err := types.CreatePath(types.Ethereum, 0, types.ChargeExternal, types.AddressIndex{Index: uint32(i), IsHardened: true})
+		dPath, err := types.CreatePath(types.Ethereum, 0, types.ChargeExternal, types.AddressIndex{InternalIndex: uint32(i), IsHardened: true})
 
 		if err != nil {
 			t.Fatal(err)
@@ -51,7 +51,7 @@ func TestWalletService_MarshalJSON(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		dPath, err := types.CreatePath(types.Tron, 0, types.ChargeExternal, types.AddressIndex{Index: uint32(i), IsHardened: true})
+		dPath, err := types.CreatePath(types.Tron, 0, types.ChargeExternal, types.AddressIndex{InternalIndex: uint32(i), IsHardened: true})
 
 		if err != nil {
 			t.Fatal(err)

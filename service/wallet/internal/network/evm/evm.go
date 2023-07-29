@@ -182,6 +182,8 @@ func (e *EVM) getGasTipCap(ctx *types.RPCContext) (*big.Int, error) {
 	return client.SuggestGasTipCap(ctx)
 }
 
+// Gas operations
+
 func (e *EVM) getGasEstimate(ctx *types.RPCContext, msg *ethereum.CallMsg) (uint64, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
@@ -243,90 +245,6 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 		}
 	}
 	return result, nil
-}
-
-func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (txId string, err error) {
-	chainId, err := e.getChainId(ctx)
-
-	if err != nil {
-		return "", err
-	}
-
-	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
-
-	if err != nil {
-		return "", err
-	}
-
-	addrTo := common.HexToAddress(to)
-	weiValue := floatToWei(value)
-
-	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
-		ChainID:   chainId,
-		GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
-		GasFeeCap: new(big.Int).SetUint64(gasFeeCap), // a.k.a. maxFeePerGas limit commission gasFeeCap = gasTipCap + pendingHeader.BaseFee * 2
-		Gas:       gas,                               // units
-		Nonce:     nonce,
-		To:        &addrTo,
-		Value:     weiValue,
-		Data:      nil,
-	})
-
-	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
-
-	if err != nil {
-		return ``, nil
-	}
-
-	client, err := e.getClient(ctx.NodeId())
-	if err != nil {
-		return ``, err
-	}
-
-	err = client.SendTransaction(ctx, signedTX)
-
-	return signedTX.Hash().Hex(), err
-}
-
-func (e *EVM) TxSendBaseLegacy(ctx *types.RPCContext, to string, value float64, gasPrice uint64, key *ecdsa.PrivateKey) (txId string, err error) {
-	chainId, err := e.getChainId(ctx)
-
-	if err != nil {
-		return "", err
-	}
-
-	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
-
-	if err != nil {
-		return "", err
-	}
-
-	addrTo := common.HexToAddress(to)
-	weiValue := big.NewInt(int64(value * float64(wei)))
-
-	tx := ethTypes.NewTx(&ethTypes.LegacyTx{
-		GasPrice: big.NewInt(int64(gasPrice)),
-		Gas:      21000, // units
-		Nonce:    nonce,
-		To:       &addrTo,
-		Value:    weiValue,
-		Data:     nil,
-	})
-
-	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
-
-	if err != nil {
-		return ``, nil
-	}
-
-	client, err := e.getClient(ctx.NodeId())
-	if err != nil {
-		return ``, err
-	}
-
-	err = client.SendTransaction(ctx, signedTX)
-
-	return signedTX.Hash().Hex(), err
 }
 
 func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
@@ -427,7 +345,71 @@ func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, value fl
 	return gas, err
 }
 
-func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (txId string, err error) {
+// Transactions
+
+func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gas, gasTipCap, gasFeeCap uint64, isLegacy bool, key *ecdsa.PrivateKey) (interface{}, error) {
+	var txData ethTypes.TxData
+	chainId, err := e.getChainId(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
+
+	if err != nil {
+		return "", err
+	}
+
+	addrTo := common.HexToAddress(to)
+	weiValue := floatToWei(value)
+
+	if !isLegacy {
+		txData = &ethTypes.DynamicFeeTx{
+			ChainID:   chainId,
+			GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
+			GasFeeCap: new(big.Int).SetUint64(gasFeeCap), // a.k.a. maxFeePerGas limit commission gasFeeCap = gasTipCap + pendingHeader.BaseFee * 2
+			Gas:       gas,                               // units
+			Nonce:     nonce,
+			To:        &addrTo,
+			Value:     weiValue,
+			Data:      nil,
+		}
+	} else {
+		txData = &ethTypes.LegacyTx{
+			GasPrice: new(big.Int).SetUint64(gasTipCap),
+			Gas:      gas,
+			Nonce:    nonce,
+			To:       &addrTo,
+			Value:    weiValue,
+			Data:     nil,
+		}
+	}
+
+	tx := ethTypes.NewTx(txData)
+
+	// AirGap
+	if key == nil {
+		return tx.Data(), nil
+	}
+
+	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
+
+	if err != nil {
+		return ``, nil
+	}
+
+	client, err := e.getClient(ctx.NodeId())
+	if err != nil {
+		return ``, err
+	}
+
+	err = client.SendTransaction(ctx, signedTX)
+
+	return signedTX.Hash().Hex(), err
+}
+
+func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	chainId, err := e.getChainId(ctx)
 
 	if err != nil {
@@ -459,9 +441,6 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 	hash.Write(transferFnSignature)
 	methodID := hash.Sum(nil)[:4]
 
-	//addrFrom := common.HexToAddress(to)
-	//paddedAddress := common.LeftPadBytes(addrFrom.Bytes(), 32)
-
 	addrTo := common.HexToAddress(to)
 	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
 
@@ -483,9 +462,13 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 		Gas:       gas, //  35048,  52139 // 10000000
 		Nonce:     nonce,
 		To:        &tokenContract,
-		//Value: weiValue,
-		Data: data,
+		Data:      data,
 	})
+
+	// AirGap
+	if key == nil {
+		return tx.Data(), nil
+	}
 
 	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
 
@@ -498,7 +481,7 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (txId string, err error) {
+func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	chainId, err := e.getChainId(ctx)
 
 	if err != nil {
@@ -545,6 +528,11 @@ func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value float64, to
 		Data:      data,
 	})
 
+	// AirGap
+	if key == nil {
+		return tx.Data(), nil
+	}
+
 	signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
 
 	if err != nil {
@@ -556,74 +544,25 @@ func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value float64, to
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxPrepare(ctx *types.RPCContext, to string, value float64) (interface{}, error) {
-	/*chainId, err := e.getChainId(ctx)
+func (e *EVM) TxSendPrepared(ctx *types.RPCContext, tx []byte) (string, error) {
+	var signedTx ethTypes.Transaction
+	err := signedTx.UnmarshalBinary(tx)
 
 	if err != nil {
-		return nil, err
+		return "", errors.New("cannot unmarshal")
 	}
 
-	height, err := e.getHeight(ctx)
-
+	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
-		return nil, err
+		return ``, err
 	}
 
-	block, err := e.getBlock(ctx, height)
+	err = client.SendTransaction(ctx, &signedTx)
 
-	if err != nil {
-		return nil, err
-	}
-
-	gasTipCap, err := e.getGasTipCap(ctx)
-
-	if err != nil {
-		return nil, err
-	}
-
-	nonce, err := e.getNonce(ctx, to)
-
-	if err != nil {
-		return nil, err
-	}
-
-	gasLimit := block.GasLimit()
-
-	addrTo := common.HexToAddress(to)
-	weiValue := big.NewInt(int64(float64(wei) * value))
-	maxGas := big.NewInt(int64(gasLimit - 21000))
-	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
-		ChainID:   chainId,
-		GasFeeCap: maxGas,
-		GasTipCap: gasTipCap,
-		//GasEstimate:       maxGas * gasTipCap.Uint64(), // 10000000
-		Nonce: nonce,
-		To:    &addrTo,
-		Value: weiValue,
-		Cfg:  nil,
-	})
-	return tx.Cfg(), nil*/
-	/*
-		signedTX, err := ethTypes.SignTx(tx, ethTypes.LatestSignerForChainID(chainId), key)
-
-		if err != nil {
-			return ``, nil
-		}
-
-		client, err := e.getClient(ctx.NodeId())
-		if err != nil {
-			return ``, err
-		}
-
-		err = client.SendTransaction(context.Background(), signedTX)
-
-		return signedTX.Hash().Hex(), err*/
-	return nil, nil
+	return signedTx.Hash().Hex(), err
 }
 
-func (e *EVM) TxSend(ctx *context.Context) error {
-	return nil
-}
+// TX receipt operations
 
 func (e *EVM) TxGetReceipt(ctx *types.RPCContext, tx string) (map[string]interface{}, error) {
 	client, err := e.getClient(ctx.NodeId())
