@@ -39,35 +39,34 @@ func (p *pageAirGapShow) FuncOnShow() {
 
 	airGapData, ok := p.Params()[0].(*responses.AirGapMessage)
 
-	if ok {
-		p.Emit(event_bus.EventLog, fmt.Sprintf("CHUNKS: %d", len(airGapData.Chunks)))
-
-		btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
-			SetStyleAttrs(tcell.AttrBold).
-			SetSelectedFunc(func() {
-
-			})
-		layoutWizard := tview.NewFlex().
-			SetDirection(tview.FlexRow).
-			AddItem(nil, 2, 1, false).
-			AddItem(btnNext, 3, 1, false)
-
-		redraw := func() {
-			p.Emit(event_bus.EventDrawForce, nil)
-		}
-
-		p.labelQR = qrview.NewQrView(airGapData.Chunks, 300, redraw)
-
-		p.layout.AddItem(p.labelQR, 80, 1, false).
-			AddItem(nil, 0, 1, false).
-			AddItem(layoutWizard, 30, 1, false).
-			AddItem(nil, 0, 1, false)
-
-		p.labelQR.Start()
-	} else {
+	if !ok {
 		p.Emit(event_bus.EventLogError, fmt.Sprintf("Incorrect params"))
 		p.SwitchToPage(p.Pages().GetPrevious())
 	}
+	p.Emit(event_bus.EventLog, fmt.Sprintf("CHUNKS: %d", len(airGapData.Chunks)))
+
+	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
+		SetStyleAttrs(tcell.AttrBold).
+		SetSelectedFunc(func() {
+
+		})
+	layoutWizard := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(nil, 2, 1, false).
+		AddItem(btnNext, 3, 1, false)
+
+	redraw := func() {
+		p.Emit(event_bus.EventDrawForce, nil)
+	}
+
+	p.labelQR = qrview.NewQrView(airGapData.Chunks, 300, redraw)
+
+	p.layout.AddItem(p.labelQR, 80, 1, false).
+		AddItem(nil, 0, 1, false).
+		AddItem(layoutWizard, 30, 1, false).
+		AddItem(nil, 0, 1, false)
+
+	p.labelQR.Start()
 }
 
 func (p *pageAirGapShow) FuncOnHide() {

@@ -16,6 +16,10 @@ type WalletAdapter interface {
 	Init(dto *dto.InitWalletDTO) (string, error)
 	GenerateMnemonic(dto *dto.GenerateMnemonicDTO) (string, error)
 
+	// AirGap operations
+
+	ProcessAirGapMessage(dto *dto.AirGapMessageDTO) (string, error)
+
 	ApproveTokens(dto *dto.SendTokensDTO) (string, error)
 	SendTokens(dto *dto.SendTokensDTO) (string, error)
 	SendTokensPrepare(dto *dto.SendTokensDTO) (*resp.AirGapMessage, error)
