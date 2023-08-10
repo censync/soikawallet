@@ -21,7 +21,7 @@ func (p *pageCreateWallet) tabWizard() *tview.Flex {
 
 	p.layoutAddrEntriesForm.SetBorder(true).
 		SetTitleAlign(tview.AlignLeft).
-		SetTitle(" Addresses ")
+		SetTitle(` ` + p.Tr().T("ui.label", "addresses") + ` `)
 
 	p.actionUpdateForm()
 
@@ -48,12 +48,12 @@ func (p *pageCreateWallet) uiGlobalSettingsForm() *tview.Form {
 
 	layoutGlobalSettings.SetBorder(true).
 		SetTitleAlign(tview.AlignLeft).
-		SetTitle(" Options ")
+		SetTitle(` ` + p.Tr().T("ui.label", "options") + ` `)
 
 	layoutGlobalSettings.SetBorderPadding(0, 1, 3, 1)
 
 	inputSelectNetwork := tview.NewDropDown().
-		SetLabel("Select network").
+		SetLabel(p.Tr().T("ui.label", "choose_network")).
 		SetFieldWidth(10).
 		SetOptions(types.GetNetworksNames(), func(text string, index int) {
 			p.selectedChain = types.GetNetworkByName(text)
@@ -61,7 +61,7 @@ func (p *pageCreateWallet) uiGlobalSettingsForm() *tview.Form {
 		SetCurrentOption(0)
 
 	inputUseHardenedAddresses := tview.NewCheckbox().
-		SetLabel("Use hardened").
+		SetLabel(p.Tr().T("ui.label", "use_hardened")).
 		SetChangedFunc(func(checked bool) {
 			p.selectedUseHardened = checked
 		})
@@ -97,11 +97,11 @@ func (p *pageCreateWallet) uiGlobalSettingsForm() *tview.Form {
 		AddFormItem(inputUseHardenedAddresses).
 		AddFormItem(inputAccountIndex).
 		AddFormItem(inputAddrIndex).
-		AddButton("Add row", func() {
+		AddButton(p.Tr().T("ui.label", "row_add"), func() {
 			p.addrPoolGap++
 			p.actionUpdateForm()
 		}).
-		AddButton("Remove row", func() {
+		AddButton(p.Tr().T("ui.label", "row_remove"), func() {
 			if p.addrPoolGap > 1 {
 				p.addrPoolGap--
 				p.actionUpdateForm()
@@ -119,15 +119,15 @@ func (p *pageCreateWallet) actionUpdateForm() {
 		labelWalletForm := tview.NewForm().
 			SetHorizontal(true).
 			SetItemPadding(2).
-			AddInputField("Account", strconv.Itoa(p.accountStartIndex), 10, tview.InputFieldInteger, nil).
-			AddDropDown("Charge", []string{" External ▼ ", " Internal "}, 0, func(text string, optionIndex int) {
+			AddInputField(p.Tr().T("ui.label", "account"), strconv.Itoa(p.accountStartIndex), 10, tview.InputFieldInteger, nil).
+			AddDropDown(p.Tr().T("ui.label", "Charge"), []string{" External ▼ ", " Internal "}, 0, func(text string, optionIndex int) {
 				if optionIndex == 0 {
 					p.selectedCharge = 0
 				} else {
 					p.selectedCharge = 1
 				}
 			}).
-			AddInputField("Address Index", fmt.Sprintf("%d", addressIndex), 10, tview.InputFieldInteger, nil)
+			AddInputField(p.Tr().T("ui.label", "Index"), fmt.Sprintf("%d", addressIndex), 10, tview.InputFieldInteger, nil)
 		labelWalletForm.SetBorderPadding(0, 1, 1, 1)
 		p.layoutAddrEntriesForm.AddItem(labelWalletForm, 2, 1, false)
 	}

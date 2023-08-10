@@ -44,8 +44,8 @@ func newPageCreateWallet(state *state.State) *pageCreateWallet {
 
 func (p *pageCreateWallet) FuncOnShow() {
 	tabs := tabs.NewTabs().
-		AddItem("Wizard", p.tabWizard()).
-		AddItem("Bulk", p.tabBulk())
+		AddItem(p.Tr().T("ui.tab", "wizard"), p.tabWizard()).
+		AddItem(p.Tr().T("ui.tab", "bulk"), p.tabBulk())
 	p.layout.AddItem(tabs, 0, 1, false)
 }
 

@@ -43,17 +43,17 @@ func (p *pageInitMnemonic) FuncOnShow() {
 
 	p.inputMnemonic.SetItemPadding(4).
 		SetBorder(true).
-		SetTitle(" Mnemonic ").
+		SetTitle(` ` + p.Tr().T("ui.label", "mnemonic") + ` `).
 		SetTitleAlign(tview.AlignLeft)
 
 	inputPassword := tview.NewInputField().
 		SetMaskCharacter('*')
-	inputPassword.SetTitle(` Password `).
+	inputPassword.SetTitle(` ` + p.Tr().T("ui.label", "passphrase") + ` `).
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
 
 	inputDropDownEntropy := tview.NewDropDown().
-		SetLabel("Entropy").
+		SetLabel(p.Tr().T("ui.label", "entropy")).
 		SetFieldWidth(5).
 		SetOptions(seed.EntropyList(), func(option string, optionIndex int) {
 			p.selectedMnemonicEntropy, _ = strconv.Atoi(option)
@@ -62,7 +62,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		SetCurrentOption(len(seed.EntropyList()) - 1)
 
 	inputDropDownLanguage := tview.NewDropDown().
-		SetLabel("Language").
+		SetLabel(p.Tr().T("ui.label", "language")).
 		SetFieldWidth(10).
 		SetOptions([]string{"english"}, func(option string, optionIndex int) {
 			if p.selectedMnemonicLanguage != option {

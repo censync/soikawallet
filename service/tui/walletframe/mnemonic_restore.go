@@ -34,12 +34,12 @@ func newPageRestoreMnemonic(state *state.State) *pageRestoreMnemonic {
 
 func (p *pageRestoreMnemonic) FuncOnShow() {
 	p.inputMnemonic = tview.NewTextArea()
-	p.inputMnemonic.SetTitle(`Mnemonic`).
+	p.inputMnemonic.SetTitle(p.Tr().T("ui.label", "mnemonic")).
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
 	p.inputPassword = tview.NewInputField().
 		SetMaskCharacter('*')
-	p.inputPassword.SetTitle(`Password`).
+	p.inputPassword.SetTitle(p.Tr().T("ui.label", "passphrase")).
 		SetTitleAlign(tview.AlignLeft).
 		SetBorder(true)
 
