@@ -1,6 +1,9 @@
 package currencies
 
-import "github.com/censync/soikawallet/types"
+import (
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/types"
+)
 
 type TokenPair struct {
 	SymbolSrc  string
@@ -10,7 +13,7 @@ type TokenPair struct {
 	// source datafeed source
 	DataFeedType uint8
 	DataFeed     string
-	Network      types.NetworkType
+	Network      mhda.CoinType
 	Standard     types.TokenStandard
 }
 

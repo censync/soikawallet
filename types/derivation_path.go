@@ -1,84 +1,79 @@
 package types
 
-import (
-	"errors"
-	"fmt"
-	"regexp"
-	"strconv"
-)
-
+/*
 const (
 	ChargeExternal = 0
 	ChargeInternal = 1
 )
 
 var (
-	rxAccountPath = regexp.MustCompile(`^m/44[Hh']/([0-9]+)[Hh']/([0-9]+)[Hh']?$`)
+	//rxAccountPath = regexp.MustCompile(`^m/44[Hh']/([0-9]+)[Hh']/([0-9]+)[Hh']?$`)
 	rxAddressPath = regexp.MustCompile(`^m/44[Hh']/([0-9]+)[Hh']/([0-9]+)[Hh']/(0|1)/([0-9]+)([Hh'])?$`)
 )
 
-type DerivationPath struct {
-	network NetworkType
-	account AccountIndex
-	charge  ChargeType
-	index   AddressIndex
+
+type MhdaPath struct {
+	coinType CoinType
+	account  AccountIndex
+	charge   ChargeType
+	index    AddressIndex
 }
 
 func CreatePath(
-	network NetworkType,
+	coinType CoinType,
 	account AccountIndex,
 	charge ChargeType,
 	index AddressIndex,
-) (*DerivationPath, error) {
-	if !IsNetworkExists(network) {
-		return nil, errors.New("network is not exists in SLIP-44 list")
+) (*MhdaPath, error) {
+	if !IsNetworkExists(coinType) {
+		return nil, errors.New("coinType is not exists in SLIP-44 list")
 	}
 	if charge > 1 {
 		return nil, errors.New("charge can be 0 or 1")
 	}
-	return &DerivationPath{
-		network: network,
-		account: account,
-		charge:  charge,
-		index:   index,
+	return &MhdaPath{
+		coinType: coinType,
+		account:  account,
+		charge:   charge,
+		index:    index,
 	}, nil
 }
 
-func (p *DerivationPath) Network() NetworkType {
-	return p.network
+func (p *MhdaPath) CoinType() CoinType {
+	return p.coinType
 }
 
-func (p *DerivationPath) Account() AccountIndex {
+func (p *MhdaPath) Account() AccountIndex {
 	return p.account
 }
 
-func (p *DerivationPath) Charge() ChargeType {
+func (p *MhdaPath) Charge() ChargeType {
 	return p.charge
 }
 
-func (p *DerivationPath) AddressIndex() AddressIndex {
+func (p *MhdaPath) AddressIndex() AddressIndex {
 	return p.index
 }
 
-func (p *DerivationPath) IsHardenedAddress() bool {
+func (p *MhdaPath) IsHardenedAddress() bool {
 	return p.index.IsHardened
 }
 
-func (p *DerivationPath) String() string {
+func (p *MhdaPath) String() string {
 	var format = "m/44'/%d'/%d'/%d/%d"
 	if p.index.IsHardened {
 		format += `'`
 	}
-	return fmt.Sprintf(format, p.network, p.account, p.charge, p.index.Index)
+	return fmt.Sprintf(format, p.coinType, p.account, p.charge, p.index.Index)
 }
 
-func ParsePath(path string) (*DerivationPath, error) {
+func ParsePath(path string) (*MhdaPath, error) {
 	var isAddressHardened = false
 	matches := rxAddressPath.FindStringSubmatch(path)
 	if len(matches) < 5 {
 		return nil, errors.New(fmt.Sprintf("cannot parse path: %s", path))
 	}
-	networkType, err := strconv.ParseUint(matches[1], 10, 32)
+	coinType, err := strconv.ParseUint(matches[1], 10, 32)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +94,7 @@ func ParsePath(path string) (*DerivationPath, error) {
 	}
 
 	return CreatePath(
-		NetworkType(networkType),
+		CoinType(coinType),
 		AccountIndex(accountIndex),
 		ChargeType(chargeType),
 		AddressIndex{
@@ -109,30 +104,25 @@ func ParsePath(path string) (*DerivationPath, error) {
 	)
 }
 
-func Validate(path string) bool {
-	_, err := ParsePath(path)
-	return err == nil
-}
-
 type AccountDerivationPath struct {
-	network NetworkType
+	network CoinType
 	account AccountIndex
 }
 
 func CreateAccountPath(
-	network NetworkType,
+	coinType CoinType,
 	account AccountIndex,
 ) (*AccountDerivationPath, error) {
-	if !IsNetworkExists(network) {
-		return nil, errors.New("network is not exists in SLIP-44 list")
+	if !IsNetworkExists(coinType) {
+		return nil, errors.New("coinType is not exists in SLIP-44 list")
 	}
 	return &AccountDerivationPath{
-		network: network,
+		network: coinType,
 		account: account,
 	}, nil
 }
 
-func (p *AccountDerivationPath) Network() NetworkType {
+func (p *AccountDerivationPath) CoinType() CoinType {
 	return p.network
 }
 
@@ -143,20 +133,4 @@ func (p *AccountDerivationPath) Account() AccountIndex {
 func (p *AccountDerivationPath) String() string {
 	return fmt.Sprintf("m/44'/%d'/%d'", p.network, p.account)
 }
-
-func ParseAccountPath(path string) (*AccountDerivationPath, error) {
-	matches := rxAddressPath.FindStringSubmatch(path)
-	if len(matches) < 5 {
-		return nil, errors.New(fmt.Sprintf("cannot parse path: %s", path))
-	}
-	networkType, err := strconv.ParseUint(matches[1], 10, 32)
-	if err != nil {
-		return nil, err
-	}
-	accountIndex, err := strconv.ParseUint(matches[2], 10, 32)
-
-	return CreateAccountPath(
-		NetworkType(networkType),
-		AccountIndex(accountIndex),
-	)
-}
+*/

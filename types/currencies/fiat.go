@@ -2,7 +2,7 @@ package currencies
 
 import (
 	"fmt"
-	"github.com/censync/soikawallet/types"
+	mhda "github.com/censync/go-mhda"
 	"time"
 )
 
@@ -12,7 +12,7 @@ type FiatPair struct {
 
 	value float64
 
-	network types.NetworkType
+	chainKey mhda.ChainKey
 }
 
 func (p *FiatPair) Value() float64 {
@@ -38,12 +38,12 @@ func NewFiatCurrencies(fiat, symbol string) *FiatCurrencies {
 	return &FiatCurrencies{pairs: map[string]*FiatPair{}, fiat: fiat, symbol: symbol}
 }
 
-func (f *FiatCurrencies) Set(symbol string, value float64, sourceType DataFeedType, source string, network types.NetworkType) {
+func (f *FiatCurrencies) Set(symbol string, value float64, sourceType DataFeedType, source string, chainKey mhda.ChainKey) {
 	f.pairs[symbol] = &FiatPair{
 		sourceType: sourceType,
 		source:     source,
 		value:      value,
-		network:    network,
+		chainKey:   chainKey,
 	}
 	f.updatedAt = time.Now().Unix()
 }

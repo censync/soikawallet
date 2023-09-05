@@ -1,8 +1,9 @@
 package types
 
-import "fmt"
+import mhda "github.com/censync/go-mhda"
 
-type NetworkType uint32
+/*
+type CoinType uint32
 
 type AccountIndex uint32
 
@@ -29,15 +30,16 @@ func (i *AddressIndex) MarshalJSON() ([]byte, error) {
 
 	return []byte(result), nil
 }
+*/
 
 type NodeIndex struct {
-	NetworkType
+	mhda.ChainKey
 	Index uint32
 }
 
 // meta
 
 type TokenIndex struct {
-	NetworkType
+	mhda.ChainKey
 	Contract string
 }

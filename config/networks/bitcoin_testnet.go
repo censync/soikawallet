@@ -3,11 +3,12 @@
 package networks
 
 import (
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/types"
 )
 
 var Bitcoin = types.NewNetwork(
-	types.Bitcoin,
+	mhda.BTC,
 	`Bitcoin`,
 	`BTC`,
 	8,

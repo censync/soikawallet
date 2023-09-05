@@ -37,16 +37,16 @@ func (p *pageAddresses) actionUpdateAddresses() {
 	p.actionUpdateFrameDetails()
 
 	if p.API() != nil {
-		for _, network := range types.GetNetworks() {
+		for _, chainKey := range types.GetChains() {
 			accounts := p.API().GetAccountsByNetwork(&dto.GetAccountsByNetworkDTO{
-				NetworkType: uint32(network),
+				ChainKey: chainKey,
 			})
 
 			if len(accounts) == 0 {
 				continue
 			}
 
-			networkNode := tview.NewTreeNode(types.GetNetworkNameByIndex(network))
+			networkNode := tview.NewTreeNode(types.GetNetworkNameByKey(chainKey))
 
 			for _, account := range accounts {
 				accountNodeTitle := ""
@@ -64,7 +64,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 				})
 				stripColor := strip_color.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
 				for _, address := range p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
-					NetworkType:  uint32(network),
+					ChainKey:     chainKey,
 					AccountIndex: uint32(account.Account),
 				}) {
 					addrIndexFormat := "%d - %s"
@@ -109,7 +109,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 					addrView := addrTree.GetReference().(*addrNodeViewEntry)
 					if addrView.balances == nil {
 						balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensByPathDTO{
-							DerivationPath: addrView.addr.Path,
+							MhdaPath: addrView.addr.Path,
 						})
 						//p.Emit(handler.EventLog, "actionUpdateBalances get data")
 						if err == nil {
@@ -134,7 +134,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 						} else {
 							p.Emit(
 								event_bus.EventLogError,
-								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Path, err),
+								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Address, err),
 							)
 						}
 					}

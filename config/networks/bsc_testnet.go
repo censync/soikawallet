@@ -2,10 +2,13 @@
 
 package networks
 
-import "github.com/censync/soikawallet/types"
+import (
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/types"
+)
 
 var BSC = types.NewNetwork(
-	types.BSC,
+	mhda.BSC,
 	`BSC (Testnet)`,
 	`BNBBT`,
 	18,

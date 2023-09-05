@@ -5,30 +5,33 @@ import (
 	"encoding/json"
 	"errors"
 	airgap "github.com/censync/go-airgap"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/config/chain"
 	"github.com/censync/soikawallet/types"
 	"strings"
 )
 
 func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 	dto.To = strings.TrimSpace(dto.To)
-	addressPath, err := types.ParsePath(dto.DerivationPath)
+
+	addrKey, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return 0, err
 	}
 
-	addr, err := s.address(addressPath)
+	addr := s.meta.GetAddress(addrKey.NSS())
 
-	if err != nil {
+	if addr == nil {
 		return 0, err
 	}
 
 	if len(dto.To) < 4 {
-		return 0, errors.New("incorrect recipient address")
+		return 0, errors.New("incorrect recipient AddressOpts")
 	}
 
-	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -51,23 +54,27 @@ func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 }
 func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) {
 	dto.To = strings.TrimSpace(dto.To)
-	addressPath, err := types.ParsePath(dto.DerivationPath)
+	addrKey, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return ``, err
 	}
 
-	addr, err := s.address(addressPath)
+	addr := s.meta.GetAddress(addrKey.NSS())
+
+	if addr == nil {
+		return ``, err
+	}
 
 	if err != nil {
 		return ``, err
 	}
 
-	if addr.key == nil {
+	if addr.Key() == nil {
 		return ``, errors.New("empty key for sign, use airgap option")
 	}
 
 	if len(dto.To) < 4 {
-		return ``, errors.New("incorrect recipient address")
+		return ``, errors.New("incorrect recipient AddressOpts")
 	}
 
 	if dto.Contract == "" {
@@ -78,7 +85,7 @@ func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) 
 		return "", errors.New("cannot approve for base token")
 	}
 
-	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -91,7 +98,7 @@ func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) 
 		return ``, errors.New("token not configured")
 	}
 
-	result, err := provider.TxApproveToken(ctx, dto.To, dto.Value, tokenConfig, dto.Gas, dto.GasTipCap, dto.GasFeeCap, addr.key.Get())
+	result, err := provider.TxApproveToken(ctx, dto.To, dto.Value, tokenConfig, dto.Gas, dto.GasTipCap, dto.GasFeeCap, addr.Key().Get())
 
 	if err != nil {
 		return "", err
@@ -112,7 +119,7 @@ func (s *Wallet) SendTokensPrepare(dto *dto.SendTokensDTO) (*resp.AirGapMessage,
 	}
 
 	airGapMessage := &TxSendPrepare{
-		Path: dto.DerivationPath,
+		Path: dto.MhdaPath,
 		Data: result.([]byte),
 	}
 
@@ -146,36 +153,36 @@ func (s *Wallet) SendTokens(dto *dto.SendTokensDTO) (string, error) {
 }
 
 func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (interface{}, error) {
-	var addrKey *ecdsa.PrivateKey
+	var key *ecdsa.PrivateKey
 
 	defer func() {
-		addrKey = nil
+		key = nil
 	}()
 
 	dto.To = strings.TrimSpace(dto.To)
-	addressPath, err := types.ParsePath(dto.DerivationPath)
+	addrKey, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return nil, err
 	}
 
-	addr, err := s.address(addressPath)
+	addr := s.meta.GetAddress(addrKey.NSS())
 
-	if err != nil {
+	if addr == nil {
 		return nil, err
 	}
 
 	if !isAirGap {
-		if addr.key == nil {
+		if addr.Key() == nil {
 			return nil, errors.New("empty key for sign, use airgap option")
 		}
-		addrKey = addr.key.Get()
+		key = addr.Key().Get()
 	}
 
 	if len(dto.To) < 4 {
-		return nil, errors.New("incorrect recipient address")
+		return nil, errors.New("incorrect recipient AddressOpts")
 	}
 
-	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -184,9 +191,11 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 
 	if types.TokenStandard(dto.Standard) == types.TokenBase {
 		isLegacy := false
-		if addr.Network() != types.BSC {
+		switch addr.MHDA().Chain().Key() {
+		case chain.BinanceSmartChain.Key(), chain.ArbitrumChain.Key(), chain.OptimismChain.Key():
 			isLegacy = true
 		}
+
 		return provider.TxSendBase(
 			ctx,
 			dto.To,
@@ -195,7 +204,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 			dto.GasTipCap,
 			dto.GasFeeCap,
 			isLegacy,
-			addrKey,
+			key,
 		)
 
 	} else {
@@ -217,7 +226,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 			dto.Gas,
 			dto.GasTipCap,
 			dto.GasFeeCap,
-			addrKey,
+			key,
 		)
 	}
 }

@@ -77,7 +77,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 	btnSelectedAddrSetW3 := tview.NewButton("Set W3").SetSelectedFunc(func() {
 		if f.selectedAddress != nil {
 			err := f.API().SetAddressW3(&dto.SetAddressW3DTO{
-				DerivationPath: f.selectedAddress.Path,
+				MhdaPath: f.selectedAddress.Path,
 			})
 			if err != nil {
 				f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set address for Web 3: %s", err))
@@ -124,7 +124,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		AddButton("!S node!", func() {
 			if f.API() != nil {
 				err := f.API().AccountLinkRPCSet(&dto.SetRPCLinkedAccountDTO{
-					NetworkType:  uint32(f.selectedAddress.NetworkType),
+					ChainKey:     f.selectedAddress.ChainKey,
 					AccountIndex: uint32(f.selectedAddress.Account),
 					NodeIndex:    1,
 				})
@@ -141,7 +141,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		AddButton("Label set", func() {
 			if f.API() != nil {
 				err := f.API().AccountLinkRPCSet(&dto.SetRPCLinkedAccountDTO{
-					NetworkType:  uint32(f.selectedAddress.NetworkType),
+					ChainKey:     f.selectedAddress.ChainKey,
 					AccountIndex: uint32(f.selectedAddress.Account),
 					NodeIndex:    1,
 				})
@@ -158,7 +158,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		AddButton("!R node!", func() {
 			if f.API() != nil {
 				err := f.API().RemoveAccountLinkRPC(&dto.RemoveRPCLinkedAccountDTO{
-					NetworkType:  uint32(f.selectedAddress.NetworkType),
+					ChainKey:     f.selectedAddress.ChainKey,
 					AccountIndex: uint32(f.selectedAddress.Account),
 				})
 				if err != nil {

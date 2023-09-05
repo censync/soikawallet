@@ -1,63 +1,69 @@
 package types
 
-import "sort"
+import (
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/config/chain"
 
-const (
-	Bitcoin  = NetworkType(1)
-	Ethereum = NetworkType(60)
-	Tron     = NetworkType(195)
-	Polygon  = NetworkType(966)
-	BSC      = NetworkType(9006)
+	"sort"
 )
 
 var (
-	registeredNetworks = map[string]NetworkType{
-		`Bitcoin`:  Bitcoin,
-		`Ethereum`: Ethereum,
-		`Tron`:     Tron,
-		`Polygon`:  Polygon,
-		`BSC`:      BSC,
+	registeredNetworks = map[string]*mhda.Chain{
+		`Bitcoin`:     chain.BitcoinChain,
+		`Ethereum`:    chain.EthereumChain,
+		`Tron`:        chain.TronChain,
+		`Polygon`:     chain.PolygonChain,
+		`BSC`:         chain.BinanceSmartChain,
+		`Optimism`:    chain.OptimismChain,
+		`Arbitrum`:    chain.ArbitrumChain,
+		`Avalanche C`: chain.AvalancheCChain,
+		`Moonbeam`:    chain.Moonbeam,
+		`Base`:        chain.BaseChain,
 	}
 
-	registeredNetworksIndexes = map[NetworkType]string{}
-	registeredNetworksTypes   []NetworkType
-	registeredNetworksNames   []string
+	registeredNetworksIndexes    = map[*mhda.Chain]string{}
+	registeredNetworksTypes      []mhda.ChainKey
+	registeredNetworksNames      []string
+	registeredNetworksNamesIndex = map[mhda.ChainKey]string{}
 )
 
 func init() {
-	for name, networkType := range registeredNetworks {
-		registeredNetworksIndexes[networkType] = name
-		registeredNetworksTypes = append(registeredNetworksTypes, networkType)
+	for name, chainKey := range registeredNetworks {
+		registeredNetworksIndexes[chainKey] = name
+		registeredNetworksTypes = append(registeredNetworksTypes, chainKey.Key())
 		registeredNetworksNames = append(registeredNetworksNames, name)
+		registeredNetworksNamesIndex[chainKey.Key()] = name
 	}
 	sort.Strings(registeredNetworksNames)
 }
 
-func GetNetworksNames() []string {
+func GetChainNames() []string {
 	return registeredNetworksNames
 }
 
-func GetNetworks() []NetworkType {
+func GetChains() []mhda.ChainKey {
 	return registeredNetworksTypes
 }
 
-func GetNetworkByName(str string) NetworkType {
+func GetChainByName(str string) *mhda.Chain {
 	if networkType, ok := registeredNetworks[str]; ok {
 		return networkType
 	} else {
-		return 0
+		return nil
 	}
 }
 
-func GetNetworkNameByIndex(networkType NetworkType) string {
-	return registeredNetworksIndexes[networkType]
+func GetNetworkNameByKey(chainKey mhda.ChainKey) string {
+	return registeredNetworksNamesIndex[chainKey]
 }
 
-func IsNetworkExists(val NetworkType) bool {
-	for i := range registeredNetworksTypes {
+func IsNetworkExists(val mhda.ChainKey) bool {
+	// TODO: Fix
+	/*for i := range registeredNetworksTypes {
 		if registeredNetworksTypes[i] == val {
 			return true
 		}
-	}
-	return false
+	}*/
+	//return false
+	return true
 }

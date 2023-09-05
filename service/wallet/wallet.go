@@ -7,6 +7,7 @@ import (
 	"github.com/btcsuite/btcd/btcutil/base58"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	airgap "github.com/censync/go-airgap"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/wallet/internal/network"
@@ -26,9 +27,9 @@ const (
 
 type Wallet struct {
 	// instanceId compressed public key for root key, used for identify device instance
-	instanceId     []byte
-	bip44Key       *hdkeychain.ExtendedKey
-	addresses      map[string]*address
+	instanceId []byte
+	rootKey    *hdkeychain.ExtendedKey
+	// addresses key: mhda_nss of address => val: address
 	meta           *meta.Meta
 	currenciesFiat *currencies.FiatCurrencies
 }
@@ -37,8 +38,8 @@ func (s *Wallet) getNetworkProvider(ctx *types.RPCContext) (types.NetworkAdapter
 	return network.WithContext(ctx)
 }
 
-func (s *Wallet) getRPCProvider(networkType types.NetworkType) types.RPCAdapter {
-	return network.Get(networkType)
+func (s *Wallet) getRPCProvider(chainKey mhda.ChainKey) types.RPCAdapter {
+	return network.Get(chainKey)
 }
 
 // Init initializes static instance of wallet with mnemonic and optional passphrase.
@@ -76,15 +77,9 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
 		return "", errors.New("cannot initialize master pub key")
 	}
 
-	bip44Key, err := masterKey.Derive(hardenedKeyStart + 44)
-	if err != nil {
-		return "", errors.New("cannot initialize BIP-44 key")
-	}
-
 	*s = Wallet{
 		instanceId:     masterPubKey.SerializeCompressed(),
-		bip44Key:       bip44Key,
-		addresses:      map[string]*address{},
+		rootKey:        masterKey,
 		meta:           meta.InitMeta(),
 		currenciesFiat: currencies.NewFiatCurrencies(fiatTitle, fiatSymbol),
 	}
@@ -96,7 +91,7 @@ func (s *Wallet) getInstanceId() string {
 }
 
 func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error) {
-	ctx := types.NewRPCContext(types.NetworkType(dto.NetworkType), dto.NodeIndex)
+	ctx := types.NewRPCContext(mhda.ChainKey(dto.ChainKey), dto.NodeIndex)
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -106,26 +101,29 @@ func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{},
 }
 
 func (s *Wallet) GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.AccountResponse {
-	accountsIndex := map[types.AccountIndex]bool{}
+	accountsIndex := map[mhda.AccountIndex]bool{}
 
-	for _, addr := range s.addresses {
-		if addr.Path().Network() == types.NetworkType(dto.NetworkType) {
-			accountsIndex[addr.Path().Account()] = true
+	for _, addr := range s.meta.Addresses() {
+		if addr.MHDA().Chain().Key() == dto.ChainKey {
+			accountsIndex[addr.MHDA().DerivationPath().Account()] = true
 		}
 	}
 
 	accounts := make([]*resp.AccountResponse, 0)
 
 	for accountIndex := range accountsIndex {
-		accountPath, err := types.CreateAccountPath(types.NetworkType(dto.NetworkType), accountIndex)
-		if err != nil {
-			continue
-		}
+		// Deprecated
+		// 	accountPath, err := types.CreateAccountPath(types.CoinType(dto.ChainKey), accountIndex)
+		// 	if err != nil {
+		// 		continue
+		//	}
+
+		// Fix account path
 		accounts = append(accounts, &resp.AccountResponse{
-			Path:        accountPath.String(),
-			NetworkType: accountPath.Network(),
-			Account:     accountPath.Account(),
-			Label:       s.meta.GetAccountLabel(accountPath.String()),
+			// Path:        accountPath.String(),
+			ChainKey: dto.ChainKey,
+			Account:  accountIndex,
+			// Label:       s.meta.GetAccountLabel(accountPath.String()),
 		})
 	}
 
@@ -133,13 +131,13 @@ func (s *Wallet) GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.
 }
 
 func (s *Wallet) FlushKeys(dto *dto.FlushKeysDTO) {
-	s.bip44Key = nil
-	for key := range s.addresses {
-		if dto.Force || !s.addresses[key].staticKey {
+	s.rootKey = nil
+	/*for key := range s.addresses {
+		if dto.Force || !s.addresses[key].isKeyDelivered {
 			s.addresses[key].key.Free()
 			s.addresses[key].key = nil
 		}
-	}
+	}*/
 }
 
 func (s *Wallet) ExportMeta() (*resp.AirGapMessage, error) {

@@ -2,10 +2,13 @@
 
 package networks
 
-import "github.com/censync/soikawallet/types"
+import (
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/types"
+)
 
 var Tron = types.NewNetwork(
-	types.Tron,
+	mhda.TRX,
 	`Tron (Testnet)`,
 	`TRX`,
 	6,

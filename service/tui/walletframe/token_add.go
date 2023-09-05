@@ -2,6 +2,7 @@ package walletframe
 
 import (
 	"fmt"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/internal/event_bus"
@@ -18,7 +19,7 @@ type pageTokenAdd struct {
 	layoutTokenAdd *tview.Flex
 
 	// vars
-	paramSelectedNetwork        types.NetworkType
+	paramSelectedChainKey       mhda.ChainKey
 	selectedTokenStandard       types.TokenStandard
 	paramSelectedDerivationPath string
 }
@@ -49,7 +50,8 @@ func (p *pageTokenAdd) FuncOnShow() {
 		p.SwitchToPage(p.Pages().GetPrevious())
 	}
 
-	p.paramSelectedNetwork = p.Params()[0].(types.NetworkType)
+	// TODO: Add exception handling
+	p.paramSelectedChainKey = p.Params()[0].(mhda.ChainKey)
 	p.paramSelectedDerivationPath = p.Params()[1].(string)
 
 	p.layoutTokenAdd.AddItem(p.uiTokenAddForm(), 0, 1, false)
@@ -71,7 +73,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 	inputSelectTokenStandard := tview.NewDropDown().
 		SetLabel("Type").
 		SetFieldWidth(10).
-		SetOptions(types.GetTokenStandardNames(p.paramSelectedNetwork), func(text string, index int) {
+		SetOptions(types.GetTokenStandardNamesByChain(p.paramSelectedChainKey), func(text string, index int) {
 			p.selectedTokenStandard = types.GetTokenStandByName(text)
 		}).
 		SetCurrentOption(0)
@@ -81,8 +83,8 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 		AddFormItem(inputSelectTokenStandard).
 		AddButton("Check contract", func() {
 			tokenInfo, err := p.API().GetToken(&dto.GetTokenDTO{
-				NetworkType: uint32(p.paramSelectedNetwork),
-				Contract:    inputContractAddr.GetText(),
+				ChainKey: p.paramSelectedChainKey,
+				Contract: inputContractAddr.GetText(),
 			})
 			if err != nil {
 				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get token data: %s", err))
@@ -111,10 +113,10 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 	layoutForm.AddFormItem(inputContractAddr).
 		AddButton("Add token", func() {
 			err := p.API().UpsertToken(&dto.AddTokenDTO{
-				Standard:       uint8(p.selectedTokenStandard),
-				NetworkType:    uint32(p.paramSelectedNetwork),
-				Contract:       tokenConfig.Contract,
-				DerivationPath: p.paramSelectedDerivationPath,
+				Standard: uint8(p.selectedTokenStandard),
+				ChainKey: p.paramSelectedChainKey,
+				Contract: tokenConfig.Contract,
+				MhdaPath: p.paramSelectedDerivationPath,
 			})
 
 			if err != nil {

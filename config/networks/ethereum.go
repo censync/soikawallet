@@ -3,11 +3,12 @@
 package networks
 
 import (
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/types"
 )
 
 var Ethereum = types.NewNetwork(
-	types.Ethereum,
+	mhda.ETH,
 	`Ethereum`,
 	`ETH`,
 	18,

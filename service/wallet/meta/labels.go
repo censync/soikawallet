@@ -11,13 +11,13 @@ import (
 type label struct {
 	mu     sync.RWMutex
 	labels map[uint32]string
-	links  map[string]uint32
+	links  map[aIndex]uint32
 }
 
 func initLabels() label {
 	return label{
 		labels: map[uint32]string{},
-		links:  map[string]uint32{},
+		links:  map[aIndex]uint32{},
 	}
 }
 
@@ -30,8 +30,8 @@ func (m *label) IsLabelExists(label string) bool {
 	return false
 }
 
-func (m *label) IsIndexExists(index uint32) bool {
-	_, ok := m.labels[index]
+func (m *label) IsIndexExists(labelIndex uint32) bool {
+	_, ok := m.labels[labelIndex]
 	return ok
 }
 
@@ -63,17 +63,17 @@ func (m *label) Add(label string) (uint32, error) {
 	return lastIndex, nil
 }
 
-func (m *label) Remove(index uint32) error {
+func (m *label) Remove(labelIndex uint32) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if !m.IsIndexExists(index) {
+	if !m.IsIndexExists(labelIndex) {
 		return errors.New("label not exist")
 	}
-	delete(m.labels, index)
+	delete(m.labels, labelIndex)
 
 	for path, linkedIndex := range m.links {
-		if linkedIndex == index {
+		if linkedIndex == labelIndex {
 			delete(m.links, path)
 		}
 	}
@@ -81,39 +81,39 @@ func (m *label) Remove(index uint32) error {
 	return nil
 }
 
-func (m *label) GetLabel(path string) string {
-	if index, ok := m.links[path]; ok {
+func (m *label) GetLabel(addrIdx aIndex) string {
+	if index, ok := m.links[addrIdx]; ok {
 		return m.labels[index]
 	}
 	return ""
 }
 
-func (m *label) SetLink(path string, index uint32) error {
+func (m *label) SetLink(addrIdx aIndex, labelIndex uint32) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if !m.IsIndexExists(index) {
+	if !m.IsIndexExists(labelIndex) {
 		return errors.New("label not exist")
 	}
 
-	if currentIndex, ok := m.links[path]; ok && currentIndex == index {
+	if currentIndex, ok := m.links[addrIdx]; ok && currentIndex == labelIndex {
 		return errors.New("already linked")
 	}
 
-	m.links[path] = index
+	m.links[addrIdx] = labelIndex
 
 	return nil
 }
 
-func (m *label) RemoveLink(path string) error {
+func (m *label) RemoveLink(addrIdx aIndex) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if _, ok := m.links[path]; !ok {
+	if _, ok := m.links[addrIdx]; !ok {
 		return errors.New("not linked")
 	}
 
-	delete(m.links, path)
+	delete(m.links, addrIdx)
 
 	return nil
 }
@@ -142,26 +142,34 @@ func (l *labels) RemoveAccountLabel(index uint32) error {
 	return l.labelsAccount.Remove(index)
 }
 
-func (l *labels) AddressLabels() map[uint32]string {
-	return l.labelsAddress.labels
+// Think about accounts
+func (m *Meta) GetAccountLabel(path string) string {
+	//return l.labelsAccount.GetLabel(path)
+	return ``
 }
 
-func (l *labels) GetAccountLabel(path string) string {
-	return l.labelsAccount.GetLabel(path)
+func (m *Meta) SetAccountLabelLink(path string, index uint32) error {
+	//return l.labelsAccount.SetLink(path, index)
+	return nil
 }
 
-func (l *labels) SetAccountLabelLink(path string, index uint32) error {
-	return l.labelsAccount.SetLink(path, index)
-}
-
-func (l *labels) RemoveAccountLabelLink(path string) error {
-	return l.labelsAccount.RemoveLink(path)
+func (m *Meta) RemoveAccountLabelLink(path string) error {
+	//return l.labelsAccount.RemoveLink(path)
+	return nil
 }
 
 // Address associated labels operations
 
-func (l *labels) GetAddressLabel(path string) string {
-	return l.labelsAddress.GetLabel(path)
+func (l *labels) AddressLabels() map[uint32]string {
+	return l.labelsAddress.labels
+}
+
+func (m *Meta) GetAddressLabel(addrKey string) string {
+	addrOpts, ok := m.addresses[addrKey]
+	if !ok {
+		return ``
+	}
+	return m.labelsAddress.GetLabel(addrOpts.subIndex)
 }
 
 func (l *labels) AddAddressLabel(label string) (uint32, error) {
@@ -172,12 +180,20 @@ func (l *labels) RemoveAddressLabel(index uint32) error {
 	return l.labelsAddress.Remove(index)
 }
 
-func (l *labels) SetAddressLabelLink(path string, index uint32) error {
-	return l.labelsAddress.SetLink(path, index)
+func (m *Meta) SetAddressLabelLink(addrKey string, index uint32) error {
+	addrOpts, ok := m.addresses[addrKey]
+	if !ok {
+		return errors.New("address not exists")
+	}
+	return m.labelsAddress.SetLink(addrOpts.subIndex, index)
 }
 
-func (l *labels) RemoveAddressLabelLink(path string) error {
-	return l.labelsAddress.RemoveLink(path)
+func (m *Meta) RemoveAddressLabelLink(addrKey string) error {
+	addrOpts, ok := m.addresses[addrKey]
+	if !ok {
+		return errors.New("address not exists")
+	}
+	return m.labelsAddress.RemoveLink(addrOpts.subIndex)
 }
 
 func (l *labels) MarshalJSON() ([]byte, error) {

@@ -1,25 +1,27 @@
 package responses
 
-import "github.com/censync/soikawallet/types"
+import (
+	mhda "github.com/censync/go-mhda"
+)
 
 // exported type
 type AddressResponse struct {
 	Address        string
 	Path           string
 	IsExternal     bool
-	AddressIndex   types.AddressIndex
-	NetworkType    types.NetworkType
-	Account        types.AccountIndex
+	ChainKey       mhda.ChainKey
+	AddressIndex   mhda.AddressIndex
+	Account        mhda.AccountIndex
 	Label          string
 	IsW3           bool
 	IsKeyDelivered bool
 }
 
 type AccountResponse struct {
-	Path        string
-	NetworkType types.NetworkType
-	Account     types.AccountIndex
-	Label       string
+	// Path        string
+	ChainKey mhda.ChainKey
+	Account  mhda.AccountIndex
+	Label    string
 }
 
 type AirGapMessage struct {
@@ -56,9 +58,9 @@ type TokenConfig struct {
 }
 
 type ChainInfo struct {
-	ChainId     string            `json:"chain_id"`
-	Name        string            `json:"name"`
-	NetworkType types.NetworkType `json:"network_type"`
+	ChainId  string        `json:"chain_id"`
+	Name     string        `json:"name"`
+	ChainKey mhda.ChainKey `json:"network_type"`
 }
 
 type CalculatorConfig struct {

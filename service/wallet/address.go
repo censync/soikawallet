@@ -5,97 +5,86 @@ import (
 	"errors"
 	"fmt"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/wallet/meta"
 	"github.com/censync/soikawallet/types"
 )
 
-const (
-	flagDisabled uint8 = 1 << iota
-	flagDerived
-	flagW3Enabled
-	flagW3Derived
-)
-
-type address struct {
-	path *types.DerivationPath
-	key  *types.ProtectedKey
-	pub  *ecdsa.PublicKey
-	addr string
-
-	// TODO: Move to meta
-	nodeIndex uint32
-
-	staticKey bool
-
-	flags uint8
-	//
-	// lastSync uint64
+func (s *Wallet) address(path mhda.MHDA) (*meta.Address, error) {
+	addr := s.meta.GetAddress(path.NSS())
+	if addr == nil {
+		return nil, errors.New("addr is not found")
+	}
+	return addr, nil
 }
 
-func (a *address) Address() string {
-	return a.addr
-}
-
-func (a *address) Path() *types.DerivationPath {
-	return a.path
-}
-
-func (a *address) IsExternal() bool {
-	return a.path.Charge() == types.ChargeExternal
-}
-
-func (a *address) AddressIndex() types.AddressIndex {
-	return a.path.AddressIndex()
-}
-func (a *address) IsHardenedAddress() bool {
-	return a.path.IsHardenedAddress()
-}
-
-func (a *address) Network() types.NetworkType {
-	return a.path.Network()
-}
-
-func (a *address) Account() types.AccountIndex {
-	return a.path.Account()
-}
-
-func (a *address) IsW3() bool {
-	return a.flags&flagW3Enabled != 0
-}
-
-func (a *address) SetW3() {
-	a.flags = a.flags | flagW3Enabled
-}
-
-func (a *address) UnsetW3() {
-	a.flags = a.flags &^ flagW3Enabled
-}
-
-func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err error) {
-	if s.bip44Key == nil {
-		return nil, errors.New("BIP-44 key is not set")
+func (s *Wallet) chargeDeriveKey(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
+	if s.rootKey == nil {
+		return nil, errors.New("root key is not set")
 	}
 
-	if !types.IsNetworkExists(path.Network()) {
-		return nil, errors.New("coin is not exists in SLIP-44 list")
+	switch path.DerivationType() {
+	case mhda.ROOT:
+		return s.derivationKeyRoot()
+	case mhda.BIP32:
+		return s.derivationKeyBip32(path)
+	case mhda.BIP44:
+		return s.derivationKeyBip44(path)
+	case mhda.BIP84:
+		return s.derivationKeyBip84(path)
+	case mhda.CIP11:
+		return s.derivationKeyCip11(path)
+	case mhda.ZIP32:
+		return s.derivationKeyZip32(path)
+	default:
+		return nil, fmt.Errorf("undefined derivation type")
+	}
+}
+func (s *Wallet) derivationKeyRoot() (*ecdsa.PrivateKey, error) {
+	if s.rootKey == nil {
+		return nil, errors.New("root key is not set")
 	}
 
-	if _, ok := s.addresses[path.String()]; ok {
-		return nil, errors.New("addr already exists")
+	ecAddrKey, err := s.rootKey.ECPrivKey()
+
+	if err != nil {
+		return nil, errors.New("cannot create addr key")
 	}
 
-	// Create addr
+	return ecAddrKey.ToECDSA(), nil
+}
 
-	chargeDeriveKey, err := s.chargeDeriveKey(path)
+func (s *Wallet) derivationKeyBip32(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
+	if s.rootKey == nil {
+		return nil, errors.New("root key is not set")
+	}
+
+	bip32Key, err := s.rootKey.Derive(hardenedKeyStart + 32) // ??
+	if err != nil {
+		return nil, errors.New("cannot initialize BIP-32 key")
+	}
+
+	// m / account ' / charge / Address
+	accountKey, err := bip32Key.Derive(hardenedKeyStart + uint32(path.Account()))
+	if err != nil {
+		return nil, errors.New("cannot initialize account key")
+	}
+
+	chargeKey, err := accountKey.Derive(uint32(path.Charge()))
+	if err != nil {
+		return nil, errors.New("cannot initialize charge key")
+	}
+
 	var (
 		key *hdkeychain.ExtendedKey
 	)
 
 	if path.IsHardenedAddress() {
-		key, err = chargeDeriveKey.Derive(hardenedKeyStart + path.AddressIndex().Index)
+		key, err = chargeKey.Derive(hardenedKeyStart + path.AddressIndex().Index)
 	} else {
-		key, err = chargeDeriveKey.Derive(path.AddressIndex().Index)
+		key, err = chargeKey.Derive(path.AddressIndex().Index)
 	}
 
 	if err != nil {
@@ -108,42 +97,21 @@ func (s *Wallet) addAddress(path *types.DerivationPath) (addr *address, err erro
 		return nil, errors.New("cannot create addr key")
 	}
 
-	pubKey := ecAddrKey.ToECDSA().Public().(*ecdsa.PublicKey)
+	return ecAddrKey.ToECDSA(), nil
+}
 
-	ctx := types.NewRPCContext(path.Network(), 0)
-	provider, err := s.getNetworkProvider(ctx)
+func (s *Wallet) derivationKeyBip44(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
+	if s.rootKey == nil {
+		return nil, errors.New("root key is not set")
+	}
 
+	bip44Key, err := s.rootKey.Derive(hardenedKeyStart + 44)
 	if err != nil {
-		return nil, err
-	}
-
-	addr = &address{
-		path: path,
-		key:  types.NewProtectedKey(ecAddrKey.ToECDSA()),
-		pub:  pubKey,
-		addr: provider.Address(pubKey), // TODO: Move addr marshaller from provider
-	}
-
-	s.addresses[path.String()] = addr
-
-	return addr, nil
-}
-
-func (s *Wallet) address(path *types.DerivationPath) (*address, error) {
-	addr, ok := s.addresses[path.String()]
-	if !ok {
-		return nil, errors.New("addr is not found")
-	}
-	return addr, nil
-}
-
-func (s *Wallet) chargeDeriveKey(path *types.DerivationPath) (*hdkeychain.ExtendedKey, error) {
-	if s.bip44Key == nil {
-		return nil, errors.New("BIP-44 key is not set")
+		return nil, errors.New("cannot initialize BIP-44 key")
 	}
 
 	// m/44'/60'
-	networkKey, err := s.bip44Key.Derive(hardenedKeyStart + uint32(path.Network()))
+	networkKey, err := bip44Key.Derive(hardenedKeyStart + uint32(path.Coin()))
 	if err != nil {
 		return nil, errors.New("cannot initialize coin key")
 	}
@@ -155,27 +123,147 @@ func (s *Wallet) chargeDeriveKey(path *types.DerivationPath) (*hdkeychain.Extend
 	}
 	// m/44'/60'/0'/0
 	chargeKey, err := accountKey.Derive(uint32(path.Charge()))
+
 	if err != nil {
 		return nil, errors.New("cannot initialize charge key")
 	}
-	return chargeKey, nil
+	var (
+		key *hdkeychain.ExtendedKey
+	)
+
+	if path.IsHardenedAddress() {
+		key, err = chargeKey.Derive(hardenedKeyStart + path.AddressIndex().Index)
+	} else {
+		key, err = chargeKey.Derive(path.AddressIndex().Index)
+	}
+
+	if err != nil {
+		return nil, errors.New("cannot create addr key")
+	}
+
+	ecAddrKey, err := key.ECPrivKey()
+
+	if err != nil {
+		return nil, errors.New("cannot create addr key")
+	}
+
+	return ecAddrKey.ToECDSA(), nil
 }
 
-func (s *Wallet) isAccountExists(networkType types.NetworkType, accountIndex types.AccountIndex) bool {
+func (s *Wallet) derivationKeyBip84(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
+	if s.rootKey == nil {
+		return nil, errors.New("root key is not set")
+	}
+
+	bip44Key, err := s.rootKey.Derive(hardenedKeyStart + 44)
+	if err != nil {
+		return nil, errors.New("cannot initialize BIP-84 key")
+	}
+
+	// m / 84 ' / 0 ' / account ' / charge / Address
+	networkKey, err := bip44Key.Derive(hardenedKeyStart + uint32(0)) // Coin, BTC=0
+	if err != nil {
+		return nil, errors.New("cannot initialize coin key")
+	}
+
+	accountKey, err := networkKey.Derive(hardenedKeyStart + uint32(path.Account()))
+	if err != nil {
+		return nil, errors.New("cannot initialize account key")
+	}
+
+	chargeKey, err := accountKey.Derive(uint32(path.Charge()))
+
+	if err != nil {
+		return nil, errors.New("cannot initialize charge key")
+	}
+
+	var (
+		key *hdkeychain.ExtendedKey
+	)
+
+	if path.IsHardenedAddress() {
+		key, err = chargeKey.Derive(hardenedKeyStart + path.AddressIndex().Index)
+	} else {
+		key, err = chargeKey.Derive(path.AddressIndex().Index)
+	}
+
+	if err != nil {
+		return nil, errors.New("cannot create addr key")
+	}
+
+	ecAddrKey, err := key.ECPrivKey()
+
+	if err != nil {
+		return nil, errors.New("cannot create addr key")
+	}
+
+	return ecAddrKey.ToECDSA(), nil
+}
+
+func (s *Wallet) derivationKeyCip11(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
+	return nil, nil
+}
+
+func (s *Wallet) derivationKeyZip32(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
+	return nil, nil
+}
+
+// Deprecated
+/*
+func (s *Wallet) isAccountExists(networkType types.CoinType, accountIndex types.AccountIndex) bool {
 	for _, addr := range s.addresses {
-		if addr.Network() == networkType && addr.Account() == accountIndex {
+		if addr.ChainKey() == networkType && addr.Account() == accountIndex {
 			return true
 		}
 	}
 	return false
+}*/
+
+func (s *Wallet) addAddress(path mhda.MHDA) (addr *meta.Address, err error) {
+	if s.rootKey == nil {
+		return nil, errors.New("root key is not set")
+	}
+
+	// TODO: Updated preconfigured
+	if !types.IsNetworkExists(path.Chain().Key()) {
+		return nil, errors.New("network is not supported")
+	}
+	ss := path.NSS()
+	if s.meta.IsAddressExist(ss) {
+		return nil, errors.New("addr already exists")
+	}
+
+	// Create addr
+
+	ecAddrKey, err := s.chargeDeriveKey(path.DerivationPath())
+
+	pubKey := ecAddrKey.Public().(*ecdsa.PublicKey)
+
+	ctx := types.NewRPCContext(path.Chain().Key(), 0)
+	provider, err := s.getNetworkProvider(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	addr = meta.NewAddress(
+		path,
+		types.NewProtectedKey(ecAddrKey),
+		pubKey,
+		provider.Address(pubKey), // TODO: Move addr marshaller from provider
+	)
+
+	s.meta.SetAddress(path.NSS(), addr)
+
+	return addr, nil
 }
 
 func (s *Wallet) AddAddresses(dto *dto.AddAddressesDTO) (addresses []*resp.AddressResponse, err error) {
-	if len(dto.DerivationPaths) == 0 {
+	if len(dto.MhdaPaths) == 0 {
 		return nil, errors.New("derivation paths is not set")
 	}
-	for i := range dto.DerivationPaths {
-		dPath, err := types.ParsePath(dto.DerivationPaths[i])
+	for i := range dto.MhdaPaths {
+		dPath, err := mhda.ParseNSS(dto.MhdaPaths[i])
 		if err != nil {
 			return nil, errors.New(fmt.Sprintf("cannot parse derivation path: %s", err))
 		}
@@ -185,12 +273,12 @@ func (s *Wallet) AddAddresses(dto *dto.AddAddressesDTO) (addresses []*resp.Addre
 		}
 		addresses = append(addresses, &resp.AddressResponse{
 			Address:      addr.Address(),
-			Path:         addr.Path().String(),
+			Path:         addr.MHDA().NSS(),
 			IsExternal:   addr.IsExternal(),
 			AddressIndex: addr.AddressIndex(),
-			NetworkType:  addr.Network(),
+			ChainKey:     addr.MHDA().Chain().Key(),
 			Account:      addr.Account(),
-			Label:        s.meta.GetAddressLabel(addr.Path().String()),
+			Label:        s.meta.GetAddressLabel(addr.MHDA().NSS()),
 			IsW3:         addr.IsW3(),
 		})
 	}
@@ -200,17 +288,17 @@ func (s *Wallet) AddAddresses(dto *dto.AddAddressesDTO) (addresses []*resp.Addre
 func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*resp.AddressResponse {
 	var addresses []*resp.AddressResponse
 
-	for _, addr := range s.addresses {
-		if addr.Path().Network() == types.NetworkType(dto.NetworkType) &&
-			addr.Path().Account() == types.AccountIndex(dto.AccountIndex) {
+	for _, addr := range s.meta.Addresses() {
+		if (addr.MHDA().Chain().Key() == dto.ChainKey) &&
+			addr.DerivationPath().Account() == mhda.AccountIndex(dto.AccountIndex) {
 			addresses = append(addresses, &resp.AddressResponse{
 				Address:      addr.Address(),
-				Path:         addr.Path().String(),
+				Path:         addr.MHDA().NSS(),
 				IsExternal:   addr.IsExternal(),
 				AddressIndex: addr.AddressIndex(),
-				NetworkType:  addr.Network(),
+				ChainKey:     addr.MHDA().Chain().Key(),
 				Account:      addr.Account(),
-				Label:        s.meta.GetAddressLabel(addr.Path().String()),
+				Label:        s.meta.GetAddressLabel(addr.MHDA().NSS()),
 				IsW3:         addr.IsW3(),
 			})
 		}
@@ -221,15 +309,15 @@ func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*res
 
 func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 	var addresses []*resp.AddressResponse
-	for _, addr := range s.addresses {
+	for _, addr := range s.meta.Addresses() {
 		addresses = append(addresses, &resp.AddressResponse{
 			Address:      addr.Address(),
-			Path:         addr.Path().String(),
+			Path:         addr.MHDA().NSS(),
 			IsExternal:   addr.IsExternal(),
 			AddressIndex: addr.AddressIndex(),
-			NetworkType:  addr.Network(),
+			ChainKey:     addr.MHDA().Chain().Key(),
 			Account:      addr.Account(),
-			Label:        s.meta.GetAddressLabel(addr.Path().String()),
+			Label:        s.meta.GetAddressLabel(addr.MHDA().NSS()),
 			IsW3:         addr.IsW3(),
 		})
 	}
@@ -238,18 +326,18 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 
 func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error) {
 	result := map[string]float64{}
-	addrPath, err := types.ParsePath(dto.DerivationPath)
+	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return nil, err
 	}
 
-	addr, err := s.address(addrPath)
+	addr := s.meta.GetAddress(addrPath.NSS())
 
-	if err != nil {
+	if addr == nil {
 		return nil, err
 	}
 
-	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -264,7 +352,7 @@ func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (to
 
 	result[provider.Currency()] = balance
 
-	addressLinkedTokenConfigs, err := s.meta.GetAddressTokens(addrPath.Network(), addrPath.Account(), addrPath.AddressIndex())
+	addressLinkedTokenConfigs, err := s.meta.GetAddressTokens(addr.Index())
 
 	if len(addressLinkedTokenConfigs) > 0 {
 		for _, tokenConfig := range addressLinkedTokenConfigs {
@@ -286,12 +374,12 @@ func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (to
 }
 
 func (s *Wallet) SetAddressW3(dto *dto.SetAddressW3DTO) error {
-	addrPath, err := types.ParsePath(dto.DerivationPath)
+	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return err
 	}
 
-	addr, err := s.address(addrPath)
+	addr := s.meta.GetAddress(addrPath.NSS())
 
 	if addr.IsW3() {
 		return errors.New("address already permitted as web3")
@@ -304,12 +392,12 @@ func (s *Wallet) SetAddressW3(dto *dto.SetAddressW3DTO) error {
 }
 
 func (s *Wallet) UnsetAddressW3(dto *dto.SetAddressW3DTO) error {
-	addrPath, err := types.ParsePath(dto.DerivationPath)
+	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return err
 	}
 
-	addr, err := s.address(addrPath)
+	addr := s.meta.GetAddress(addrPath.NSS())
 
 	if !addr.IsW3() {
 		return errors.New("address not permitted for web3")

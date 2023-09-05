@@ -3,8 +3,10 @@ package wallet
 import (
 	"errors"
 	"fmt"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/config/chain"
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/soikawallet/types/gas"
 )
@@ -17,18 +19,18 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 		fiatCurrency  float64
 	)
 
-	addrPath, err := types.ParsePath(dto.DerivationPath)
+	addrKey, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return nil, err
 	}
 
-	addr, err := s.address(addrPath)
+	addr := s.meta.GetAddress(addrKey.NSS())
 
-	if err != nil {
+	if addr == nil {
 		return nil, err
 	}
 
-	ctx := types.NewRPCContext(addr.Network(), addr.nodeIndex, addr.Address())
+	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if fiatPair := s.currenciesFiat.Get(provider.Currency()); fiatPair != nil {
@@ -46,7 +48,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 			if tokenConfig == nil {
 				return nil, errors.New("token not configured")
 			}
-			gasConfig, err = provider.GetGasConfig(ctx, "transfer(address,uint256)", dto.To, dto.Value, tokenConfig)
+			gasConfig, err = provider.GetGasConfig(ctx, "transfer(AddressOpts,uint256)", dto.To, dto.Value, tokenConfig)
 		}
 	} else if dto.Operation == "approve" {
 		if types.TokenStandard(dto.Standard) != types.TokenBase {
@@ -56,7 +58,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 				return nil, errors.New("token not configured")
 			}
 
-			gasConfig, err = provider.GetGasConfig(ctx, "approve(address,uint256)", dto.To, dto.Value, tokenConfig)
+			gasConfig, err = provider.GetGasConfig(ctx, "approve(AddressOpts,uint256)", dto.To, dto.Value, tokenConfig)
 		} else {
 			return nil, errors.New("cannot approve for base token")
 		}
@@ -69,8 +71,8 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 		return nil, err
 	}
 
-	switch addr.Network() {
-	case types.Ethereum, types.Polygon:
+	switch addr.MHDA().Chain().Key() {
+	case chain.EthereumChain.Key(), chain.PolygonChain.Key(), chain.Moonbeam.Key():
 
 		gasCalculator = gas.NewCalcEVML1V1(&gas.CalcEVML1V1{
 			CalcOpts: &gas.CalcOpts{
@@ -85,7 +87,23 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 			GasUsed:     gasConfig["gas_used"],
 			GasLimit:    gasConfig["gas_limit"], // 30000 or 30e6?
 		})
-	case types.BSC:
+
+	case chain.AvalancheCChain.Key():
+		gasCalculator = gas.NewCalcEVML1V1(&gas.CalcEVML1V1{
+			CalcOpts: &gas.CalcOpts{
+				GasEstimate:  gasConfig["units"],
+				GasSymbol:    "nAVAX",
+				GasUnits:     1e9,
+				FiatSymbol:   fiatSuffix,
+				FiatCurrency: fiatCurrency,
+			},
+			BaseFee:     gasConfig["base_fee"],
+			PriorityFee: gasConfig["priority_fee"],
+			GasUsed:     gasConfig["gas_used"],
+			GasLimit:    gasConfig["gas_limit"], // 30000 or 30e6?
+		})
+	// TODO: Add algorithms to init ChainKey
+	case chain.BinanceSmartChain.Key(), chain.ArbitrumChain.Key(), chain.OptimismChain.Key(), chain.BaseChain.Key():
 
 		gasCalculator = gas.NewCalcEVML1V1(&gas.CalcEVML1V1{
 			CalcOpts: &gas.CalcOpts{
@@ -101,7 +119,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 			GasLimit:    gasConfig["gas_limit"], // 30000 or 30e6?
 		})
 	default:
-		return nil, errors.New(fmt.Sprintf("gas calculator for network (%d) is not defined", addr.Network()))
+		return nil, errors.New(fmt.Sprintf("gas calculator for network (%s) is not defined", addr.MHDA().Chain().Key()))
 	}
 
 	response := &resp.CalculatorConfig{}

@@ -2,10 +2,13 @@
 
 package networks
 
-import "github.com/censync/soikawallet/types"
+import (
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/types"
+)
 
 var Polygon = types.NewNetwork(
-	types.Polygon,
+	mhda.MATIC,
 	`Polygon`,
 	`MATIC`,
 	18,

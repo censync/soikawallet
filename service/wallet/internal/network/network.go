@@ -2,6 +2,8 @@ package network
 
 import (
 	"errors"
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/config/chain"
 	"github.com/censync/soikawallet/config/networks"
 	"github.com/censync/soikawallet/service/wallet/internal/network/btc"
 	"github.com/censync/soikawallet/service/wallet/internal/network/evm"
@@ -12,34 +14,39 @@ import (
 
 type Provider struct {
 	mu              sync.RWMutex
-	networks        map[types.NetworkType]types.NetworkAdapter
+	networks        map[mhda.ChainKey]types.NetworkAdapter
 	defaultCurrency string
 }
 
 var networkProviders = &Provider{
-	networks: map[types.NetworkType]types.NetworkAdapter{
-		types.Bitcoin:  btc.NewBTC(networks.Bitcoin),
-		types.Ethereum: evm.NewEVM(networks.Ethereum),
-		types.Tron:     tron.NewTron(networks.Tron),
-		types.Polygon:  evm.NewEVM(networks.Polygon),
-		types.BSC:      evm.NewEVM(networks.BSC),
+	networks: map[mhda.ChainKey]types.NetworkAdapter{
+		chain.BitcoinChain.Key():      btc.NewBTC(networks.Bitcoin),
+		chain.EthereumChain.Key():     evm.NewEVM(networks.Ethereum),
+		chain.TronChain.Key():         tron.NewTron(networks.Tron),
+		chain.PolygonChain.Key():      evm.NewEVM(networks.Polygon),
+		chain.BinanceSmartChain.Key(): evm.NewEVM(networks.BSC),
+		chain.AvalancheCChain.Key():   evm.NewEVM(networks.AvalancheC),
+		chain.OptimismChain.Key():     evm.NewEVM(networks.Optimism),
+		chain.ArbitrumChain.Key():     evm.NewEVM(networks.ArbitrumOne),
+		chain.Moonbeam.Key():          evm.NewEVM(networks.Moonbeam),
+		chain.BaseChain.Key():         evm.NewEVM(networks.Base),
 	},
 	defaultCurrency: `USD`,
 }
 
-func (s *Provider) IsExists(index types.NetworkType) bool {
+func (s *Provider) IsExists(chainKey mhda.ChainKey) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	_, ok := s.networks[index]
+	_, ok := s.networks[chainKey]
 	return ok
 }
 
-func Get(index types.NetworkType) types.NetworkAdapter {
+func Get(chainKey mhda.ChainKey) types.NetworkAdapter {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 
-	if network, ok := networkProviders.networks[index]; ok {
+	if network, ok := networkProviders.networks[chainKey]; ok {
 		return network
 	}
 	return nil
@@ -49,11 +56,11 @@ func WithContext(ctx *types.RPCContext) (types.NetworkAdapter, error) {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 
-	if !types.IsNetworkExists(ctx.Network()) {
+	if !types.IsNetworkExists(ctx.ChainKey()) {
 		return nil, errors.New("network type is not set")
 	}
 
-	network, ok := networkProviders.networks[ctx.Network()]
+	network, ok := networkProviders.networks[ctx.ChainKey()]
 
 	if !ok {
 		return nil, errors.New("network is not defined")
@@ -61,7 +68,7 @@ func WithContext(ctx *types.RPCContext) (types.NetworkAdapter, error) {
 	return network, nil
 }
 
-func GetAll() map[types.NetworkType]types.NetworkAdapter {
+func GetAll() map[mhda.ChainKey]types.NetworkAdapter {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 

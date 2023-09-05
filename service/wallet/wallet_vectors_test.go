@@ -3,6 +3,7 @@ package wallet
 const testPassphrase = `TREZOR`
 
 type testAddress struct {
+	// ChainKey   string
 	Path       string
 	Address    string
 	PublicKey  string
@@ -26,6 +27,7 @@ var testVectors = []testVector{
 		[]testAddress{
 			// ETH
 			{
+				//	"",
 				"m/44'/60'/0'/0/0",
 				"0x9c32F71D4DB8Fb9e1A58B0a80dF79935e7256FA6",
 				"0x03986dee3b8afe24cb8ccb2ac23dac3f8c43d22850d14b809b26d6b8aa5a1f4778",

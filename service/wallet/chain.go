@@ -7,18 +7,18 @@ import (
 	"strconv"
 )
 
-func (s *Wallet) GetAllChains(dto *dto.GetChainsDTO) []*resp.ChainInfo {
+func (s *Wallet) GetAllEvmChains(dto *dto.GetChainsDTO) []*resp.ChainInfo {
 	var result []*resp.ChainInfo
-	for coiType, provider := range network.GetAll() {
+	for chainKey, provider := range network.GetAll() {
 		if provider.IsW3() {
 			chainId := uint32(0)
 			if provider.EVMConfig() != nil {
 				chainId = provider.EVMConfig().ChainId
 			}
 			result = append(result, &resp.ChainInfo{
-				NetworkType: coiType,
-				Name:        provider.Name(),
-				ChainId:     "0x" + strconv.FormatUint(uint64(chainId), 16),
+				ChainKey: chainKey,
+				Name:     provider.Name(),
+				ChainId:  "0x" + strconv.FormatUint(uint64(chainId), 16), // TODO: Update with mhda
 			})
 		}
 	}

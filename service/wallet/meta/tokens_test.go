@@ -80,8 +80,8 @@ func TestTokens_SetTokenConfigAddressLink_Positive(t *testing.T) {
 
 	for _, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			NetworkType: testNetwork,
-			Contract:    entry[2],
+			CoinType: testNetwork,
+			Contract: entry[2],
 		}
 		addressIndex := types.AddressIndex{
 			Index:      1, // uint32(index) + 1,
@@ -109,7 +109,7 @@ func TestTokens_SetTokenConfigAddressLink_Negative_Duplicate(t *testing.T) {
 
 	for index, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			NetworkType: testNetwork,
+			CoinType: testNetwork,
 			Contract:    entry[2],
 		}
 		addressIndex := types.AddressIndex{
@@ -129,7 +129,7 @@ func TestTokens_RemoveTokenConfigAddressLink_Positive(t *testing.T) {
 
 	for index, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			NetworkType: testNetwork,
+			CoinType: testNetwork,
 			Contract:    entry[2],
 		}
 		addressIndex := types.AddressIndex{
@@ -165,7 +165,7 @@ func TestTokens_RemoveTokenConfig_Positive(t *testing.T) {
 
 	for _, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			NetworkType: testNetwork,
+			CoinType: testNetwork,
 			Contract:    entry[2],
 		}
 

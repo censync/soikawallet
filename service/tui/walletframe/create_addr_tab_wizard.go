@@ -2,6 +2,7 @@ package walletframe
 
 import (
 	"fmt"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/types"
@@ -53,20 +54,44 @@ func (p *pageCreateWallet) uiGlobalSettingsForm() *tview.Form {
 	layoutGlobalSettings.SetBorderPadding(0, 1, 3, 1)
 
 	inputSelectNetwork := tview.NewDropDown().
-		SetLabel(p.Tr().T("ui.label", "choose_network")).
+		SetLabel(p.Tr().T("ui.label", "choose_chain")).
 		SetFieldWidth(10).
-		SetOptions(types.GetNetworksNames(), func(text string, index int) {
-			p.selectedChain = types.GetNetworkByName(text)
+		SetOptions(types.GetChainNames(), func(text string, index int) {
+			p.selectedChain = types.GetChainByName(text)
+			p.actionUpdateSelectedChain()
 		}).
 		SetCurrentOption(0)
 
-	inputUseHardenedAddresses := tview.NewCheckbox().
+	p.inputSelectDerivationType = tview.NewDropDown().
+		SetLabel(p.Tr().T("ui.label", "derivation_type")).
+		SetFieldWidth(10).
+		// []string{"Root", "BIP-32", "BIP-44"}
+		SetOptions([]string{"BIP-44"}, func(text string, index int) {
+			/*switch index {
+			case 0:
+				p.selectedDerivationType = mhda.ROOT
+			case 1:
+				p.selectedDerivationType = mhda.BIP32
+			case 2:
+				p.selectedDerivationType = mhda.BIP44
+			}*/
+			p.selectedDerivationType = mhda.BIP44
+
+			p.actionUpdateSelectedChain()
+		}).
+		SetCurrentOption(0)
+
+	p.inputSelectDerivationPath = tview.NewTextView().
+		//SetLabel(p.Tr().T("ui.label", "derivation_path")).
+		SetText("m/44'/coin'/account'/charge/address")
+
+	p.inputUseHardenedAddresses = tview.NewCheckbox().
 		SetLabel(p.Tr().T("ui.label", "use_hardened")).
 		SetChangedFunc(func(checked bool) {
 			p.selectedUseHardened = checked
 		})
 
-	inputAccountIndex := tview.NewInputField().
+	p.inputAccountIndex = tview.NewInputField().
 		SetLabel(`Start account`).
 		SetFieldWidth(10).
 		SetText(strconv.Itoa(p.accountStartIndex)).
@@ -79,7 +104,7 @@ func (p *pageCreateWallet) uiGlobalSettingsForm() *tview.Form {
 			}
 		})
 
-	inputAddrIndex := tview.NewInputField().
+	p.inputAddrIndex = tview.NewInputField().
 		SetLabel(`Start addr index`).
 		SetFieldWidth(10).
 		SetText(strconv.Itoa(p.addrStartIndex)).
@@ -94,9 +119,11 @@ func (p *pageCreateWallet) uiGlobalSettingsForm() *tview.Form {
 
 	layoutGlobalSettings.
 		AddFormItem(inputSelectNetwork).
-		AddFormItem(inputUseHardenedAddresses).
-		AddFormItem(inputAccountIndex).
-		AddFormItem(inputAddrIndex).
+		AddFormItem(p.inputSelectDerivationType).
+		AddFormItem(p.inputSelectDerivationPath).
+		AddFormItem(p.inputUseHardenedAddresses).
+		AddFormItem(p.inputAccountIndex).
+		AddFormItem(p.inputAddrIndex).
 		AddButton(p.Tr().T("ui.label", "row_add"), func() {
 			p.addrPoolGap++
 			p.actionUpdateForm()
@@ -120,14 +147,14 @@ func (p *pageCreateWallet) actionUpdateForm() {
 			SetHorizontal(true).
 			SetItemPadding(2).
 			AddInputField(p.Tr().T("ui.label", "account"), strconv.Itoa(p.accountStartIndex), 10, tview.InputFieldInteger, nil).
-			AddDropDown(p.Tr().T("ui.label", "Charge"), []string{" External ▼ ", " Internal "}, 0, func(text string, optionIndex int) {
+			AddDropDown(p.Tr().T("ui.label", "charge"), []string{" External ▼ ", " Internal "}, 0, func(text string, optionIndex int) {
 				if optionIndex == 0 {
 					p.selectedCharge = 0
 				} else {
 					p.selectedCharge = 1
 				}
 			}).
-			AddInputField(p.Tr().T("ui.label", "Index"), fmt.Sprintf("%d", addressIndex), 10, tview.InputFieldInteger, nil)
+			AddInputField(p.Tr().T("ui.label", "index"), fmt.Sprintf("%d", addressIndex), 10, tview.InputFieldInteger, nil)
 		labelWalletForm.SetBorderPadding(0, 1, 1, 1)
 		p.layoutAddrEntriesForm.AddItem(labelWalletForm, 2, 1, false)
 	}
@@ -138,18 +165,33 @@ func (p *pageCreateWallet) actionCreateAddrWizard() {
 
 	for entry := 0; entry < p.layoutAddrEntriesForm.GetItemCount(); entry++ {
 		entryItem := p.layoutAddrEntriesForm.GetItem(entry).(*tview.Form)
-		pathFormat := "m/44'/%d'/%s'/%d/%s"
-		if p.selectedUseHardened {
-			pathFormat += `'`
+
+		accountStr := entryItem.GetFormItem(0).(*tview.InputField).GetText()
+		accountIndex, err := strconv.ParseUint(accountStr, 0, 32)
+		if err != nil {
+			p.Emit(event_bus.EventLogError, fmt.Sprintf("Incorrect account value for row %d", entry))
+			return
 		}
-		dPath := fmt.Sprintf(
-			pathFormat,
-			p.selectedChain,
-			entryItem.GetFormItem(0).(*tview.InputField).GetText(),
-			p.selectedCharge,
-			entryItem.GetFormItem(2).(*tview.InputField).GetText(),
+
+		indexStr := entryItem.GetFormItem(2).(*tview.InputField).GetText()
+		addrIndex, err := strconv.ParseUint(indexStr, 0, 32)
+		if err != nil {
+			p.Emit(event_bus.EventLogError, fmt.Sprintf("Incorrect index value for row %d", addrIndex))
+			return
+		}
+
+		dPath := mhda.NewDerivationPath(
+			p.selectedDerivationType,
+			p.selectedChain.CoinType(),
+			mhda.AccountIndex(accountIndex),
+			mhda.ChargeType(p.selectedCharge),
+			mhda.AddressIndex{
+				Index:      uint32(addrIndex),
+				IsHardened: p.selectedUseHardened,
+			},
 		)
-		req.DerivationPaths = append(req.DerivationPaths, dPath)
+		mPath := mhda.NewAddress(p.selectedChain, dPath)
+		req.MhdaPaths = append(req.MhdaPaths, mPath.NSS())
 	}
 
 	addresses, err := p.API().AddAddresses(req)
@@ -160,5 +202,39 @@ func (p *pageCreateWallet) actionCreateAddrWizard() {
 			p.Emit(event_bus.EventLogInfo, fmt.Sprintf("Added address: %s %s", addr.Path, addr.Address))
 		}
 		p.SwitchToPage(pageNameAddresses)
+	}
+}
+
+func (p *pageCreateWallet) actionUpdateSelectedChain() {
+	if p.inputSelectDerivationPath == nil {
+		// temp
+		return
+	}
+	switch p.selectedDerivationType {
+	case mhda.ROOT:
+		// cleanup
+		p.inputSelectDerivationPath.SetText("root")
+	case mhda.BIP32:
+		p.selectedDerivationPath = *mhda.NewDerivationPath(
+			mhda.BIP32,
+			p.selectedChain.CoinType(),
+			mhda.AccountIndex(p.accountStartIndex),
+			mhda.ChargeType(p.selectedCharge),
+			mhda.AddressIndex{
+				Index:      uint32(p.addrStartIndex),
+				IsHardened: p.selectedUseHardened,
+			})
+		p.inputSelectDerivationPath.SetText(p.selectedDerivationPath.String())
+	case mhda.BIP44:
+		p.selectedDerivationPath = *mhda.NewDerivationPath(
+			mhda.BIP44,
+			p.selectedChain.CoinType(),
+			mhda.AccountIndex(p.accountStartIndex),
+			mhda.ChargeType(p.selectedCharge),
+			mhda.AddressIndex{
+				Index:      uint32(p.addrStartIndex),
+				IsHardened: p.selectedUseHardened,
+			})
+		p.inputSelectDerivationPath.SetText(p.selectedDerivationPath.String())
 	}
 }

@@ -1,20 +1,22 @@
 package dto
 
+import mhda "github.com/censync/go-mhda"
+
 type GetTokensByNetworkDTO struct {
-	NetworkType uint32
+	ChainKey mhda.ChainKey
 }
 
 type GetTokenDTO struct {
-	Standard    uint8
-	NetworkType uint32
-	Contract    string
+	Standard uint8
+	ChainKey mhda.ChainKey
+	Contract string
 }
 
 type AddTokenDTO struct {
-	Standard       uint8
-	NetworkType    uint32
-	Contract       string
-	DerivationPath string // ?null
+	Standard uint8
+	ChainKey mhda.ChainKey
+	Contract string
+	MhdaPath string // ?null
 }
 
 type GetChainsDTO struct {

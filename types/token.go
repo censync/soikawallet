@@ -1,5 +1,7 @@
 package types
 
+import mhda "github.com/censync/go-mhda"
+
 const (
 	TokenBase    = TokenStandard(1)
 	TokenERC20   = TokenStandard(20)
@@ -26,12 +28,11 @@ var (
 		TokenTRC10:   `TRC-10`,
 		TokenTRC20:   `TRC-20`,
 	}
-	activesTokenStandards = map[NetworkType][]TokenStandard{
-		Ethereum: {TokenERC20, TokenERC721, TokenERC1155},
-		Tron:     {TokenTRC20, TokenTRC10},
-		Polygon:  {TokenERC20, TokenERC721, TokenERC1155},
+	activesTokenStandards = map[mhda.NetworkType][]TokenStandard{
+		mhda.EthereumVM: {TokenERC20, TokenERC721, TokenERC1155},
+		mhda.TronVM:     {TokenTRC20, TokenTRC10},
 	}
-	registeredTokenStandardNames = map[NetworkType][]string{}
+	registeredTokenStandardNames = map[mhda.NetworkType][]string{}
 	registeredTokenIndexes       = map[string]TokenStandard{}
 )
 
@@ -52,11 +53,18 @@ func init() {
 	}
 }
 
-func GetTokenStandardNames(networkType NetworkType) []string {
+func GetTokenStandardNames(networkType mhda.NetworkType) []string {
 	return registeredTokenStandardNames[networkType]
 }
 
-func GetTokenStandards(networkType NetworkType) []TokenStandard {
+func GetTokenStandardNamesByChain(networkType mhda.ChainKey) []string {
+	// mhda.ParseURN()
+	//return registeredTokenStandardNames[networkType]
+	// TODO: Remove debug
+	return []string{`ERC-20`, `ERC-771`, `ERC-1155`}
+}
+
+func GetTokenStandards(networkType mhda.NetworkType) []TokenStandard {
 	return activesTokenStandards[networkType]
 }
 

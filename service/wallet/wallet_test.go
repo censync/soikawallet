@@ -15,8 +15,8 @@ func TestWalletService_Init(t *testing.T) {
 		Passphrase: ``,
 	})
 	assert.Nil(t, err)
-	//priv, _ := service.bip44Key.ECPrivKey()
-	//pub, _ := service.bip44Key.ECPubKey()
+	//priv, _ := service.rootKey.ECPrivKey()
+	//pub, _ := service.rootKey.ECPubKey()
 	//t.Log(priv.Key.String())
 	//t.Log(pub.Y(), pub.Y(), err)
 }

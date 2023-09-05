@@ -21,6 +21,7 @@ type Spinner struct {
 	isStarted   bool
 }
 
+// TODO: Add timeout
 func NewSpinner(spinnerType int, interval time.Duration) *Spinner {
 	if spinnerType < 0 || spinnerType > len(frames)-1 {
 		panic("incorrect spinner type ")

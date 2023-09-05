@@ -1,8 +1,8 @@
 package dto
 
 import (
+	mhda "github.com/censync/go-mhda"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/types"
 )
 
 type ConnectDTO struct {
@@ -12,9 +12,9 @@ type ConnectDTO struct {
 }
 
 type RequestAccountsDTO struct {
-	InstanceId  string
-	Origin      string
-	NetworkType types.NetworkType
+	InstanceId string
+	Origin     string
+	ChainKey   mhda.ChainKey
 }
 
 type ResponseAcceptDTO struct {

@@ -1,11 +1,10 @@
 package walletframe
 
 import (
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/widgets/tabs"
-	"github.com/censync/soikawallet/types"
 	"github.com/rivo/tview"
-	"regexp"
 )
 
 type pageCreateWallet struct {
@@ -14,20 +13,28 @@ type pageCreateWallet struct {
 
 	// ui
 	// wizard
-	layoutAddrEntriesForm *tview.Flex
+	layoutAddrEntriesForm     *tview.Flex
+	inputSelectDerivationType *tview.DropDown
+	inputSelectDerivationPath *tview.TextView
+	inputUseHardenedAddresses *tview.Checkbox
+	inputAccountIndex         *tview.InputField
+	inputAddrIndex            *tview.InputField
+
 	// bulk
 	inputDerivationPaths *tview.TextArea
 
 	// var
 	// wizard
-	selectedChain       types.NetworkType
-	selectedCharge      uint8
-	selectedUseHardened bool
-	addrPoolGap         int
-	accountStartIndex   int
-	addrStartIndex      int
+	selectedChain          *mhda.Chain
+	selectedDerivationType mhda.DerivationType
+	selectedDerivationPath mhda.DerivationPath
+	selectedCharge         uint8
+	selectedUseHardened    bool
+	addrPoolGap            int
+	accountStartIndex      int
+	addrStartIndex         int
 	// bulk
-	rxAddressPath *regexp.Regexp
+	//rxAddressPath *regexp.Regexp
 }
 
 func newPageCreateWallet(state *state.State) *pageCreateWallet {
@@ -35,10 +42,10 @@ func newPageCreateWallet(state *state.State) *pageCreateWallet {
 		SetDirection(tview.FlexColumn)
 
 	return &pageCreateWallet{
-		State:         state,
-		BaseFrame:     &BaseFrame{layout: layout},
-		addrPoolGap:   defaultAddrPoolGap,
-		rxAddressPath: regexp.MustCompile(`(m/44[Hh']/[0-9]+[Hh']/[0-9]+[Hh']/[0|1]/[0-9]+[Hh']*)`),
+		State:       state,
+		BaseFrame:   &BaseFrame{layout: layout},
+		addrPoolGap: defaultAddrPoolGap,
+		//rxAddressPath: regexp.MustCompile(`(m/44[Hh']/[0-9]+[Hh']/[0-9]+[Hh']/[0|1]/[0-9]+[Hh']*)`),
 	}
 }
 

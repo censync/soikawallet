@@ -1,58 +1,52 @@
 package meta
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/types"
 	"sync"
 )
 
 type tokens struct {
-	mu     sync.RWMutex
-	tokens map[types.TokenIndex]*TokenConfigMeta
-	// addressesLinks represents map[internal_map_enum_index]map[bip_account_index][]{slice_of_addresses}
-	addressesLinks map[uint32]map[types.AccountIndex][]types.AddressIndex
-}
-type TokenConfigMeta struct {
-	*types.TokenConfig
-	InternalIndex uint32
+	mu sync.RWMutex
+
+	tokens map[uint32]*types.TokenConfig
+
+	// addressesLinks represents map[token_index]internal_map_enum_index
+	subIndex map[types.TokenIndex]uint32
+	links    map[aIndex][]uint32
 }
 
 func (t *tokens) initTokens() {
-	t.tokens = map[types.TokenIndex]*TokenConfigMeta{}
-	t.addressesLinks = map[uint32]map[types.AccountIndex][]types.AddressIndex{}
+	t.tokens = map[uint32]*types.TokenConfig{}
+	t.subIndex = map[types.TokenIndex]uint32{}
+	t.links = map[aIndex][]uint32{}
+	//t.addressesLinks = map[uint32]map[types.AccountIndex][]types.AddressIndex{}
 }
 
-func (t *tokens) AddTokenConfig(networkType types.NetworkType, config *types.TokenConfig) error {
+func (t *tokens) AddTokenConfig(chainKey mhda.ChainKey, config *types.TokenConfig) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if !types.IsNetworkExists(networkType) {
+	if !types.IsNetworkExists(chainKey) {
 		return errors.New("network type is not set")
 	}
 
 	var lastIndex uint32
 
-	for _, tokenConfig := range t.tokens {
-		if tokenConfig.InternalIndex > lastIndex {
-			lastIndex = tokenConfig.InternalIndex
-		}
+	for _, lastIndex = range t.subIndex {
 	}
 
 	lastIndex++
 
 	tokenIndex := types.TokenIndex{
-		NetworkType: networkType,
-		Contract:    config.Contract(),
+		ChainKey: chainKey,
+		Contract: config.Contract(),
 	}
-	t.tokens[tokenIndex] = &TokenConfigMeta{
-		TokenConfig:   config,
-		InternalIndex: lastIndex,
-	}
-	if _, ok := t.addressesLinks[lastIndex]; !ok {
-		t.addressesLinks[lastIndex] = map[types.AccountIndex][]types.AddressIndex{}
-	}
+
+	t.subIndex[tokenIndex] = lastIndex
+	t.tokens[lastIndex] = config
+
 	return nil
 }
 
@@ -60,35 +54,37 @@ func (t *tokens) RemoveTokenConfig(index types.TokenIndex) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if _, ok := t.tokens[index]; !ok {
-		return errors.New("token is not IsLabelExists")
+	if internalIdx, ok := t.subIndex[index]; ok {
+		delete(t.subIndex, index)
+		delete(t.tokens, internalIdx)
+	} else {
+		return errors.New("token is not exists")
 	}
-
-	delete(t.addressesLinks, t.tokens[index].InternalIndex)
-	delete(t.tokens, index)
 
 	return nil
 }
 
 // addresses links
 
-func (t *tokens) IsTokenConfigAddressLinkExists(tokenIndex types.TokenIndex, accountIndex types.AccountIndex, addressIndex types.AddressIndex) (bool, error) {
-	metaTokenConfig, ok := t.tokens[tokenIndex]
+func (t *tokens) IsTokenConfigAddressLinkExists(addrIdx aIndex, tokenIndex types.TokenIndex) (bool, error) {
+	internalIndex, ok := t.subIndex[tokenIndex]
 	if !ok {
-		return false, errors.New("token is not IsLabelExists")
+		return false, errors.New("token is not exist")
 	}
 
-	if t.addressesLinks[metaTokenConfig.InternalIndex] != nil {
-		for _, index := range t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex] {
-			if index == addressIndex {
+	if _, ok = t.links[addrIdx]; ok {
+		for _, index := range t.links[addrIdx] {
+			if index == internalIndex {
 				return true, nil
 			}
 		}
+	} else {
+		return false, errors.New("address opts not exists")
 	}
-
 	return false, nil
 }
 
+/*
 func (t *tokens) GetTokenConfigAddressLinks(tokenIndex types.TokenIndex, accountIndex types.AccountIndex) ([]types.AddressIndex, error) {
 	metaTokenConfig, ok := t.tokens[tokenIndex]
 
@@ -97,13 +93,13 @@ func (t *tokens) GetTokenConfigAddressLinks(tokenIndex types.TokenIndex, account
 	}
 
 	return t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex], nil
-}
+}*/
 
-func (t *tokens) SetTokenConfigAddressLink(tokenIndex types.TokenIndex, accountIndex types.AccountIndex, addressIndex types.AddressIndex) error {
+func (t *tokens) SetTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	isExist, err := t.IsTokenConfigAddressLinkExists(tokenIndex, accountIndex, addressIndex)
+	isExist, err := t.IsTokenConfigAddressLinkExists(addrIdx, tokenIndex)
 	if err != nil {
 		return err
 	}
@@ -112,72 +108,57 @@ func (t *tokens) SetTokenConfigAddressLink(tokenIndex types.TokenIndex, accountI
 		return errors.New("address already linked")
 	}
 
-	metaTokenConfig := t.tokens[tokenIndex]
-	t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex] = append(t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex], addressIndex)
+	internalIndex, ok := t.subIndex[tokenIndex]
+	if !ok {
+		return errors.New("token is not exist")
+	}
+
+	t.links[addrIdx] = append(t.links[addrIdx], internalIndex)
 	return nil
 }
 
 // GetAddressTokens TODO: Add composite index, linked to address,
 // includes labels, node, tokens and other links
-func (t *tokens) GetAddressTokens(networkType types.NetworkType, accountIndex types.AccountIndex, addressIndex types.AddressIndex) ([]*types.TokenConfig, error) {
+func (t *tokens) GetAddressTokens(addrIdx aIndex) ([]*types.TokenConfig, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
 	var result []*types.TokenConfig
 
-	if !types.IsNetworkExists(networkType) {
-		return nil, errors.New("network type is not set")
-	}
-
-	allContractsPerNetwork := map[uint32]types.TokenIndex{}
-
-	for tokenIndex := range t.tokens {
-		if tokenIndex.NetworkType == networkType {
-			allContractsPerNetwork[t.tokens[tokenIndex].InternalIndex] = tokenIndex
-		}
-	}
-
-	if len(allContractsPerNetwork) == 0 {
-		return result, nil
-	}
-
-	for index, tokenIndex := range allContractsPerNetwork {
-		for _, linkedAddressIndex := range t.addressesLinks[index][accountIndex] {
-			if linkedAddressIndex == addressIndex {
-				result = append(result, t.tokens[tokenIndex].TokenConfig)
-				break
-			}
+	for _, internalIndex := range t.links[addrIdx] {
+		if tokenConfig, ok := t.tokens[internalIndex]; ok {
+			result = append(result, tokenConfig)
 		}
 	}
 
 	return result, nil
 }
 
-func (t *tokens) RemoveTokenConfigAddressLink(tokenIndex types.TokenIndex, accountIndex types.AccountIndex, addressIndex types.AddressIndex) error {
+func (t *tokens) RemoveTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	metaTokenConfig, ok := t.tokens[tokenIndex]
+	internalIndex, ok := t.subIndex[tokenIndex]
 
 	if !ok {
-		return errors.New("token is not IsLabelExists")
+		return errors.New("token is not exist")
 	}
 
-	for index := range t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex] {
-		if t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex][index] == addressIndex {
-			t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex] = append(t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex][:index], t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex][index+1:]...)
+	for index := range t.links[addrIdx] {
+		if t.links[addrIdx][index] == internalIndex {
+			t.links[addrIdx] = append(t.links[addrIdx][:index], t.links[addrIdx][index+1:]...)
 		}
 	}
 	return nil
 }
 
 func (t *tokens) MarshalJSON() ([]byte, error) {
-	t.mu.Lock()
+	/*t.mu.Lock()
 	defer t.mu.Unlock()
 
 	tokensExport := map[string]*types.TokenConfig{}
 	for tokenIndex, token := range t.tokens {
-		tokensExport[fmt.Sprintf("%d:%d", tokenIndex.NetworkType, token.InternalIndex)] = token.TokenConfig
+		tokensExport[fmt.Sprintf("%d:%d", tokenIndex.CoinType, token.InternalIndex)] = token.TokenConfig
 	}
 
 	result := map[string]interface{}{
@@ -186,4 +167,6 @@ func (t *tokens) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(result)
+	*/
+	return []byte{}, nil
 }

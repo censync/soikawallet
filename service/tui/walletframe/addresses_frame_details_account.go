@@ -65,7 +65,8 @@ func (f *frameAddressesDetailsAccount) actionSetLabel() {
 	err := f.API().SetLabelLink(&dto.SetLabelLinkDTO{
 		LabelType: types.AccountLabel,
 		Index:     f.selectedLabelIndex,
-		Path:      f.selectedAccount.Path,
+		// TODO: Finish
+		//Path:      f.selectedAccount.Path,
 	})
 	if err == nil {
 		f.Emit(event_bus.EventLogSuccess, "Label saved for account")
@@ -77,7 +78,8 @@ func (f *frameAddressesDetailsAccount) actionSetLabel() {
 func (f *frameAddressesDetailsAccount) actionRemoveLabel() {
 	err := f.API().RemoveLabelLink(&dto.RemoveLabelLinkDTO{
 		LabelType: types.AccountLabel,
-		Path:      f.selectedAccount.Path,
+		// TODO: Finish
+		// Path:      f.selectedAccount.Path,
 	})
 	if err == nil {
 		f.Emit(event_bus.EventLogSuccess, "Label saved for account")

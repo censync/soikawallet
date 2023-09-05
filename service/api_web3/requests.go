@@ -1,7 +1,7 @@
 package api_web3
 
-import "github.com/censync/soikawallet/types"
+import mhda "github.com/censync/go-mhda"
 
 type GetAccountsRequest struct {
-	NetworkType types.NetworkType `json:"network_type"`
+	ChainKey mhda.ChainKey `json:"chain_key"`
 }

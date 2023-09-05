@@ -69,7 +69,7 @@ func (p *pageOperationTx) actionUpdateTokens() {
 	p.layoutTokensTreeView.SetBorder(true)
 
 	balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensByPathDTO{
-		DerivationPath: p.paramSelectedAddr.Path,
+		MhdaPath: p.paramSelectedAddr.Path,
 	})
 
 	if err != nil {

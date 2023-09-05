@@ -2,10 +2,13 @@
 
 package networks
 
-import "github.com/censync/soikawallet/types"
+import (
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/types"
+)
 
 var Ethereum = types.NewNetwork(
-	types.Ethereum,
+	mhda.ETH,
 	`Ethereum (Testnet)`,
 	`ETH`, // SepETH
 	18,
@@ -16,7 +19,7 @@ var Ethereum = types.NewNetwork(
 		ChainId: 0xaa36a7,
 	},
 ).SetDefaultRPC(
-	`https://rpc.soikawallet.app:8431/eth_testnet2`,
+	`https://rpc.soikawallet.app:8431/eth_testnet`,
 	`https://sepolia.etherscan.io/`, // /block/ /address/ /tx/
 ).SetBuiltinToken(
 	types.TokenERC20,

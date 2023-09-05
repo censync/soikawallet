@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/types/gas"
 	"math/big"
 )
@@ -16,7 +17,7 @@ const (
 
 type BaseNetwork struct {
 	// Slip 44 index
-	index    NetworkType
+	index    mhda.CoinType
 	name     string
 	currency string
 	decimals int
@@ -40,12 +41,14 @@ type EVMConfig struct {
 
 type RPCContext struct {
 	context.Context
-	network        NetworkType
+	// network        CoinType
 	nodeId         uint32
+	chainKey       mhda.ChainKey
 	currentAccount string
 }
 
-func NewRPCContext(network NetworkType, nodeId uint32, address ...string) *RPCContext {
+// TODO: Change args to addr
+func NewRPCContext(chainKey mhda.ChainKey, nodeId uint32, address ...string) *RPCContext {
 	var currentAccount string
 	if address != nil {
 		if len(address) != 1 {
@@ -55,14 +58,14 @@ func NewRPCContext(network NetworkType, nodeId uint32, address ...string) *RPCCo
 	}
 	return &RPCContext{
 		Context:        context.Background(),
-		network:        network,
+		chainKey:       chainKey,
 		nodeId:         nodeId,
 		currentAccount: currentAccount,
 	}
 }
 
-func (c *RPCContext) Network() NetworkType {
-	return c.network
+func (c *RPCContext) ChainKey() mhda.ChainKey {
+	return c.chainKey
 }
 
 func (c *RPCContext) NodeId() uint32 {
@@ -215,9 +218,9 @@ type NetworkAdapter interface {
 	GetRPCInfo(ctx *RPCContext) (map[string]interface{}, error)
 }
 
-func NewNetwork(index NetworkType, name, currency string, decimals int, gasUnits uint64, gasSymbol string, isW3 bool, evmConfig *EVMConfig) *BaseNetwork {
+func NewNetwork(coinType mhda.CoinType, name, currency string, decimals int, gasUnits uint64, gasSymbol string, isW3 bool, evmConfig *EVMConfig) *BaseNetwork {
 	return &BaseNetwork{
-		index:     index,
+		index:     coinType,
 		name:      name,
 		currency:  currency,
 		decimals:  decimals,

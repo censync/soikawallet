@@ -1,5 +1,7 @@
 package dto
 
+import mhda "github.com/censync/go-mhda"
+
 type InitWalletDTO struct {
 	Mnemonic          string
 	Passphrase        string
@@ -12,7 +14,7 @@ type GenerateMnemonicDTO struct {
 }
 
 type AddAddressesDTO struct {
-	DerivationPaths []string
+	MhdaPaths []string
 }
 
 type AddLabelDTO struct {
@@ -41,24 +43,24 @@ type RemoveLabelLinkedAccountDTO struct {
 }
 
 type SetAddressW3DTO struct {
-	DerivationPath string
+	MhdaPath string
 }
 
 type UnsetAddressW3DTO struct {
-	DerivationPath string
+	ChainKey mhda.ChainKey
 }
 
 type GetAccountsByNetworkDTO struct {
-	NetworkType uint32
+	ChainKey mhda.ChainKey
 }
 
 type GetAddressesByAccountDTO struct {
-	NetworkType  uint32
+	ChainKey     mhda.ChainKey
 	AccountIndex uint32
 }
 
 type GetAddressTokensByPathDTO struct {
-	DerivationPath string
+	MhdaPath string
 }
 
 type GetAddressTokensBalanceByPathDTO struct {
@@ -66,78 +68,78 @@ type GetAddressTokensBalanceByPathDTO struct {
 }
 
 type GetGasCalculatorConfigDTO struct {
-	Operation      string
-	DerivationPath string
-	To             string
-	Value          float64
-	Standard       uint8
-	Contract       string
+	Operation string
+	MhdaPath  string
+	To        string
+	Value     float64
+	Standard  uint8
+	Contract  string
 }
 
 type GetTokenAllowanceDTO struct {
-	DerivationPath string
-	To             string
-	Value          float64
-	Standard       uint8
-	Contract       string
+	MhdaPath string
+	To       string
+	Value    float64
+	Standard uint8
+	Contract string
 }
 
 type SendTokensDTO struct {
-	DerivationPath string
-	To             string
-	Value          float64
-	Gas            uint64
-	GasTipCap      uint64
-	GasFeeCap      uint64
-	Standard       uint8
-	Contract       string
+	MhdaPath  string
+	To        string
+	Value     float64
+	Gas       uint64
+	GasTipCap uint64
+	GasFeeCap uint64
+	Standard  uint8
+	Contract  string
 }
 
 type GetTxReceiptDTO struct {
-	NetworkType uint32
-	NodeIndex   uint32
-	Hash        string
+	ChainKey  mhda.ChainKey
+	NodeIndex uint32
+	Hash      string
 }
 
 type GetRPCListByIndexDTO struct {
-	Index       uint32
-	NetworkType uint32
+	ChainKey mhda.ChainKey
+	Index    uint32
 }
 
 type GetRPCListByNetworkDTO struct {
-	NetworkType uint32
+	ChainKey mhda.ChainKey
 }
 
 type SetRPCLinkedAccountDTO struct {
-	NetworkType  uint32
+	ChainKey     mhda.ChainKey
 	AccountIndex uint32
 	NodeIndex    uint32
 }
 
 type RemoveRPCLinkedAccountDTO struct {
-	NetworkType  uint32
+	ChainKey     mhda.ChainKey
 	AccountIndex uint32
 }
 
 type GetRPCLinkedAccountCountDTO struct {
-	NetworkType uint32
-	NodeIndex   uint32
+	ChainKey  mhda.ChainKey
+	NodeIndex uint32
 }
 
 type AddRPCDTO struct {
-	NetworkType uint32
-	Title       string
-	Endpoint    string
+	ChainKey mhda.ChainKey
+	Title    string
+	Endpoint string
 }
 
 type RemoveRPCDTO struct {
-	NetworkType uint32
-	Index       uint32
+	ChainKey mhda.ChainKey
+	Index    uint32
 }
 
 type GetRPCInfoDTO struct {
-	NetworkType uint32
-	NodeIndex   uint32
+	ChainKey  mhda.ChainKey
+	NodeIndex uint32
 }
 
 type FlushKeysDTO struct {
@@ -145,5 +147,5 @@ type FlushKeysDTO struct {
 }
 
 type GetFiatCurrencyDTO struct {
-	NetworkType uint32
+	ChainKey mhda.ChainKey
 }

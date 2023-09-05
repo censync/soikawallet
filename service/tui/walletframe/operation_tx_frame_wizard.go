@@ -44,7 +44,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 
 	inputAddrReceiver := tview.NewInputField().
 		SetLabel(`Receiver`).
-		SetText("0x5078178cB856f3b88e972bbB36e9601E249F65Eb")
+		SetText("0xd43c8A1870CC06fc7dA7C68Eed0a4D7d73BC2DE6")
 
 	inputValue := tview.NewInputField().
 		SetAcceptanceFunc(tview.InputFieldFloat).
@@ -55,7 +55,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 	tokensMap := map[int]string{}
 
 	availableTokens, err := f.API().GetTokensByPath(&dto.GetAddressTokensByPathDTO{
-		DerivationPath: f.selectedAddress.Path,
+		MhdaPath: f.selectedAddress.Path,
 	})
 
 	if err != nil {
@@ -76,7 +76,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 		SetFieldWidth(10).
 		SetOptions(tokensList, func(text string, index int) {
 			if index == len(tokensList)-1 {
-				f.SwitchToPage(pageNameTokenAdd, f.selectedAddress.NetworkType, f.selectedAddress.Path)
+				f.SwitchToPage(pageNameTokenAdd, f.selectedAddress.ChainKey, f.selectedAddress.Path)
 			} else {
 				if contract, ok := tokensMap[index]; ok {
 					f.selectedToken = (*availableTokens)[contract]
@@ -117,11 +117,11 @@ func (f *frameOperationWizard) actionCheckAllowancePermission() bool {
 		return true
 	}
 	allowance, err := f.API().GetAllowance(&dto.GetTokenAllowanceDTO{
-		DerivationPath: f.selectedAddress.Path,
-		To:             f.selectedRecipient,
-		Value:          f.selectedAmount,
-		Standard:       f.selectedToken.Standard,
-		Contract:       f.selectedToken.Contract,
+		MhdaPath: f.selectedAddress.Path,
+		To:       f.selectedRecipient,
+		Value:    f.selectedAmount,
+		Standard: f.selectedToken.Standard,
+		Contract: f.selectedToken.Contract,
 	})
 
 	if err != nil {
@@ -147,12 +147,12 @@ func (f *frameOperationWizard) actionConfigureGas() {
 	layoutForm.AddTextView("title", "actionConfigureGas", 30, 1, true, false)
 
 	calcConfig, err := f.API().GetGasCalculatorConfig(&dto.GetGasCalculatorConfigDTO{
-		Operation:      "transfer",
-		DerivationPath: f.selectedAddress.Path,
-		To:             f.selectedRecipient,
-		Value:          f.selectedAmount,
-		Standard:       f.selectedToken.Standard,
-		Contract:       f.selectedToken.Contract,
+		Operation: "transfer",
+		MhdaPath:  f.selectedAddress.Path,
+		To:        f.selectedRecipient,
+		Value:     f.selectedAmount,
+		Standard:  f.selectedToken.Standard,
+		Contract:  f.selectedToken.Contract,
 	})
 
 	if err != nil {
@@ -205,12 +205,12 @@ func (f *frameOperationWizard) actionConfigureGas() {
 func (f *frameOperationWizard) actionConfigureAllowance() {
 
 	calcConfig, err := f.API().GetGasCalculatorConfig(&dto.GetGasCalculatorConfigDTO{
-		Operation:      "approve",
-		DerivationPath: f.selectedAddress.Path,
-		To:             f.selectedRecipient,
-		Value:          f.selectedAmount,
-		Standard:       f.selectedToken.Standard,
-		Contract:       f.selectedToken.Contract,
+		Operation: "approve",
+		MhdaPath:  f.selectedAddress.Path,
+		To:        f.selectedRecipient,
+		Value:     f.selectedAmount,
+		Standard:  f.selectedToken.Standard,
+		Contract:  f.selectedToken.Contract,
 	})
 
 	if err != nil {
@@ -256,14 +256,14 @@ func (f *frameOperationWizard) actionConfigureAllowance() {
 }
 func (f *frameOperationWizard) actionSendApprove(gas, gasTipCap, gasFeePrice uint64) {
 	txId, err := f.API().ApproveTokens(&dto.SendTokensDTO{
-		DerivationPath: f.selectedAddress.Path,
-		To:             f.selectedRecipient,
-		Value:          f.selectedAmount,
-		Gas:            gas,
-		GasTipCap:      gasTipCap,
-		GasFeeCap:      gasFeePrice,
-		Standard:       f.selectedToken.Standard,
-		Contract:       f.selectedToken.Contract,
+		MhdaPath:  f.selectedAddress.Path,
+		To:        f.selectedRecipient,
+		Value:     f.selectedAmount,
+		Gas:       gas,
+		GasTipCap: gasTipCap,
+		GasFeeCap: gasFeePrice,
+		Standard:  f.selectedToken.Standard,
+		Contract:  f.selectedToken.Contract,
 	})
 	if err == nil {
 		f.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Transaction approve sent: %s", txId))
@@ -275,14 +275,14 @@ func (f *frameOperationWizard) actionSendApprove(gas, gasTipCap, gasFeePrice uin
 
 func (f *frameOperationWizard) actionSendTransaction(gas, gasTipCap, gasFeePrice uint64, isAirGap bool) {
 	request := &dto.SendTokensDTO{
-		DerivationPath: f.selectedAddress.Path,
-		To:             f.selectedRecipient,
-		Value:          f.selectedAmount,
-		Gas:            gas,
-		GasTipCap:      gasTipCap,
-		GasFeeCap:      gasFeePrice,
-		Standard:       f.selectedToken.Standard,
-		Contract:       f.selectedToken.Contract,
+		MhdaPath:  f.selectedAddress.Path,
+		To:        f.selectedRecipient,
+		Value:     f.selectedAmount,
+		Gas:       gas,
+		GasTipCap: gasTipCap,
+		GasFeeCap: gasFeePrice,
+		Standard:  f.selectedToken.Standard,
+		Contract:  f.selectedToken.Contract,
 	}
 
 	if !isAirGap {

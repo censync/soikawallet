@@ -2,6 +2,7 @@ package walletframe
 
 import (
 	"fmt"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
@@ -18,7 +19,7 @@ type pageNodeInfo struct {
 	inputSelectNode *tview.DropDown
 
 	// var
-	selectedChain  types.NetworkType
+	selectedChain  *mhda.Chain
 	availableNodes map[uint32]*types.RPC
 	selectedNode   uint32
 }
@@ -41,10 +42,10 @@ func (p *pageNodeInfo) FuncOnShow() {
 	inputSelectNetwork := tview.NewDropDown().
 		SetLabel("Select network").
 		SetFieldWidth(10).
-		SetOptions(types.GetNetworksNames(), func(text string, index int) {
-			p.selectedChain = types.GetNetworkByName(text)
+		SetOptions(types.GetChainNames(), func(text string, index int) {
+			p.selectedChain = types.GetChainByName(text)
 			p.availableNodes = p.API().AllRPC(&dto.GetRPCListByNetworkDTO{
-				NetworkType: uint32(p.selectedChain),
+				ChainKey: p.selectedChain.Key(),
 			})
 			p.actionUpdateNodesList()
 		}).
@@ -96,8 +97,8 @@ func (p *pageNodeInfo) actionUpdateNodesList() {
 func (p *pageNodeInfo) actionUpdateInfo() {
 	p.labelRPCInfo.Clear()
 	receipt, err := p.API().GetRPCInfo(&dto.GetRPCInfoDTO{
-		NetworkType: uint32(p.selectedChain),
-		NodeIndex:   p.selectedNode,
+		ChainKey:  p.selectedChain.Key(),
+		NodeIndex: p.selectedNode,
 	})
 	if err == nil {
 		str := ""

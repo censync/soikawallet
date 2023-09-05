@@ -208,13 +208,14 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 		return result, err
 	}
 
+	// Not working for L2
 	block, err := e.getBlock(ctx, height)
-
-	result["gas_used"] = block.GasUsed()
 
 	if err != nil {
 		return result, err
 	}
+
+	result["gas_used"] = block.GasUsed()
 
 	gasLimit := block.GasLimit()
 	result["gas_limit"] = gasLimit
@@ -377,8 +378,8 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gas, g
 		}
 	} else {
 		txData = &ethTypes.LegacyTx{
-			GasPrice: new(big.Int).SetUint64(gasTipCap),
-			Gas:      gas,
+			GasPrice: new(big.Int).SetUint64(100),
+			Gas:      2100000,
 			Nonce:    nonce,
 			To:       &addrTo,
 			Value:    weiValue,

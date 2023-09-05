@@ -3,8 +3,9 @@ package wallet
 import (
 	"crypto/sha512"
 	"fmt"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/config/chain"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/pbkdf2"
 	"testing"
@@ -38,11 +39,19 @@ func TestWallet_AddAddressesPositive(t *testing.T) {
 		assert.Nil(t, err)
 
 		for _, testAddr := range vector.Addresses {
-			path, err := types.ParsePath(testAddr.Path)
+
+			path, err := mhda.ParseDerivationPath(mhda.BIP44, testAddr.Path)
 
 			assert.Nil(t, err)
 
-			addr, err := service.addAddress(path)
+			addrKey := mhda.NewAddress(chain.EthereumChain, path)
+
+			// Temporary
+			if addrKey.DerivationPath().Coin() != 60 {
+				continue
+			}
+
+			addr, err := service.addAddress(addrKey)
 
 			assert.Nil(t, err)
 

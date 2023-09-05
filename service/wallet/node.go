@@ -2,21 +2,22 @@ package wallet
 
 import (
 	"errors"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/types"
 )
 
 func (s *Wallet) RPC(dto *dto.GetRPCListByIndexDTO) *types.RPC {
-	return s.getRPCProvider(types.NetworkType(dto.NetworkType)).RPC(dto.Index)
+	return s.getRPCProvider(dto.ChainKey).RPC(dto.Index)
 }
 
 func (s *Wallet) AllRPC(dto *dto.GetRPCListByNetworkDTO) map[uint32]*types.RPC {
-	return s.getRPCProvider(types.NetworkType(dto.NetworkType)).AllRPC()
+	return s.getRPCProvider(dto.ChainKey).AllRPC()
 }
 
 func (s *Wallet) AddRPC(dto *dto.AddRPCDTO) error {
-	provider := s.getRPCProvider(types.NetworkType(dto.NetworkType))
+	provider := s.getRPCProvider(dto.ChainKey)
 
 	index, err := provider.AddRPC(dto.Title, dto.Endpoint)
 
@@ -26,26 +27,24 @@ func (s *Wallet) AddRPC(dto *dto.AddRPCDTO) error {
 	rpcConfig := provider.RPC(index)
 
 	// TODO: Add atomic
-	s.meta.AddRPCNode(types.NodeIndex{
-		NetworkType: types.NetworkType(dto.NetworkType),
-		Index:       index,
+	return s.meta.AddRPCNode(types.NodeIndex{
+		ChainKey: dto.ChainKey,
+		Index:    index,
 	}, rpcConfig)
-
-	return nil
 }
 
-// not used
+// not used yet
 func (s *Wallet) RemoveRPC(dto *dto.RemoveRPCDTO) error {
 	nodeIndex := types.NodeIndex{
-		NetworkType: types.NetworkType(dto.NetworkType),
-		Index:       dto.Index,
+		ChainKey: dto.ChainKey,
+		Index:    dto.Index,
 	}
 
 	if len(s.meta.GetRPCAccountLinks(nodeIndex)) > 0 {
 		return errors.New("cannot remove rpc, until linked accounts exists")
 	}
 
-	provider := s.getRPCProvider(types.NetworkType(dto.NetworkType))
+	provider := s.getRPCProvider(dto.ChainKey)
 
 	err := provider.RemoveRPC(dto.Index)
 
@@ -53,57 +52,58 @@ func (s *Wallet) RemoveRPC(dto *dto.RemoveRPCDTO) error {
 		return err
 	}
 
-	s.meta.RemoveRPCNode(nodeIndex)
+	return s.meta.RemoveRPCNode(nodeIndex)
+}
+
+func (s *Wallet) AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error {
+	/*nodeIndex := types.NodeIndex{
+		ChainKey: dto.ChainKey,
+		Index:    dto.NodeIndex,
+	}
+	return s.setAccountLinkRPC(nodeIndex, types.AccountIndex(dto.AccountIndex))*/
 
 	return nil
 }
 
-func (s *Wallet) AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error {
-	nodeIndex := types.NodeIndex{
-		NetworkType: types.NetworkType(dto.NetworkType),
-		Index:       dto.NodeIndex,
-	}
-	return s.setAccountLinkRPC(nodeIndex, types.AccountIndex(dto.AccountIndex))
-}
-
-func (s *Wallet) setAccountLinkRPC(nodeIndex types.NodeIndex, accountIndex types.AccountIndex) error {
-	if s.getRPCProvider(nodeIndex.NetworkType).RPC(nodeIndex.Index) == nil {
+func (s *Wallet) setAccountLinkRPC(nodeIndex types.NodeIndex, accountIndex mhda.AccountIndex) error {
+	/*if s.getRPCProvider(nodeIndex.ChainKey).RPC(nodeIndex.Index) == nil {
 		return errors.New("undefined node index")
 	}
 
-	err := s.meta.SetRPCAccountLink(nodeIndex, accountIndex)
+	err := s.meta.SetRPCAddressLink(accountIndex, nodeIndex)
 
 	if err != nil {
 		return err
 	}
 
 	// set for addresses
-	for index, addr := range s.addresses {
-		if addr.Network() == nodeIndex.NetworkType && addr.Account() == accountIndex {
+	for index, addr := range s.meta.Addresses() {
+		if addr.MHDA().Chain().Key() == nodeIndex.ChainKey && addr.Account() == accountIndex {
 			s.addresses[index].nodeIndex = nodeIndex.Index
 		}
-	}
+	}*/
 	return nil
 }
 
 func (s *Wallet) RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error {
-	return s.removeAccountLinkRPC(types.NetworkType(dto.NetworkType), types.AccountIndex(dto.AccountIndex))
+	//return s.removeAccountLinkRPC(dto.ChainKey, types.AccountIndex(dto.AccountIndex))
+	return nil
 }
 
-func (s *Wallet) removeAccountLinkRPC(networkType types.NetworkType, accountIndex types.AccountIndex) error {
-	var (
+func (s *Wallet) removeAccountLinkRPC(chainKey mhda.ChainKey, addrKey string) error {
+	/* var (
 		nodeKey types.NodeIndex
 		isExist bool
 	)
 
-	nodeInstance := s.getRPCProvider(nodeKey.NetworkType).RPC(nodeKey.Index)
+	nodeInstance := s.getRPCProvider(chainKey).RPC(nodeKey.Index)
 
-	for _, addr := range s.addresses {
+	for _, addr := range s.meta.Addresses() {
 		if addr.Network() == networkType &&
 			addr.Account() == accountIndex {
 			nodeKey = types.NodeIndex{
-				NetworkType: networkType,
-				Index:       addr.nodeIndex,
+				ChainKey: addr.MHDA().Chain().Key(),
+				Index:    addr.NodeIndex(),
 			}
 			isExist = true
 			break
@@ -120,28 +120,39 @@ func (s *Wallet) removeAccountLinkRPC(networkType types.NetworkType, accountInde
 
 	//s.removeAccountLinkRPC(networkType, accountIndex)
 
-	s.meta.RemoveRPCAccountLink(nodeKey, accountIndex)
-
+	s.meta.RemoveRPCAccountLink(accountIndex, nodeKey)
+	*/
 	return nil
 }
 
 func (s *Wallet) GetRPCLinkedAccountCount(dto *dto.GetRPCLinkedAccountCountDTO) int {
-	return s.meta.GetRPCAccountLinksCount(types.NetworkType(dto.NetworkType), dto.NodeIndex)
+	return s.meta.GetRPCAccountLinksCount(types.NodeIndex{
+		ChainKey: dto.ChainKey,
+		Index:    dto.NodeIndex,
+	})
 }
 
-func (s *Wallet) setAddressNode(path *types.DerivationPath, nodeIndex uint32) error {
-	_, ok := s.addresses[path.String()]
-	if !ok {
-		return errors.New("address is not found")
+func (s *Wallet) setAddressNode(addrKey string, nodeIndex uint32) error {
+	addrPath, err := mhda.ParseNSS(addrKey)
+	if err != nil {
+		return err
 	}
 
-	s.addresses[path.String()].nodeIndex = nodeIndex
+	addr := s.meta.GetAddress(addrPath.NSS())
+
+	if addr == nil {
+		return errors.New("AddressOpts is not found")
+	}
+
+	//s.addresses[path.String()].nodeIndex = nodeIndex
+
+	// s.meta.SetRPCAddressLink()
 
 	return nil
 }
 
 func (s *Wallet) GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, error) {
-	ctx := types.NewRPCContext(types.NetworkType(dto.NetworkType), dto.NodeIndex)
+	ctx := types.NewRPCContext(dto.ChainKey, dto.NodeIndex)
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -151,11 +162,11 @@ func (s *Wallet) GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, err
 }
 
 func (s *Wallet) GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error) {
-	if !types.IsNetworkExists(types.NetworkType(dto.NetworkType)) {
+	if !types.IsNetworkExists(dto.ChainKey) {
 		return nil, errors.New("network is not exists in SLIP-44 list")
 	}
 
-	rpcProvider := s.getRPCProvider(types.NetworkType(dto.NetworkType))
+	rpcProvider := s.getRPCProvider(dto.ChainKey)
 
 	if rpcProvider == nil {
 		return nil, errors.New("cannot get RPC instance")
@@ -168,13 +179,13 @@ func (s *Wallet) GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurr
 }
 
 func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error) {
-	if !types.IsNetworkExists(types.NetworkType(dto.NetworkType)) {
+	if !types.IsNetworkExists(dto.ChainKey) {
 		return nil, errors.New("network is not exists in SLIP-44 list")
 	}
 
 	result := resp.AddressTokensListResponse{}
 
-	rpcProvider := s.getRPCProvider(types.NetworkType(dto.NetworkType))
+	rpcProvider := s.getRPCProvider(dto.ChainKey)
 
 	if rpcProvider == nil {
 		return nil, errors.New("cannot get RPC instance")
@@ -203,16 +214,21 @@ func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.Ad
 }
 
 func (s *Wallet) GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.AddressTokensListResponse, error) {
-	addrPath, err := types.ParsePath(dto.DerivationPath)
+	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return nil, err
 	}
 
-	addressLinkedTokenContracts, err := s.meta.GetAddressTokens(addrPath.Network(), addrPath.Account(), addrPath.AddressIndex())
+	addr := s.meta.GetAddress(addrPath.NSS())
+
+	if addr == nil {
+		return nil, errors.New("address not found")
+	}
+	addressLinkedTokenContracts, err := s.meta.GetAddressTokens(addr.Index())
 
 	result := resp.AddressTokensListResponse{}
 
-	rpcProvider := s.getRPCProvider(addrPath.Network())
+	rpcProvider := s.getRPCProvider(addr.MHDA().Chain().Key())
 	rpcBaseToken := rpcProvider.GetBaseToken()
 
 	result[rpcBaseToken.Contract()] = &resp.AddressTokenEntry{
@@ -241,13 +257,13 @@ func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
 		err         error
 	)
 
-	if !types.IsNetworkExists(types.NetworkType(dto.NetworkType)) {
+	if !types.IsNetworkExists(dto.ChainKey) {
 		return nil, errors.New("network is not exists in SLIP-44 list")
 	}
 
-	defaultNodeIndex := s.getRPCProvider(types.NetworkType(dto.NetworkType)).DefaultNodeId()
+	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()
 
-	ctx := types.NewRPCContext(types.NetworkType(dto.NetworkType), defaultNodeIndex)
+	ctx := types.NewRPCContext(dto.ChainKey, defaultNodeIndex)
 
 	provider, err := s.getNetworkProvider(ctx)
 
@@ -281,13 +297,13 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 		err         error
 	)
 
-	if !types.IsNetworkExists(types.NetworkType(dto.NetworkType)) {
+	if !types.IsNetworkExists(dto.ChainKey) {
 		return errors.New("network is not exists in SLIP-44 list")
 	}
 
-	defaultNodeIndex := s.getRPCProvider(types.NetworkType(dto.NetworkType)).DefaultNodeId()
+	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()
 
-	ctx := types.NewRPCContext(types.NetworkType(dto.NetworkType), defaultNodeIndex)
+	ctx := types.NewRPCContext(dto.ChainKey, defaultNodeIndex)
 
 	provider, err := s.getNetworkProvider(ctx)
 
@@ -299,8 +315,8 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 		tokenConfig = provider.GetTokenConfig(dto.Contract)
 
 		tokenIndex = types.TokenIndex{
-			NetworkType: types.NetworkType(dto.NetworkType),
-			Contract:    tokenConfig.Contract(),
+			ChainKey: dto.ChainKey,
+			Contract: tokenConfig.Contract(),
 		}
 	} else {
 		tokenConfig, err = provider.GetToken(ctx, dto.Contract)
@@ -322,21 +338,26 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 		}
 
 		tokenIndex = types.TokenIndex{
-			NetworkType: types.NetworkType(dto.NetworkType),
-			Contract:    tokenConfig.Contract(),
+			ChainKey: dto.ChainKey,
+			Contract: tokenConfig.Contract(),
 		}
 	}
 
-	s.meta.AddTokenConfig(types.NetworkType(dto.NetworkType), tokenConfig)
+	s.meta.AddTokenConfig(dto.ChainKey, tokenConfig)
 
-	if dto.DerivationPath != "" {
-		var addrPath *types.DerivationPath
-		addrPath, err = types.ParsePath(dto.DerivationPath)
+	if dto.MhdaPath != "" {
+		addrKey, err := mhda.ParseNSS(dto.MhdaPath)
 		if err != nil {
 			return err
 		}
 
-		err = s.meta.SetTokenConfigAddressLink(tokenIndex, addrPath.Account(), addrPath.AddressIndex())
+		addr := s.meta.GetAddress(addrKey.NSS())
+
+		if err != nil {
+			return errors.New("address not found")
+		}
+
+		err = s.meta.SetTokenConfigAddressLink(addr.Index(), tokenIndex)
 	}
 
 	return err

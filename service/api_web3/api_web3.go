@@ -227,9 +227,9 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 		case reqCodeRequestAccounts:
 			payload := parsedRequest.Data.(*GetAccountsRequest)
 			c.uiEvents.Emit(event_bus.EventW3RequestAccounts, &dto.RequestAccountsDTO{
-				InstanceId:  extensionId,
-				Origin:      r.Header.Get("Origin"),
-				NetworkType: payload.NetworkType,
+				InstanceId: extensionId,
+				Origin:     r.Header.Get("Origin"),
+				ChainKey:   payload.ChainKey,
 			})
 		/*
 			case "stop":

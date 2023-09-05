@@ -3,8 +3,8 @@ package walletframe
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/config/chain"
 	"github.com/censync/soikawallet/service/internal/event_bus"
-	"github.com/censync/soikawallet/types"
 	"github.com/rivo/tview"
 )
 
@@ -26,9 +26,9 @@ func (p *pageSettings) tabNodes() *tview.Flex {
 
 	btnAdd := tview.NewButton("Add").SetSelectedFunc(func() {
 		err := p.API().AddRPC(&dto.AddRPCDTO{
-			NetworkType: 60,
-			Title:       inputTitle.GetText(),
-			Endpoint:    inputRPC.GetText(),
+			ChainKey: chain.EthereumChain.Key(), // TODO: Add selection chain key
+			Title:    inputTitle.GetText(),
+			Endpoint: inputRPC.GetText(),
 		})
 		if err != nil {
 			p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot add rpc \"%s\"", err))
@@ -63,13 +63,13 @@ func (p *pageSettings) actionUpdateRPCList() {
 
 	if p.API() != nil {
 		rpcList := p.API().AllRPC(&dto.GetRPCListByNetworkDTO{
-			NetworkType: uint32(types.Ethereum),
+			ChainKey: chain.EthereumChain.Key(), // TODO: Add selection chain key
 		})
 
 		for index, rpc := range rpcList {
 			linkedAccountCount := p.API().GetRPCLinkedAccountCount(&dto.GetRPCLinkedAccountCountDTO{
-				NetworkType: uint32(types.Ethereum),
-				NodeIndex:   index,
+				ChainKey:  chain.EthereumChain.Key(), // TODO: Add selection chain key
+				NodeIndex: index,
 			})
 			btnEditEntry := tview.NewButton("Edit")
 			btnRemoveEntry := tview.NewButton("Remove")
