@@ -228,14 +228,17 @@ func (s *Wallet) addAddress(path mhda.MHDA) (addr *meta.Address, err error) {
 	if !types.IsNetworkExists(path.Chain().Key()) {
 		return nil, errors.New("network is not supported")
 	}
-	ss := path.NSS()
-	if s.meta.IsAddressExist(ss) {
+	if s.meta.IsAddressExist(path.NSS()) {
 		return nil, errors.New("addr already exists")
 	}
 
 	// Create addr
 
 	ecAddrKey, err := s.chargeDeriveKey(path.DerivationPath())
+
+	if err != nil {
+		return nil, err
+	}
 
 	pubKey := ecAddrKey.Public().(*ecdsa.PublicKey)
 
@@ -326,6 +329,7 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 
 func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error) {
 	result := map[string]float64{}
+
 	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
 		return nil, err

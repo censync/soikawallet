@@ -18,6 +18,13 @@ type Provider struct {
 	defaultCurrency string
 }
 
+/*
+var (
+	_ types.NetworkAdapter = tron.Tron{}
+	_ types.NetworkAdapter = evm.EVM{}
+	_ types.NetworkAdapter = btc.Bitcoin{}
+)*/
+
 var networkProviders = &Provider{
 	networks: map[mhda.ChainKey]types.NetworkAdapter{
 		chain.BitcoinChain.Key():      btc.NewBTC(networks.Bitcoin),

@@ -6,7 +6,7 @@ require (
 	github.com/btcsuite/btcd v0.23.4
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/censync/go-i18n v1.1.0
-	github.com/censync/go-mhda v0.0.0-20230905171528-3cbb2c91e53c
+	github.com/censync/go-mhda v0.0.0-20230907105920-0f9d9a7b9913
 	github.com/censync/go-zbar v0.0.0-20230729001432-1a756b569f38
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/gdamore/tcell/v2 v2.6.0

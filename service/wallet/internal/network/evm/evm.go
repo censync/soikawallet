@@ -460,7 +460,7 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 		ChainID:   chainId,
 		GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
 		GasFeeCap: new(big.Int).SetUint64(gasFeeCap),
-		Gas:       gas, //  35048,  52139 // 10000000
+		Gas:       gas,
 		Nonce:     nonce,
 		To:        &tokenContract,
 		Data:      data,
