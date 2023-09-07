@@ -17,6 +17,6 @@ var Bitcoin = types.NewNetwork(
 	false,
 	nil,
 ).SetDefaultRPC(
-	`https://rpc.soikawallet.app:8431/eth`,
+	`https://rpc.soikawallet.app:8431/btc`,
 	`https://etherscan.io/`, // /block/ /address/ /tx/
 )

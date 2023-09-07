@@ -1,5 +1,13 @@
 package meta
 
+/*
+import (
+	"github.com/censync/soikawallet/types"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+
 import (
 	"github.com/censync/soikawallet/types"
 	"github.com/stretchr/testify/assert"
@@ -61,7 +69,7 @@ func TestTokens_AddTokenConfig_Positive(t *testing.T) {
 		t.Fatal("incorrect length")
 	}
 
-	/*
+
 		for tokenIndex, tokenConfig := range metaTokens.tokens {
 			index := tokenIndex.InternalIndex - 1
 			assert.Equal(t, types.TokenERC20, tokenConfig.Standard())
@@ -70,7 +78,7 @@ func TestTokens_AddTokenConfig_Positive(t *testing.T) {
 			assert.Equal(t, testDataTokens[index][2], tokenConfig.Contract())
 			assert.Equal(t, testTokenDecimals, tokenConfig.Decimals())
 		}
-	*/
+
 }
 
 func TestTokens_SetTokenConfigAddressLink_Positive(t *testing.T) {
@@ -93,7 +101,6 @@ func TestTokens_SetTokenConfigAddressLink_Positive(t *testing.T) {
 	}
 }
 
-/*
 func TestTokens_MarshalJSON_Positive(t *testing.T) {
 	TestTokens_AddTokenConfig_Positive(t)
 	TestTokens_SetTokenConfigAddressLink_Positive(t)

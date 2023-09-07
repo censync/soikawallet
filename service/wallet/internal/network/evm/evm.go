@@ -28,20 +28,20 @@ const (
 
 type EVM struct {
 	*types.BaseNetwork
-	client map[uint32]*ethclient.Client
+	clients map[uint32]*ethclient.Client
 }
 
 func NewEVM(baseNetwork *types.BaseNetwork) *EVM {
-	return &EVM{BaseNetwork: baseNetwork, client: map[uint32]*ethclient.Client{}}
+	return &EVM{BaseNetwork: baseNetwork, clients: map[uint32]*ethclient.Client{}}
 }
 
 func (e *EVM) getClient(nodeId uint32) (*ethclient.Client, error) {
 	var err error
-	if e.client[nodeId] != nil {
-		return e.client[nodeId], nil
+	if e.clients[nodeId] != nil {
+		return e.clients[nodeId], nil
 	} else {
-		e.client[nodeId], err = ethclient.Dial(e.DefaultRPC().Endpoint())
-		return e.client[nodeId], err
+		e.clients[nodeId], err = ethclient.Dial(e.DefaultRPC().Endpoint())
+		return e.clients[nodeId], err
 	}
 }
 

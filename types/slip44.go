@@ -3,15 +3,11 @@ package types
 import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/config/chain"
-
-	"sort"
 )
 
 var (
 	registeredNetworks = map[string]*mhda.Chain{
-		`Bitcoin`:     chain.BitcoinChain,
 		`Ethereum`:    chain.EthereumChain,
-		`Tron`:        chain.TronChain,
 		`Polygon`:     chain.PolygonChain,
 		`BSC`:         chain.BinanceSmartChain,
 		`Optimism`:    chain.OptimismChain,
@@ -19,6 +15,8 @@ var (
 		`Avalanche C`: chain.AvalancheCChain,
 		`Moonbeam`:    chain.Moonbeam,
 		`Base`:        chain.BaseChain,
+		`Bitcoin`:     chain.BitcoinChain,
+		`Tron`:        chain.TronChain,
 	}
 
 	registeredNetworksIndexes    = map[*mhda.Chain]string{}
@@ -34,7 +32,7 @@ func init() {
 		registeredNetworksNames = append(registeredNetworksNames, name)
 		registeredNetworksNamesIndex[chainKey.Key()] = name
 	}
-	sort.Strings(registeredNetworksNames)
+	//sort.Strings(registeredNetworksNames)
 }
 
 func GetChainNames() []string {

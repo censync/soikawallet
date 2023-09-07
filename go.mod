@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/btcsuite/btcd v0.23.4
 	github.com/btcsuite/btcd/btcutil v1.1.3
+	github.com/censync/go-airgap v0.0.0-20230822093833-f9f616954fbc
 	github.com/censync/go-i18n v1.1.0
 	github.com/censync/go-mhda v0.0.0-20230907105920-0f9d9a7b9913
 	github.com/censync/go-zbar v0.0.0-20230729001432-1a756b569f38
@@ -21,7 +22,6 @@ require (
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2 // indirect
-	github.com/censync/go-airgap v0.0.0-20230822093833-f9f616954fbc // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect

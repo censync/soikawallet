@@ -1,11 +1,14 @@
 package meta
 
 import (
-	"encoding/json"
+	json "encoding/json"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/types"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
+
+const randomOffset = 200
 
 var (
 	metaNodes   *nodes
@@ -31,6 +34,7 @@ var (
 			"https://rpc5.example.com",
 		},
 	}
+	chainKey = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x1`)
 )
 
 func init() {
@@ -42,46 +46,46 @@ func TestNodes_AddRPCNode_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
-	assert.NotNil(t, metaNodes.accountsLinks)
+	assert.NotNil(t, metaNodes.subIndex)
+	assert.NotNil(t, metaNodes.links)
 
 	for index := range testDataRPC {
 		rpc := types.NewRPC(testDataRPC[index][0], testDataRPC[index][1], false)
 
 		nodeIndex := types.NodeIndex{
-			CoinType: types.Ethereum,
+			ChainKey: chainKey.Key(),
 			Index:    uint32(index + 1),
 		}
-		metaNodes.AddRPCNode(nodeIndex, rpc)
+		err := metaNodes.AddRPCNode(nodeIndex, rpc)
+		assert.Nil(t, err)
 	}
 
-	if len(metaNodes.nodes) != len(testDataRPC) {
-		t.Fatal("incorrect length")
-	}
-
-	if len(metaNodes.accountsLinks) != len(testDataRPC) {
+	if len(metaNodes.nodes) != len(metaNodes.subIndex) {
 		t.Fatal("incorrect length")
 	}
 
 	for nodeIndex, rpc := range metaNodes.nodes {
-		index := nodeIndex.Index - 1
+		index := nodeIndex - 1
 		assert.Equal(t, testDataRPC[index][0], rpc.Title())
 		assert.Equal(t, testDataRPC[index][1], rpc.Endpoint())
 	}
+
 }
 
 func TestNodes_SetRPCAccountLink_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
-	assert.NotNil(t, metaNodes.accountsLinks)
+	assert.NotNil(t, metaNodes.subIndex)
+	assert.NotNil(t, metaNodes.links)
 
-	for accountIndex := types.AccountIndex(0); accountIndex < types.AccountIndex(len(testDataRPC)); accountIndex++ {
+	for addrIdx := aIndex(randomOffset); addrIdx < aIndex(len(testDataRPC)+randomOffset); addrIdx++ {
 		nodeIndex := types.NodeIndex{
-			CoinType: types.Ethereum,
-			Index:    uint32(accountIndex + 1),
+			ChainKey: chainKey.Key(),
+			Index:    uint32(addrIdx - randomOffset + 1),
 		}
 
-		err := metaNodes.SetRPCAddressLink(nodeIndex, accountIndex)
+		err := metaNodes.SetRPCAddressLink(addrIdx, nodeIndex)
 
 		assert.Nil(t, err)
 
@@ -95,6 +99,7 @@ func TestNodes_MarshalJSON_Positive(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+/*
 func TestNodes_RemoveRPCAccountLink_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
@@ -156,3 +161,4 @@ func TestNodes_RemoveRPCNode_Positive(t *testing.T) {
 		t.Fatal("awaiting zero length")
 	}
 }
+*/

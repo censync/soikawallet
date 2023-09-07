@@ -32,6 +32,7 @@ func (n *nodes) AddRPCNode(index types.NodeIndex, rpc *types.RPC) error {
 
 	var lastIndex uint32
 
+	// Take max value of internal index
 	for _, lastIndex = range n.subIndex {
 	}
 
@@ -44,8 +45,8 @@ func (n *nodes) AddRPCNode(index types.NodeIndex, rpc *types.RPC) error {
 }
 
 func (n *nodes) RemoveRPCNode(nodeIndex types.NodeIndex) error {
-	n.mu.RLock()
-	defer n.mu.RUnlock()
+	n.mu.Lock()
+	defer n.mu.Unlock()
 
 	internalIndex, ok := n.subIndex[nodeIndex]
 

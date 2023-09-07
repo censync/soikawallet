@@ -111,32 +111,34 @@ func (p *pageAddresses) actionUpdateBalances() {
 						balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensByPathDTO{
 							MhdaPath: addrView.addr.Path,
 						})
-						//p.Emit(handler.EventLog, "actionUpdateBalances get data")
+
+						balancesStr := ""
+						addrIndexFormat := "%d - %s | %s"
 						if err == nil {
-							balancesStr := ""
+
 							for key, value := range balances {
 								balancesStr += fmt.Sprintf("$%s - %f ", key, value)
 							}
-
-							addrIndexFormat := "%d - %s | %s"
 
 							if addrView.addr.AddressIndex.IsHardened {
 								addrIndexFormat = "%d' - %s | %s"
 							}
 
-							addrTree.SetText(fmt.Sprintf(
-								addrIndexFormat,
-								addrView.addr.AddressIndex.Index,
-								p.addrTruncate(addrView.addr.Address), // format long addr
-								balancesStr,
-							))
-							addrView.balances = balances
 						} else {
+							balances = map[string]float64{} // Empty map for stop anim
+							balancesStr = "[gray][cannot get balance]"
 							p.Emit(
 								event_bus.EventLogError,
 								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Address, err),
 							)
 						}
+						addrTree.SetText(fmt.Sprintf(
+							addrIndexFormat,
+							addrView.addr.AddressIndex.Index,
+							p.addrTruncate(addrView.addr.Address), // format long addr
+							balancesStr,
+						))
+						addrView.balances = balances
 					}
 				}
 			}
