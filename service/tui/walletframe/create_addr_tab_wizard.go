@@ -199,7 +199,12 @@ func (p *pageCreateWallet) actionCreateAddrWizard() {
 		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot create addresses: %s", err))
 	} else {
 		for _, addr := range addresses {
-			p.Emit(event_bus.EventLogInfo, fmt.Sprintf("Added address: %s %s", addr.Path, addr.Address))
+			p.Emit(event_bus.EventLogInfo, fmt.Sprintf(
+				"Added address: %s %s",
+				types.GetNetworkNameByKey(p.selectedChain.Key()),
+				addr.Address,
+			),
+			)
 		}
 		p.SwitchToPage(pageNameAddresses)
 	}

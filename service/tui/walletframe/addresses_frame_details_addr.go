@@ -2,11 +2,13 @@ package walletframe
 
 import (
 	"fmt"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/widgets/qrview"
+	"github.com/censync/soikawallet/types"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -53,10 +55,18 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 
 	// Selected address label
 	// clipboard.CopyToClipboard(inputMnemonic.GetText())
+
+	// TODO: Optimize to selected addr
+	pathTitle := ""
+	addr, err := mhda.ParseNSS(f.selectedAddress.Path)
+	if err == nil {
+		pathTitle = types.GetNetworkNameByKey(addr.Chain().Key()) + " " + addr.DerivationPath().String()
+	}
+
 	viewSelectedPath := tview.NewTextView().
 		SetToggleHighlights(true).
 		SetTextColor(tcell.ColorLightBlue).
-		SetText(f.selectedAddress.Path)
+		SetText(pathTitle)
 
 	viewSelectedAddr := tview.NewTextView().
 		SetToggleHighlights(true).
