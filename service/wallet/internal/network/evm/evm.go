@@ -728,14 +728,17 @@ func (e *EVM) ChainLinkGetPrice(ctx *types.RPCContext, contract string) (uint64,
 	return roundData.Answer.Uint64(), decimals, nil
 }
 
+// TODO: fix precision
 func floatToWei(value float64) *big.Int {
 	result := new(big.Int)
-	weiValue := new(big.Float).Mul(
+	weiValue := new(big.Float)
+
+	weiValue.Mul(
 		big.NewFloat(value),
-		new(big.Float).SetUint64(wei),
+		new(big.Float).SetUint64(gwei),
 	)
 
 	weiValue.Int(result)
-
+	result.Mul(result, new(big.Int).SetUint64(gwei))
 	return result
 }
