@@ -1,13 +1,5 @@
 package meta
 
-/*
-import (
-	"github.com/censync/soikawallet/types"
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
-
-
 import (
 	"github.com/censync/soikawallet/types"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +8,6 @@ import (
 
 var (
 	metaTokens        *tokens
-	testNetwork       = types.Ethereum
 	testTokenDecimals = 18
 	testDataTokens    = [][]string{
 		{
@@ -35,6 +26,7 @@ var (
 			"0xffffffffffffffffffffffffffffffffffffffff",
 		},
 	}
+	//chainKey = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x1`)
 )
 
 func init() {
@@ -45,7 +37,8 @@ func init() {
 func TestTokens_AddTokenConfig_Positive(t *testing.T) {
 	assert.NotNil(t, metaTokens)
 	assert.NotNil(t, metaTokens.tokens)
-	assert.NotNil(t, metaTokens.addressesLinks)
+	assert.NotNil(t, metaTokens.subIndex)
+	assert.NotNil(t, metaTokens.links)
 
 	for index := range testDataTokens {
 		tokenConfig := types.NewTokenConfig(
@@ -56,7 +49,7 @@ func TestTokens_AddTokenConfig_Positive(t *testing.T) {
 			testTokenDecimals,
 		)
 
-		err := metaTokens.AddTokenConfig(testNetwork, tokenConfig)
+		err := metaTokens.AddTokenConfig(chainKey.Key(), tokenConfig)
 
 		assert.Nil(t, err)
 	}
@@ -65,30 +58,30 @@ func TestTokens_AddTokenConfig_Positive(t *testing.T) {
 		t.Fatal("incorrect length")
 	}
 
-	if len(metaTokens.addressesLinks) != len(testDataTokens) {
+	if len(metaTokens.subIndex) != len(testDataTokens) {
 		t.Fatal("incorrect length")
 	}
 
-
-		for tokenIndex, tokenConfig := range metaTokens.tokens {
-			index := tokenIndex.InternalIndex - 1
-			assert.Equal(t, types.TokenERC20, tokenConfig.Standard())
-			assert.Equal(t, testDataTokens[index][0], tokenConfig.Name())
-			assert.Equal(t, testDataTokens[index][1], tokenConfig.Symbol())
-			assert.Equal(t, testDataTokens[index][2], tokenConfig.Contract())
-			assert.Equal(t, testTokenDecimals, tokenConfig.Decimals())
-		}
+	for tokenIndex, tokenConfig := range metaTokens.tokens {
+		assert.Equal(t, types.TokenERC20, tokenConfig.Standard())
+		assert.Equal(t, testDataTokens[tokenIndex-1][0], tokenConfig.Name())
+		assert.Equal(t, testDataTokens[tokenIndex-1][1], tokenConfig.Symbol())
+		assert.Equal(t, testDataTokens[tokenIndex-1][2], tokenConfig.Contract())
+		assert.Equal(t, testTokenDecimals, tokenConfig.Decimals())
+	}
 
 }
 
+/*
 func TestTokens_SetTokenConfigAddressLink_Positive(t *testing.T) {
 	assert.NotNil(t, metaTokens)
 	assert.NotNil(t, metaTokens.tokens)
-	assert.NotNil(t, metaTokens.addressesLinks)
+	assert.NotNil(t, metaTokens.subIndex)
+	assert.NotNil(t, metaTokens.links)
 
 	for _, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			CoinType: testNetwork,
+			ChainKey: chainKey.Key(),
 			Contract: entry[2],
 		}
 		addressIndex := types.AddressIndex{
@@ -117,11 +110,11 @@ func TestTokens_SetTokenConfigAddressLink_Negative_Duplicate(t *testing.T) {
 	for index, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
 			CoinType: testNetwork,
-			Contract:    entry[2],
+			Contract: entry[2],
 		}
 		addressIndex := types.AddressIndex{
-			InternalIndex:      uint32(index) + 1,
-			IsHardened: true,
+			InternalIndex: uint32(index) + 1,
+			IsHardened:    true,
 		}
 		err := metaTokens.SetTokenConfigAddressLink(tokenIndex, types.AccountIndex(0), addressIndex)
 
@@ -137,11 +130,11 @@ func TestTokens_RemoveTokenConfigAddressLink_Positive(t *testing.T) {
 	for index, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
 			CoinType: testNetwork,
-			Contract:    entry[2],
+			Contract: entry[2],
 		}
 		addressIndex := types.AddressIndex{
-			InternalIndex:      uint32(index) + 1,
-			IsHardened: true,
+			InternalIndex: uint32(index) + 1,
+			IsHardened:    true,
 		}
 		exists, err := metaTokens.IsTokenConfigAddressLinkExists(tokenIndex, types.AccountIndex(0), addressIndex)
 
@@ -173,7 +166,7 @@ func TestTokens_RemoveTokenConfig_Positive(t *testing.T) {
 	for _, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
 			CoinType: testNetwork,
-			Contract:    entry[2],
+			Contract: entry[2],
 		}
 
 		err := metaTokens.RemoveTokenConfig(tokenIndex)

@@ -28,7 +28,7 @@ func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 	}
 
 	if len(dto.To) < 4 {
-		return 0, errors.New("incorrect recipient AddressOpts")
+		return 0, errors.New("incorrect recipient address")
 	}
 
 	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
@@ -74,7 +74,7 @@ func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) 
 	}
 
 	if len(dto.To) < 4 {
-		return ``, errors.New("incorrect recipient AddressOpts")
+		return ``, errors.New("incorrect recipient address")
 	}
 
 	if dto.Contract == "" {
@@ -179,7 +179,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 	}
 
 	if len(dto.To) < 4 {
-		return nil, errors.New("incorrect recipient AddressOpts")
+		return nil, errors.New("incorrect recipient address")
 	}
 
 	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())

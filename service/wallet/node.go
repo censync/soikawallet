@@ -141,7 +141,7 @@ func (s *Wallet) setAddressNode(addrKey string, nodeIndex uint32) error {
 	addr := s.meta.GetAddress(addrPath.NSS())
 
 	if addr == nil {
-		return errors.New("AddressOpts is not found")
+		return errors.New("address is not found")
 	}
 
 	//s.addresses[path.String()].nodeIndex = nodeIndex

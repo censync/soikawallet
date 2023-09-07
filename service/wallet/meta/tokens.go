@@ -78,9 +78,8 @@ func (t *tokens) IsTokenConfigAddressLinkExists(addrIdx aIndex, tokenIndex types
 				return true, nil
 			}
 		}
-	} else {
-		return false, errors.New("address opts not exists")
 	}
+	// No error: token index correct, but aIndex isn't exists
 	return false, nil
 }
 

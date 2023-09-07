@@ -48,7 +48,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 			if tokenConfig == nil {
 				return nil, errors.New("token not configured")
 			}
-			gasConfig, err = provider.GetGasConfig(ctx, "transfer(AddressOpts,uint256)", dto.To, dto.Value, tokenConfig)
+			gasConfig, err = provider.GetGasConfig(ctx, "transfer(address,uint256)", dto.To, dto.Value, tokenConfig)
 		}
 	} else if dto.Operation == "approve" {
 		if types.TokenStandard(dto.Standard) != types.TokenBase {
@@ -58,7 +58,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 				return nil, errors.New("token not configured")
 			}
 
-			gasConfig, err = provider.GetGasConfig(ctx, "approve(AddressOpts,uint256)", dto.To, dto.Value, tokenConfig)
+			gasConfig, err = provider.GetGasConfig(ctx, "approve(address,uint256)", dto.To, dto.Value, tokenConfig)
 		} else {
 			return nil, errors.New("cannot approve for base token")
 		}

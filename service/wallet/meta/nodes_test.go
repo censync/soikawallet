@@ -99,25 +99,25 @@ func TestNodes_MarshalJSON_Positive(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-/*
 func TestNodes_RemoveRPCAccountLink_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
-	assert.NotNil(t, metaNodes.accountsLinks)
+	assert.NotNil(t, metaNodes.subIndex)
+	assert.NotNil(t, metaNodes.links)
 
-	for accountIndex := types.AccountIndex(0); accountIndex < types.AccountIndex(len(testDataRPC)); accountIndex++ {
+	for addrIdx := aIndex(randomOffset); addrIdx < aIndex(len(testDataRPC)+randomOffset); addrIdx++ {
 		nodeIndex := types.NodeIndex{
-			CoinType: types.Ethereum,
-			Index:    uint32(accountIndex + 1),
+			ChainKey: chainKey.Key(),
+			Index:    uint32(addrIdx - randomOffset + 1),
 		}
-		exists := metaNodes.IsRPCAccountLinkExists(nodeIndex, accountIndex)
+		exists := metaNodes.IsRPCAccountLinkExists(addrIdx, nodeIndex)
 
 		assert.Equal(t, true, exists)
 
-		metaNodes.RemoveRPCAccountLink(nodeIndex, accountIndex)
+		metaNodes.RemoveRPCAccountLink(addrIdx, nodeIndex)
 
-		notExists := metaNodes.IsRPCAccountLinkExists(nodeIndex, accountIndex)
+		notExists := metaNodes.IsRPCAccountLinkExists(addrIdx, nodeIndex)
 
 		assert.Equal(t, false, notExists)
 	}
@@ -127,29 +127,30 @@ func TestNodes_RemoveRPCNode_Positive(t *testing.T) {
 	// test init
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
-	assert.NotNil(t, metaNodes.accountsLinks)
+	assert.NotNil(t, metaNodes.subIndex)
+	assert.NotNil(t, metaNodes.links)
 
 	if len(metaNodes.nodes) != len(testDataRPC) {
 		t.Fatal("incorrect length")
 	}
 
-	if len(metaNodes.accountsLinks) != len(testDataRPC) {
+	if len(metaNodes.subIndex) != len(testDataRPC) {
 		t.Fatal("incorrect length")
 	}
 
 	for index := len(testDataRPC); index > 0; index-- {
 		nodeIndex := types.NodeIndex{
-			CoinType: types.Ethereum,
-			Index:    uint32(index),
+			ChainKey: chainKey.Key(),
+			Index:    uint32(index + 1),
 		}
 
 		err := metaNodes.RemoveRPCNode(nodeIndex)
 		assert.Nil(t, err)
 
-		_, exists := metaNodes.nodes[nodeIndex]
-		assert.False(t, exists)
+		//_, exists := metaNodes.nodes[nodeIndex]
+		//assert.False(t, exists)
 
-		_, exists = metaNodes.accountsLinks[nodeIndex]
+		_, exists := metaNodes.subIndex[nodeIndex]
 		assert.False(t, exists)
 	}
 
@@ -157,8 +158,7 @@ func TestNodes_RemoveRPCNode_Positive(t *testing.T) {
 		t.Fatal("awaiting zero length")
 	}
 
-	if len(metaNodes.accountsLinks) > 0 {
+	if len(metaNodes.subIndex) > 0 {
 		t.Fatal("awaiting zero length")
 	}
 }
-*/

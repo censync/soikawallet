@@ -64,6 +64,9 @@ func (n *nodes) RemoveRPCNode(nodeIndex types.NodeIndex) error {
 // Linked accounts
 
 func (n *nodes) IsRPCAccountLinkExists(addrIdx aIndex, nodeIndex types.NodeIndex) bool {
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+
 	internalIndex, ok := n.subIndex[nodeIndex]
 
 	if !ok {
@@ -82,6 +85,9 @@ func (n *nodes) IsRPCAccountLinkExists(addrIdx aIndex, nodeIndex types.NodeIndex
 
 // WTF?
 func (n *nodes) GetRPCAccountLinks(nodeIndex types.NodeIndex) []aIndex {
+	n.mu.RLock()
+	defer n.mu.RUnlock()
+
 	var result []aIndex
 
 	internalIndex, ok := n.subIndex[nodeIndex]

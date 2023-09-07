@@ -240,6 +240,8 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 			result["units"], err = e.gasEstimateTransfer(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
 		case "transferFrom(address,address,uint256)":
 			result["units"], err = e.gasEstimateTransferFrom(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+		default:
+			return nil, fmt.Errorf("wrong methond: %s", args[0])
 		}
 		if err != nil {
 			return nil, err
@@ -378,8 +380,8 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gas, g
 		}
 	} else {
 		txData = &ethTypes.LegacyTx{
-			GasPrice: new(big.Int).SetUint64(100),
-			Gas:      2100000,
+			GasPrice: new(big.Int).SetUint64(gasTipCap),
+			Gas:      gas,
 			Nonce:    nonce,
 			To:       &addrTo,
 			Value:    weiValue,
