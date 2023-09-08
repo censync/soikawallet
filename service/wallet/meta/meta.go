@@ -2,6 +2,9 @@ package meta
 
 import (
 	"encoding/json"
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/types"
+	"sync/atomic"
 	"time"
 )
 
@@ -13,16 +16,20 @@ const (
 // all user configuration with AirGap
 
 type Meta struct {
-	version        uint8
+	version uint8
+
+	// nonce is the number of operations with meta config objects,
+	// required for synchronization with AirGap Vault
 	nonce          uint32
-	nonceUpdatedAt uint64 // UTC
+	nonceUpdatedAt int64 // UTC
 	// addresses key: mhda_nss
 	addresses map[string]*Address
-	//deliveredKeys  []string
-	//w3Accounts     []string
 	labels
 	nodes
 	tokens
+
+	//deliveredKeys  []string
+	//w3Accounts     []string
 }
 
 func InitMeta() *Meta {
@@ -32,7 +39,7 @@ func InitMeta() *Meta {
 		//deliveredKeys:  []string{},
 		addresses:      map[string]*Address{},
 		nonce:          0,
-		nonceUpdatedAt: uint64(time.Now().UTC().Unix()),
+		nonceUpdatedAt: time.Now().UTC().Unix(),
 	}
 
 	instance.initLabels()
@@ -42,6 +49,11 @@ func InitMeta() *Meta {
 	instance.initTokens()
 
 	return instance
+}
+
+func (m *Meta) NonceAdd() {
+	atomic.AddUint32(&m.nonce, 1)
+	m.nonceUpdatedAt = time.Now().UTC().Unix()
 }
 
 func (m *Meta) IsAddressExist(addrKey string) bool {
@@ -61,23 +73,87 @@ func (m *Meta) SetAddress(addrKey string, address *Address) {
 	m.addresses[addrKey] = address
 }
 
+// Nodes operations
+
+func (m *Meta) AddRPCNode(index types.NodeIndex, rpc *types.RPC) error {
+	err := m.nodes.AddRPCNode(index, rpc)
+	if err == nil {
+		m.NonceAdd()
+	}
+	return err
+}
+func (m *Meta) RemoveRPCNode(nodeIndex types.NodeIndex) error {
+	err := m.nodes.RemoveRPCNode(nodeIndex)
+	if err == nil {
+		m.NonceAdd()
+	}
+	return err
+}
+
+func (m *Meta) SetRPCAddressLink(addrIdx aIndex, nodeIndex types.NodeIndex) error {
+	err := m.nodes.SetRPCAddressLink(addrIdx, nodeIndex)
+	if err == nil {
+		m.NonceAdd()
+	}
+	return err
+}
+
+func (m *Meta) RemoveRPCAccountLink(addrIdx aIndex, nodeIndex types.NodeIndex) error {
+	err := m.nodes.RemoveRPCAccountLink(addrIdx, nodeIndex)
+	if err == nil {
+		m.NonceAdd()
+	}
+	return err
+}
+
+// Tokens
+
+func (m *Meta) AddTokenConfig(chainKey mhda.ChainKey, config *types.TokenConfig) error {
+	err := m.tokens.AddTokenConfig(chainKey, config)
+	if err == nil {
+		m.NonceAdd()
+	}
+	return err
+}
+
+func (m *Meta) RemoveTokenConfig(index types.TokenIndex) error {
+	err := m.tokens.RemoveTokenConfig(index)
+	if err == nil {
+		m.NonceAdd()
+	}
+	return err
+}
+
+func (m *Meta) SetTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
+	err := m.tokens.SetTokenConfigAddressLink(addrIdx, tokenIndex)
+	if err == nil {
+		m.NonceAdd()
+	}
+	return err
+}
+
+func (m *Meta) RemoveTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
+	err := m.tokens.RemoveTokenConfigAddressLink(addrIdx, tokenIndex)
+	if err == nil {
+		m.NonceAdd()
+	}
+	return err
+}
+
 func (m *Meta) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Version       uint8    `json:"v"`
-		Nonce         uint32   `json:"nonce"` // TODO: Add updated at
-		DeliveredKeys []string `json:"delivered_keys"`
-		//W3Accounts    []string `json:"w3_accounts"`
-		Labels labels `json:"labels"`
-		Nodes  nodes  `json:"nodes"`
-		Tokens tokens `json:"tokens"`
+		Version      uint8  `json:"v"`
+		Nonce        uint32 `json:"nonce"`
+		NonceUpdated int64  `json:"nonce_ts"`
+		Labels       labels `json:"labels"`
+		Nodes        nodes  `json:"nodes"`
+		Tokens       tokens `json:"tokens"`
 	}{
 		Version: m.version,
 		Nonce:   m.nonce,
-		//DeliveredKeys: m.deliveredKeys,
-		//W3Accounts:    m.w3Accounts,
-		Labels: m.labels,
-		Nodes:  m.nodes,
-		Tokens: m.tokens,
+		Labels:  m.labels,
+		Nodes:   m.nodes,
+		Tokens:  m.tokens,
 	})
 }
 

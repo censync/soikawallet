@@ -188,3 +188,8 @@ func TestTokens_RemoveTokenConfig_Positive(t *testing.T) {
 	}
 }
 */
+
+func TestTokens_MarshalJSON(t *testing.T) {
+	data, err := metaTokens.MarshalJSON()
+	t.Log(data, err)
+}

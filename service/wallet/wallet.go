@@ -123,7 +123,7 @@ func (s *Wallet) GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.
 			// Path:        accountPath.String(),
 			ChainKey: dto.ChainKey,
 			Account:  accountIndex,
-			// Label:       s.meta.GetAccountLabel(accountPath.String()),
+			Label:    s.meta.GetAccountLabel(dto.ChainKey, accountIndex),
 		})
 	}
 

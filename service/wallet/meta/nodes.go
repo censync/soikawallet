@@ -150,23 +150,32 @@ func (n *nodes) SetRPCAddressLink(addrIdx aIndex, nodeIndex types.NodeIndex) err
 	return nil
 }
 
-func (n *nodes) RemoveRPCAccountLink(addrIdx aIndex, nodeIndex types.NodeIndex) {
+func (n *nodes) RemoveRPCAccountLink(addrIdx aIndex, nodeIndex types.NodeIndex) error {
+	var linkExists bool
+
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
 	internalIndex, ok := n.subIndex[nodeIndex]
 
 	if !ok {
-		return
+		return errors.New("rpc not exists")
 	}
 
 	if _, ok = n.links[addrIdx]; ok {
 		for index := range n.links[addrIdx] {
 			if n.links[addrIdx][index] == internalIndex {
+				linkExists = true
 				n.links[addrIdx] = append(n.links[addrIdx][:index], n.links[addrIdx][index+1:]...)
 			}
 		}
 	}
+
+	if linkExists {
+		return errors.New("link not exists")
+	}
+
+	return nil
 }
 
 func (n *nodes) MarshalJSON() ([]byte, error) {

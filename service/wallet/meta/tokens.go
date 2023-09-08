@@ -1,6 +1,7 @@
 package meta
 
 import (
+	"encoding/json"
 	"errors"
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/types"
@@ -57,6 +58,7 @@ func (t *tokens) RemoveTokenConfig(index types.TokenIndex) error {
 	if internalIdx, ok := t.subIndex[index]; ok {
 		delete(t.subIndex, index)
 		delete(t.tokens, internalIdx)
+		// TODO: Also remove links
 	} else {
 		return errors.New("token is not exists")
 	}
@@ -134,6 +136,8 @@ func (t *tokens) GetAddressTokens(addrIdx aIndex) ([]*types.TokenConfig, error) 
 }
 
 func (t *tokens) RemoveTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
+	var linkExists bool
+
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -145,27 +149,33 @@ func (t *tokens) RemoveTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.T
 
 	for index := range t.links[addrIdx] {
 		if t.links[addrIdx][index] == internalIndex {
+			linkExists = true
 			t.links[addrIdx] = append(t.links[addrIdx][:index], t.links[addrIdx][index+1:]...)
 		}
 	}
+
+	if linkExists {
+		return errors.New("link not exists")
+	}
+
 	return nil
 }
 
 func (t *tokens) MarshalJSON() ([]byte, error) {
-	/*t.mu.Lock()
-	defer t.mu.Unlock()
+	t.mu.RLock()
+	defer t.mu.RUnlock()
 
-	tokensExport := map[string]*types.TokenConfig{}
-	for tokenIndex, token := range t.tokens {
-		tokensExport[fmt.Sprintf("%d:%d", tokenIndex.CoinType, token.InternalIndex)] = token.TokenConfig
-	}
+	/*tokensExport := map[uint32]*types.TokenConfig{}
+	for subIdx, tokenConfig := range t.tokens {
+		tokensExport[subIdx] = tokenConfig
+	}*/
 
 	result := map[string]interface{}{
-		"tokens": tokensExport,
-		"links":  t.addressesLinks,
+		"tokens":    t.tokens,
+		"sub_index": t.subIndex,
+		"links":     t.links,
 	}
 
 	return json.Marshal(result)
-	*/
-	return []byte{}, nil
+
 }

@@ -3,6 +3,7 @@ package meta
 import (
 	"encoding/json"
 	"errors"
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/types"
 	"strings"
 	"sync"
@@ -21,99 +22,99 @@ func initLabels() label {
 	}
 }
 
-func (m *label) IsLabelExists(label string) bool {
-	for idx := range m.labels {
-		if strings.ToLower(m.labels[idx]) == strings.ToLower(label) {
+func (l *label) IsLabelExists(label string) bool {
+	for idx := range l.labels {
+		if strings.ToLower(l.labels[idx]) == strings.ToLower(label) {
 			return true
 		}
 	}
 	return false
 }
 
-func (m *label) IsIndexExists(labelIndex uint32) bool {
-	_, ok := m.labels[labelIndex]
+func (l *label) IsIndexExists(labelIndex uint32) bool {
+	_, ok := l.labels[labelIndex]
 	return ok
 }
 
-func (m *label) Labels() map[string]interface{} {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
+func (l *label) Labels() map[string]interface{} {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
 
 	return map[string]interface{}{
-		"d": m.labels,
-		"l": m.links,
+		"d": l.labels,
+		"l": l.links,
 	}
 }
 
-func (m *label) Add(label string) (uint32, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (l *label) Add(label string) (uint32, error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	var lastIndex uint32
 
-	if m.IsLabelExists(label) {
+	if l.IsLabelExists(label) {
 		return 0, errors.New("label already exist")
 	}
 
-	for lastIndex = range m.labels {
+	for lastIndex = range l.labels {
 	}
 
 	lastIndex++
-	m.labels[lastIndex] = label
+	l.labels[lastIndex] = label
 	return lastIndex, nil
 }
 
-func (m *label) Remove(labelIndex uint32) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (l *label) Remove(labelIndex uint32) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
-	if !m.IsIndexExists(labelIndex) {
+	if !l.IsIndexExists(labelIndex) {
 		return errors.New("label not exist")
 	}
-	delete(m.labels, labelIndex)
+	delete(l.labels, labelIndex)
 
-	for path, linkedIndex := range m.links {
+	for path, linkedIndex := range l.links {
 		if linkedIndex == labelIndex {
-			delete(m.links, path)
+			delete(l.links, path)
 		}
 	}
 
 	return nil
 }
 
-func (m *label) GetLabel(addrIdx aIndex) string {
-	if index, ok := m.links[addrIdx]; ok {
-		return m.labels[index]
+func (l *label) GetLabel(addrIdx aIndex) string {
+	if index, ok := l.links[addrIdx]; ok {
+		return l.labels[index]
 	}
 	return ""
 }
 
-func (m *label) SetLink(addrIdx aIndex, labelIndex uint32) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (l *label) SetLink(addrIdx aIndex, labelIndex uint32) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
-	if !m.IsIndexExists(labelIndex) {
+	if !l.IsIndexExists(labelIndex) {
 		return errors.New("label not exist")
 	}
 
-	if currentIndex, ok := m.links[addrIdx]; ok && currentIndex == labelIndex {
+	if currentIndex, ok := l.links[addrIdx]; ok && currentIndex == labelIndex {
 		return errors.New("already linked")
 	}
 
-	m.links[addrIdx] = labelIndex
+	l.links[addrIdx] = labelIndex
 
 	return nil
 }
 
-func (m *label) RemoveLink(addrIdx aIndex) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (l *label) RemoveLink(addrIdx aIndex) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
-	if _, ok := m.links[addrIdx]; !ok {
+	if _, ok := l.links[addrIdx]; !ok {
 		return errors.New("not linked")
 	}
 
-	delete(m.links, addrIdx)
+	delete(l.links, addrIdx)
 
 	return nil
 }
@@ -143,9 +144,8 @@ func (l *labels) RemoveAccountLabel(index uint32) error {
 }
 
 // Think about accounts
-func (m *Meta) GetAccountLabel(path string) string {
-	//return l.labelsAccount.GetLabel(path)
-	return ``
+func (m *Meta) GetAccountLabel(chainKey mhda.ChainKey, accountIndex mhda.AccountIndex) string {
+	return m.labelsAccount.GetLabel(aIndex(accountIndex))
 }
 
 func (m *Meta) SetAccountLabelLink(path string, index uint32) error {
