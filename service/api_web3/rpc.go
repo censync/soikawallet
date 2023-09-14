@@ -7,6 +7,8 @@ const (
 	reqCodePing = iota + 100
 	reqCodeConnect
 	reqCodeRequestAccounts
+	reqCodeGetBalance
+	reqCodeGetBlockByNumber
 )
 
 // Response codes
@@ -15,6 +17,7 @@ const (
 	respCodeConnectionAccepted
 	respCodeConnectionRejected
 	respCodeGetAccounts
+	respCodeGetBlockByNumber
 	respCodeError      = 400
 	respCodeErrorFatal = 501
 )

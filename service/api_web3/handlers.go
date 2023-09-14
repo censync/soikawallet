@@ -1,6 +1,7 @@
 package api_web3
 
 import (
+	"encoding/json"
 	"github.com/censync/soikawallet/api/dto"
 )
 
@@ -52,6 +53,18 @@ func (c *Web3Connection) handlerAccountsGet(data interface{}) {
 		"wallet_status": c.walletStatus(),
 	})
 	if conn, ok := c.hub[d.InstanceId]; ok {
+		_ = conn.WriteJSON(rpcResponse)
+	}
+}
+
+func (c *Web3Connection) handlerCallGetBlockByNumber(data interface{}) {
+	p := data.(*dto.ResponseGetBlockByNumberDTO)
+	m := map[string]interface{}{}
+	json.Unmarshal(p.Data, &m)
+	rpcResponse := c.newRPCResponse(respCodeGetBlockByNumber, map[string]interface{}{
+		"block": m,
+	})
+	if conn, ok := c.hub[p.InstanceId]; ok {
 		_ = conn.WriteJSON(rpcResponse)
 	}
 }

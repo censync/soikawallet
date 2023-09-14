@@ -3,6 +3,7 @@ package evm
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/censync/soikawallet/service/wallet/internal/oracle/chainlink"
@@ -726,6 +727,15 @@ func (e *EVM) ChainLinkGetPrice(ctx *types.RPCContext, contract string) (uint64,
 	}
 
 	return roundData.Answer.Uint64(), decimals, nil
+}
+
+func (e *EVM) GetBlock(ctx *types.RPCContext, blockNumber uint64) ([]byte, error) {
+	block, err := e.getBlock(ctx, blockNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(block)
 }
 
 // TODO: fix precision

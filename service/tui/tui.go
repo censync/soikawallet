@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 	"github.com/censync/go-i18n"
+	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/config/dict"
 	"github.com/censync/soikawallet/config/version"
@@ -134,6 +135,30 @@ func (t *Tui) initLayout() *tview.Flex {
 					t.frame.State().SwitchToPage("w3_confirm_connect", event.Data())
 				case event_bus.EventW3RequestAccounts:
 					t.frame.State().SwitchToPage("w3_request_accounts", event.Data())
+				case event_bus.EventW3RPCRequest:
+					go func() {
+						req, ok := event.Data().(*dto.RequestCallGetBlockByNumberDTO)
+						if !ok {
+							layoutStatus.Error("Cannot parse w3 request")
+							return
+						}
+						result, err := wallet.API().ExecuteRPC(&dto.ExecuteRPCRequestDTO{
+							InstanceId: req.InstanceId,
+							//Origin:     req.Origin,
+							// RemoteAddr: "",
+							ChainKey: req.ChainKey,
+							Method:   req.Method,
+							Params:   nil,
+						})
+						if err != nil {
+							layoutStatus.Error("Cannot execute w3 call")
+							return
+						}
+						t.frame.State().EmitW3(event_bus.EventW3CallGetBlockByNumber, &dto.ResponseGetBlockByNumberDTO{
+							InstanceId: req.InstanceId,
+							Data:       result,
+						})
+					}()
 				case event_bus.EventQuit:
 					// graceful shutdown
 					// TODO: Uncomment on release

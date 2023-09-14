@@ -20,6 +20,7 @@ const (
 
 	EventW3Connect
 	EventW3RequestAccounts
+	EventW3RPCRequest
 
 	EventW3Response
 )
@@ -29,6 +30,7 @@ const (
 	EventW3WalletNotAvailable
 	EventW3ConnAccepted
 	EventW3ConnRejected
+	EventW3CallGetBlockByNumber
 )
 
 type EventType uint8

@@ -208,6 +208,9 @@ type NetworkAdapter interface {
 	TxApproveToken(ctx *RPCContext, to string, value float64, token *TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
 
+	// w3 direct calls
+	GetBlock(ctx *RPCContext, blockNumber uint64) ([]byte, error)
+
 	// Prepared transaction
 	TxSendPrepared(ctx *RPCContext, tx []byte) (string, error)
 

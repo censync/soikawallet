@@ -70,6 +70,7 @@ type WalletAdapter interface {
 	RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error
 	GetRPCLinkedAccountCount(dto *dto.GetRPCLinkedAccountCountDTO) int
 	GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, error)
+	ExecuteRPC(dto *dto.ExecuteRPCRequestDTO) ([]byte, error)
 
 	// Currencies
 	UpdateFiatCurrencies() map[string]float64

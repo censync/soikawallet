@@ -362,3 +362,21 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 
 	return err
 }
+
+func (s *Wallet) ExecuteRPC(dto *dto.ExecuteRPCRequestDTO) ([]byte, error) {
+	if !types.IsNetworkExists(dto.ChainKey) {
+		return nil, errors.New("network is not exists in SLIP-44 list")
+	}
+
+	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()
+
+	ctx := types.NewRPCContext(dto.ChainKey, defaultNodeIndex)
+
+	provider, err := s.getNetworkProvider(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return provider.GetBlock(ctx, 0)
+}

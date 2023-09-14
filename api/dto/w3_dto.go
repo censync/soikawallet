@@ -11,10 +11,14 @@ type ConnectDTO struct {
 	RemoteAddr string
 }
 
-type RequestAccountsDTO struct {
+type ExecuteRPCRequestDTO struct {
 	InstanceId string
 	Origin     string
-	ChainKey   mhda.ChainKey
+	RemoteAddr string
+
+	ChainKey mhda.ChainKey
+	Method   string
+	Params   []string
 }
 
 type ResponseAcceptDTO struct {
@@ -22,7 +26,26 @@ type ResponseAcceptDTO struct {
 	Chains     []*resp.ChainInfo
 }
 
+type ResponseGetBlockByNumberDTO struct {
+	InstanceId string
+	Data       []byte
+}
+
 type ResponseRejectDTO struct {
 	InstanceId string
 	RemoteAddr string
+}
+
+type RequestAccountsDTO struct {
+	InstanceId string
+	Origin     string
+	ChainKey   mhda.ChainKey
+}
+
+type RequestCallGetBlockByNumberDTO struct {
+	InstanceId string
+	Origin     string
+	ChainKey   mhda.ChainKey
+	Method     string
+	Params     []string
 }
