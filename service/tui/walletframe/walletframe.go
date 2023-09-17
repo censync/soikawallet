@@ -22,6 +22,7 @@ const (
 	pageNameTokenAdd         = `token_add`
 	pageNameNodeInfo         = `node_info`
 	pageNameSettings         = `settings`
+	pageNameW3Connections    = `w3_connections`
 	pageNameAirGapShow       = `airgap_show`
 	pageNameAirGapScan       = `airgap_scan`
 	pageNameAgreement        = `agreement`
@@ -85,6 +86,9 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 		// w3 connector
 		pageNameW3ConfirmConnect:  newPageW3ConfirmConnect(f.state),
 		pageNameW3RequestAccounts: newPageW3RequestAccounts(f.state),
+
+		// internal
+		pageNameW3Connections: newPageW3Connections(f.state),
 	}
 	pages := extpages.NewPages()
 
@@ -113,6 +117,7 @@ func (f *WalletFrame) Layout() *tview.Flex {
 		AddMenuItem("Transactions", tcell.KeyF6, func() { f.state.SwitchToPage(pageNameTransaction) }).
 		AddMenuItem("Node info", tcell.KeyF7, func() { f.state.SwitchToPage(pageNameNodeInfo) }).
 		AddMenuItem("Settings", tcell.KeyF4, func() { f.state.SwitchToPage(pageNameSettings) }).
+		AddMenuItem("W3 connections", tcell.KeyF3, func() { f.state.SwitchToPage(pageNameW3Connections) }).
 		AddMenuItem("About", tcell.KeyF1, func() { f.state.SwitchToPage(pageNameAbout) }).
 		AddMenuItem("Quit", tcell.KeyF12, func() { f.state.Emit(event_bus.EventQuit, nil) })
 

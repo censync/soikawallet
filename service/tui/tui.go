@@ -135,7 +135,7 @@ func (t *Tui) initLayout() *tview.Flex {
 					t.frame.State().SwitchToPage("w3_confirm_connect", event.Data())
 				case event_bus.EventW3RequestAccounts:
 					t.frame.State().SwitchToPage("w3_request_accounts", event.Data())
-				case event_bus.EventW3RPCRequest:
+				case event_bus.EventW3ReqCallGetBlockByNumber:
 					go func() {
 						req, ok := event.Data().(*dto.RequestCallGetBlockByNumberDTO)
 						if !ok {
@@ -159,6 +159,10 @@ func (t *Tui) initLayout() *tview.Flex {
 							Data:       result,
 						})
 					}()
+				// Internal
+				case event_bus.EventW3InternalConnections:
+					layoutStatus.Info("Got connections")
+					t.frame.State().SwitchToPage("w3_connections", event.Data())
 				case event_bus.EventQuit:
 					// graceful shutdown
 					// TODO: Uncomment on release
@@ -188,8 +192,6 @@ func (t *Tui) initLayout() *tview.Flex {
 }
 
 func (t *Tui) Start() error {
-	// Start the application
-	//go func() {
 
 	if t.isVerboseMode {
 		t.uiEvents.Emit(event_bus.EventLog, "Verbose mode enabled")

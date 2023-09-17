@@ -24,6 +24,7 @@ type frameAddressesDetailsAddr struct {
 
 	// vars
 	selectedAddress *resp.AddressResponse
+	isQrIsShown     bool
 }
 
 func newFrameAddressesDetailsAddr(state *state.State, selectedAddress *resp.AddressResponse) *frameAddressesDetailsAddr {
@@ -84,24 +85,10 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		}
 	})
 
-	btnSelectedAddrSetW3 := tview.NewButton("Set W3").SetSelectedFunc(func() {
-		if f.selectedAddress != nil {
-			err := f.API().SetAddressW3(&dto.SetAddressW3DTO{
-				MhdaPath: f.selectedAddress.Path,
-			})
-			if err != nil {
-				f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set address for Web 3: %s", err))
-			} else {
-				f.Emit(event_bus.EventLogSuccess, "Address permitted for Web 3")
-			}
-		}
-	})
-
 	layoutSelectedAddrOptions := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
 		AddItem(btnSelectedAddrCopy, 10, 1, false).
 		AddItem(nil, 3, 1, false).
-		AddItem(btnSelectedAddrSetW3, 10, 1, false).
 		AddItem(nil, 0, 1, false)
 
 	formDetails := tview.NewForm().
@@ -114,7 +101,19 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 			}
 		}).
 		AddButton("Refresh", func() {
-			//go f.actionUpdateAddresses()
+			// f.actionUpdateAddresses()
+		}).
+		AddButton("Set W3", func() {
+			if f.selectedAddress != nil {
+				err := f.API().SetAddressW3(&dto.SetAddressW3DTO{
+					MhdaPath: f.selectedAddress.Path,
+				})
+				if err != nil {
+					f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set address for Web 3: %s", err))
+				} else {
+					f.Emit(event_bus.EventLogSuccess, "Address permitted for Web 3")
+				}
+			}
 		})
 
 	formDetails.SetBorderPadding(0, 0, 1, 0)
@@ -204,16 +203,20 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 	return f.layout
 }
 
-func (f *frameAddressesDetailsAddr) clearAddrQR() {
-	// f.labelQR.Clear()
-	// f.labelQR.SetTextColor(tcell.ColorDefault).
-	//	SetBackgroundColor(tcell.ColorDefault)
-}
-
 func (f *frameAddressesDetailsAddr) showAddrQR() {
 	if f.selectedAddress != nil {
-		f.labelQR.SetTextColor(tcell.ColorBlack).
-			SetBackgroundColor(tcell.ColorLightGray)
-		f.labelQR.SetText(qrview.NewQrViewText(f.selectedAddress.Address))
+		if !f.isQrIsShown {
+			// Show
+			f.isQrIsShown = true
+			f.labelQR.SetTextColor(tcell.ColorBlack).
+				SetBackgroundColor(tcell.ColorLightGray)
+			f.labelQR.SetText(qrview.NewQrViewText(f.selectedAddress.Address))
+		} else {
+			// Hide
+			f.isQrIsShown = false
+			f.labelQR.Clear()
+			f.labelQR.SetTextColor(tcell.ColorDefault).
+				SetBackgroundColor(tcell.ColorDefault)
+		}
 	}
 }

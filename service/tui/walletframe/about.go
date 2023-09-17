@@ -43,3 +43,7 @@ func (p *pageAbout) FuncOnShow() {
 		AddItem(layoutAbout, 0, 2, false).
 		AddItem(nil, 0, 1, false)
 }
+
+func (p *pageAbout) FuncOnHide() {
+	p.layout.Clear()
+}

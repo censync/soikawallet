@@ -18,15 +18,17 @@ const (
 
 	// browser connector
 
+	EventW3InternalConnections EventType = iota + 170
 	EventW3Connect
 	EventW3RequestAccounts
-	EventW3RPCRequest
+	EventW3ReqCallGetBlockByNumber
 
 	EventW3Response
 )
 
 const (
-	EventW3WalletAvailable EventType = iota + 200
+	EventW3InternalGetConnections           = EventType(190)
+	EventW3WalletAvailable        EventType = iota + 200
 	EventW3WalletNotAvailable
 	EventW3ConnAccepted
 	EventW3ConnRejected

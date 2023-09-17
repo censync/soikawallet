@@ -97,6 +97,17 @@ func (c *Web3Connection) Start() error {
 					c.handlerConnRejected(event.Data())
 				case event_bus.EventW3CallGetBlockByNumber:
 					c.handlerCallGetBlockByNumber(event.Data())
+				// Internal
+				case event_bus.EventW3InternalGetConnections:
+					connectionsInfo := map[string]string{}
+					for connectionId, conn := range c.hub {
+						connectionsInfo[connectionId] = fmt.Sprintf(
+							"%s - %s",
+							conn.RemoteAddr().String(),
+							conn.LocalAddr().String(),
+						)
+					}
+					c.uiEvents.Emit(event_bus.EventW3InternalConnections, connectionsInfo)
 				default:
 					c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf(
 						"[W3 Connector] Undefined event: %d",
@@ -235,7 +246,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 			})
 		case reqCodeGetBlockByNumber:
 			payload := parsedRequest.Data.(*RPCRequest)
-			c.uiEvents.Emit(event_bus.EventW3RPCRequest, &dto.RequestCallGetBlockByNumberDTO{
+			c.uiEvents.Emit(event_bus.EventW3ReqCallGetBlockByNumber, &dto.RequestCallGetBlockByNumberDTO{
 				InstanceId: extensionId,
 				Origin:     r.Header.Get("Origin"),
 				ChainKey:   payload.ChainKey,

@@ -142,4 +142,5 @@ func (p *pageAirGapScan) actionProcessMessage() {
 
 func (p *pageAirGapScan) FuncOnHide() {
 	p.actionScannerStop()
+	p.layout.Clear()
 }
