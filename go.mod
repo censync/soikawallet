@@ -9,7 +9,7 @@ require (
 	github.com/censync/go-i18n v1.1.0
 	github.com/censync/go-mhda v0.0.0-20230907105920-0f9d9a7b9913
 	github.com/censync/go-zbar v0.0.0-20230729004535-ef25faa3eb24
-	github.com/censync/tview v0.0.0-20230917153124-7d8222eff7cf
+	github.com/censync/tview v0.0.0-20230917160634-1c7795b1187d
 	github.com/ethereum/go-ethereum v1.13.1
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/gorilla/websocket v1.5.0
@@ -60,4 +60,4 @@ require (
 
 // replace github.com/censync/go-airgap => ../go-airgap
 // replace github.com/censync/go-mhda => ../go-mhda
-replace github.com/censync/tview => ../tview
+// replace github.com/censync/tview => ../tview
