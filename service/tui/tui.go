@@ -11,8 +11,8 @@ import (
 	"github.com/censync/soikawallet/service/tui/walletframe"
 	"github.com/censync/soikawallet/service/tui/widgets/statusview"
 	"github.com/censync/soikawallet/service/wallet"
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"sync"
 )
 

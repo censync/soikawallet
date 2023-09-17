@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 )
 
 type pageW3Connections struct {
@@ -18,7 +18,7 @@ type pageW3Connections struct {
 func newPageW3Connections(state *state.State) *pageW3Connections {
 	layout := tview.NewFlex().
 		SetDirection(tview.FlexRow)
-	layout.SetBorderPadding(10, 10, 10, 10)
+	layout.SetBorderPadding(1, 1, 10, 10)
 
 	return &pageW3Connections{
 		State:       state,
@@ -51,7 +51,7 @@ func (p *pageW3Connections) FuncOnShow() {
 
 			connectionEntry.SetBorder(true)
 
-			p.layout.AddItem(connectionEntry, 5, 1, false)
+			p.layout.AddItem(connectionEntry, 3, 1, false)
 		}
 		// TODO: Add reload page
 	}

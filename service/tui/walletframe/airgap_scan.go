@@ -7,8 +7,8 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 type pageAirGapScan struct {

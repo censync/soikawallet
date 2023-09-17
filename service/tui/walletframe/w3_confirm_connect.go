@@ -5,7 +5,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 )
 
 type pageW3ConfirmConnect struct {

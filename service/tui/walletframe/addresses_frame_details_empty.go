@@ -2,7 +2,7 @@ package walletframe
 
 import (
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 )
 
 type frameAddressesDetailsEmpty struct {

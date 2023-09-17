@@ -1,8 +1,8 @@
 package walletframe
 
 import (
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 func (p *pageCreateWallet) tabBulk() *tview.Flex {

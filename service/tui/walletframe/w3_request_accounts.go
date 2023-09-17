@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 )
 
 type pageW3RequestAccounts struct {

@@ -8,15 +8,15 @@ require (
 	github.com/censync/go-airgap v0.0.0-20230822093833-f9f616954fbc
 	github.com/censync/go-i18n v1.1.0
 	github.com/censync/go-mhda v0.0.0-20230907105920-0f9d9a7b9913
-	github.com/censync/go-zbar v0.0.0-20230729001432-1a756b569f38
-	github.com/ethereum/go-ethereum v1.13.0
+	github.com/censync/go-zbar v0.0.0-20230729004535-ef25faa3eb24
+	github.com/censync/tview v0.0.0-20230917153124-7d8222eff7cf
+	github.com/ethereum/go-ethereum v1.13.1
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/gorilla/websocket v1.5.0
-	github.com/rivo/tview v0.0.0-20230208211350-7dfff1ce7854
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	github.com/tyler-smith/go-bip39 v1.1.0
-	golang.org/x/crypto v0.12.0
+	golang.org/x/crypto v0.13.0
 )
 
 require (
@@ -50,9 +50,9 @@ require (
 	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/term v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/term v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
@@ -60,4 +60,4 @@ require (
 
 // replace github.com/censync/go-airgap => ../go-airgap
 // replace github.com/censync/go-mhda => ../go-mhda
-replace github.com/rivo/tview => ../tview
+replace github.com/censync/tview => ../tview

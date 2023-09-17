@@ -6,8 +6,8 @@ import (
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/widgets/extpages"
 	"github.com/censync/soikawallet/service/tui/widgets/flexmenu"
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 const (
@@ -126,8 +126,6 @@ func (f *WalletFrame) Layout() *tview.Flex {
 		AddItem(layoutMenu, 25, 1, false).
 		AddItem(f.state.Pages(), 0, 1, false)
 
-	/*layoutMenu.SetBorder(true).
-	SetBorderColor(tcell.ColorDarkGrey) */
 	return layoutMain
 }
 

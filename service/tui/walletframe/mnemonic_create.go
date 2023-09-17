@@ -8,8 +8,8 @@ import (
 	"github.com/censync/soikawallet/service/wallet"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/censync/soikawallet/util/seed"
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"strconv"
 	"strings"
 )

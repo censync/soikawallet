@@ -5,7 +5,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/config/chain"
 	"github.com/censync/soikawallet/service/internal/event_bus"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 )
 
 func (p *pageSettings) tabNodes() *tview.Flex {

@@ -1,8 +1,8 @@
 package formtextview
 
 import (
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 type FormTextView struct {

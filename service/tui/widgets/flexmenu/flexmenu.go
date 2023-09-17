@@ -1,8 +1,8 @@
 package flexmenu
 
 import (
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 type FlexMenu struct {
@@ -15,6 +15,7 @@ func NewFlexMenu(largeButtons bool) *FlexMenu {
 	menuLayout := tview.NewFlex().
 		SetDirection(tview.FlexRow)
 
+	menuLayout.Box.SetDontClear(false)
 	menuLayout.SetBorderPadding(1, 1, 1, 1)
 
 	return &FlexMenu{

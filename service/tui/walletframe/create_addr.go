@@ -4,7 +4,7 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/widgets/tabs"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 )
 
 type pageCreateWallet struct {

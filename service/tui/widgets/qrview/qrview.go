@@ -2,8 +2,8 @@ package qrview
 
 import (
 	"bytes"
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"github.com/skip2/go-qrcode"
 	"io"
 	"log"

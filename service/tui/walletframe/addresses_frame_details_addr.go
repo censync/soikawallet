@@ -10,8 +10,8 @@ import (
 	"github.com/censync/soikawallet/service/tui/widgets/qrview"
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/soikawallet/util/clipboard"
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 type frameAddressesDetailsAddr struct {

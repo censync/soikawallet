@@ -4,8 +4,8 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/widgets/spinner"
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 const (

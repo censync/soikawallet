@@ -9,7 +9,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/widgets/formtextview"
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/soikawallet/types/gas"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 	"strconv"
 )
 

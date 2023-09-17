@@ -2,7 +2,7 @@ package statusview
 
 import (
 	"fmt"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 	"time"
 )
 

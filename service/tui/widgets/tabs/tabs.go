@@ -2,8 +2,8 @@ package tabs
 
 import (
 	"fmt"
+	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 )
 
 type Tabs struct {

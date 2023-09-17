@@ -3,7 +3,7 @@ package walletframe
 import (
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/widgets/tabs"
-	"github.com/rivo/tview"
+	"github.com/censync/tview"
 )
 
 type pageSettings struct {
