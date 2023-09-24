@@ -31,14 +31,12 @@ type Address struct {
 	isKeyDelivered bool
 
 	flags uint8
-	//
-	// lastSync uint64
 
-	// New
-
-	//address  string
+	// subIndex is internal numeric serial index for binding values
 	subIndex aIndex
-	level    uint8 // 0 - root, 1 - account, 2 - charge, 3 - index
+
+	// level provides nesting level for bip derivation path
+	level uint8 // 0 - root, 1 - account, 2 - charge, 3 - index
 }
 
 func NewAddress(path mhda.MHDA, key *types.ProtectedKey, pub *ecdsa.PublicKey, addr string) *Address {

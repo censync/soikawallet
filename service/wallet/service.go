@@ -49,8 +49,8 @@ type WalletAdapter interface {
 
 	AddAddresses(dto *dto.AddAddressesDTO) ([]*resp.AddressResponse, error)
 	GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*resp.AddressResponse
-	// GetAllAddresses() []*types.AddressResponse
-	GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (map[string]float64, error)
+
+	GetTokensBalancesByAddress(dto *dto.GetAddressTokensByPathDTO) (map[string]float64, error)
 
 	// Token operations
 

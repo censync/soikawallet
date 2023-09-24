@@ -156,14 +156,14 @@ func (s *Wallet) GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, err
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
-		return nil, err
+		return map[string]interface{}{}, err
 	}
 	return provider.GetRPCInfo(ctx)
 }
 
 func (s *Wallet) GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error) {
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return nil, errors.New("network is not exists in SLIP-44 list")
+		return nil, errors.New("network is not supported")
 	}
 
 	rpcProvider := s.getRPCProvider(dto.ChainKey)
@@ -180,7 +180,7 @@ func (s *Wallet) GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurr
 
 func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error) {
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return nil, errors.New("network is not exists in SLIP-44 list")
+		return nil, errors.New("network is not supported")
 	}
 
 	result := resp.AddressTokensListResponse{}
@@ -258,7 +258,7 @@ func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
 	)
 
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return nil, errors.New("network is not exists in SLIP-44 list")
+		return nil, errors.New("network is not supported")
 	}
 
 	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()
@@ -298,7 +298,7 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 	)
 
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return errors.New("network is not exists in SLIP-44 list")
+		return errors.New("network is not supported")
 	}
 
 	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()
@@ -365,7 +365,7 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 
 func (s *Wallet) ExecuteRPC(dto *dto.ExecuteRPCRequestDTO) ([]byte, error) {
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return nil, errors.New("network is not exists in SLIP-44 list")
+		return nil, errors.New("network is not supported")
 	}
 
 	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()

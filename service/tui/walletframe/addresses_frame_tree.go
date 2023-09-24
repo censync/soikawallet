@@ -108,7 +108,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 				if addrTree.GetReference() != nil {
 					addrView := addrTree.GetReference().(*addrNodeViewEntry)
 					if addrView.balances == nil {
-						balances, err := p.API().GetTokensBalancesByPath(&dto.GetAddressTokensByPathDTO{
+						balances, err := p.API().GetTokensBalancesByAddress(&dto.GetAddressTokensByPathDTO{
 							MhdaPath: addrView.addr.Path,
 						})
 

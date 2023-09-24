@@ -22,7 +22,7 @@ type Meta struct {
 	// required for synchronization with AirGap Vault
 	nonce          uint32
 	nonceUpdatedAt int64 // UTC
-	// addresses key: mhda_nss
+	// addresses key: mhda_nss of address => val: address
 	addresses map[string]*Address
 	labels
 	nodes
@@ -56,8 +56,8 @@ func (m *Meta) NonceAdd() {
 	m.nonceUpdatedAt = time.Now().UTC().Unix()
 }
 
-func (m *Meta) IsAddressExist(addrKey string) bool {
-	_, ok := m.addresses[addrKey]
+func (m *Meta) IsAddressExist(nssKey string) bool {
+	_, ok := m.addresses[nssKey]
 	return ok
 }
 
@@ -65,12 +65,13 @@ func (m *Meta) Addresses() map[string]*Address {
 	return m.addresses
 }
 
-func (m *Meta) GetAddress(addrKey string) *Address {
-	return m.addresses[addrKey]
+// GetAddress returns address mhda nss key
+func (m *Meta) GetAddress(nssKey string) *Address {
+	return m.addresses[nssKey]
 }
 
-func (m *Meta) SetAddress(addrKey string, address *Address) {
-	m.addresses[addrKey] = address
+func (m *Meta) SetAddress(nssKey string, address *Address) {
+	m.addresses[nssKey] = address
 }
 
 // Nodes operations

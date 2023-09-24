@@ -20,16 +20,14 @@ import (
 )
 
 const (
-	hardenedKeyStart = uint32(0x80000000) // 2^31
-	fiatTitle        = "USD"
-	fiatSymbol       = "$"
+	fiatTitle  = "USD"
+	fiatSymbol = "$"
 )
 
 type Wallet struct {
 	// instanceId compressed public key for root key, used for identify device instance
-	instanceId []byte
-	rootKey    *hdkeychain.ExtendedKey
-	// addresses key: mhda_nss of address => val: address
+	instanceId     []byte
+	rootKey        *hdkeychain.ExtendedKey
 	meta           *meta.Meta
 	currenciesFiat *currencies.FiatCurrencies
 }
@@ -88,16 +86,6 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
 
 func (s *Wallet) getInstanceId() string {
 	return base58.Encode(s.instanceId)
-}
-
-func (s *Wallet) GetTxReceipt(dto *dto.GetTxReceiptDTO) (map[string]interface{}, error) {
-	ctx := types.NewRPCContext(mhda.ChainKey(dto.ChainKey), dto.NodeIndex)
-	provider, err := s.getNetworkProvider(ctx)
-
-	if err != nil {
-		return nil, err
-	}
-	return provider.TxGetReceipt(ctx, dto.Hash)
 }
 
 func (s *Wallet) GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.AccountResponse {
@@ -168,7 +156,7 @@ func (s *Wallet) ExportMetaDebug() ([]byte, error) {
 func (s *Wallet) MarshalJSON() ([]byte, error) {
 	var strPaths []string
 	// TODO: Add internal
-	addresses := s.GetAllAddresses()
+	addresses := s.getAllAddresses()
 	for index := range addresses {
 		strPaths = append(strPaths, addresses[index].Path)
 	}

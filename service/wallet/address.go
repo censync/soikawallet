@@ -12,6 +12,12 @@ import (
 	"github.com/censync/soikawallet/types"
 )
 
+const (
+	hardenedKeyStart = uint32(0x80000000) // 2^31
+)
+
+// address deprecated
+/*
 func (s *Wallet) address(path mhda.MHDA) (*meta.Address, error) {
 	addr := s.meta.GetAddress(path.NSS())
 	if addr == nil {
@@ -19,6 +25,7 @@ func (s *Wallet) address(path mhda.MHDA) (*meta.Address, error) {
 	}
 	return addr, nil
 }
+*/
 
 func (s *Wallet) chargeDeriveKey(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
 	if s.rootKey == nil {
@@ -310,7 +317,7 @@ func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*res
 	return addresses
 }
 
-func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
+func (s *Wallet) getAllAddresses() []*resp.AddressResponse {
 	var addresses []*resp.AddressResponse
 	for _, addr := range s.meta.Addresses() {
 		addresses = append(addresses, &resp.AddressResponse{
@@ -327,7 +334,7 @@ func (s *Wallet) GetAllAddresses() []*resp.AddressResponse {
 	return addresses
 }
 
-func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error) {
+func (s *Wallet) GetTokensBalancesByAddress(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error) {
 	result := map[string]float64{}
 
 	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
@@ -377,6 +384,7 @@ func (s *Wallet) GetTokensBalancesByPath(dto *dto.GetAddressTokensByPathDTO) (to
 	return result, nil
 }
 
+// SetAddressW3 Mark address as available for web3 iterations with WebExtension
 func (s *Wallet) SetAddressW3(dto *dto.SetAddressW3DTO) error {
 	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
@@ -395,6 +403,9 @@ func (s *Wallet) SetAddressW3(dto *dto.SetAddressW3DTO) error {
 	return nil
 }
 
+// UnsetAddressW3 Unmark address is not available for web3 iterations.
+// If address already have iterations and was delivered to web extension,
+// returns error.
 func (s *Wallet) UnsetAddressW3(dto *dto.SetAddressW3DTO) error {
 	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
 	if err != nil {
