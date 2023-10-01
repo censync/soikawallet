@@ -63,7 +63,7 @@ type WalletAdapter interface {
 
 	// Chain operations
 
-	GetAllEvmChains(dto *dto.GetChainsDTO) []*resp.ChainInfo
+	GetAllEvmW3Chains() []*resp.ChainInfo
 
 	// nodes
 	AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error

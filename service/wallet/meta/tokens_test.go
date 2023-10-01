@@ -81,7 +81,7 @@ func TestTokens_SetTokenConfigAddressLink_Positive(t *testing.T) {
 
 	for _, entry := range testDataTokens {
 		tokenIndex := types.TokenIndex{
-			ChainKey: chainKey.Key(),
+			ChainKey: chainKey.key(),
 			Contract: entry[2],
 		}
 		addressIndex := types.AddressIndex{

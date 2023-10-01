@@ -17,6 +17,6 @@ func TestWalletService_Init(t *testing.T) {
 	assert.Nil(t, err)
 	//priv, _ := service.rootKey.ECPrivKey()
 	//pub, _ := service.rootKey.ECPubKey()
-	//t.Log(priv.Key.String())
+	//t.Log(priv.key.String())
 	//t.Log(pub.Y(), pub.Y(), err)
 }

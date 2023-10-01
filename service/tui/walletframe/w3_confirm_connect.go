@@ -36,9 +36,7 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 	}
 	connectionReq := p.Params()[0].(*dto.ConnectDTO)
 
-	w3Chains := p.API().GetAllEvmChains(&dto.GetChainsDTO{
-		OnlyW3: true,
-	})
+	w3Chains := p.API().GetAllEvmW3Chains()
 	labelSelectChains := tview.NewFlex().SetDirection(tview.FlexRow)
 
 	for _, chain := range w3Chains {

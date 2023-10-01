@@ -58,9 +58,8 @@ type TokenConfig struct {
 }
 
 type ChainInfo struct {
-	ChainId  string        `json:"chain_id"`
 	Name     string        `json:"name"`
-	ChainKey mhda.ChainKey `json:"network_type"`
+	ChainKey mhda.ChainKey `json:"chain_key"`
 }
 
 type CalculatorConfig struct {

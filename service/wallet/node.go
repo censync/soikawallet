@@ -78,7 +78,7 @@ func (s *Wallet) setAccountLinkRPC(nodeIndex types.NodeIndex, accountIndex mhda.
 
 	// set for addresses
 	for index, addr := range s.meta.Addresses() {
-		if addr.MHDA().Chain().Key() == nodeIndex.ChainKey && addr.Account() == accountIndex {
+		if addr.MHDA().Chain().key() == nodeIndex.ChainKey && addr.Account() == accountIndex {
 			s.addresses[index].nodeIndex = nodeIndex.Index
 		}
 	}*/
@@ -102,7 +102,7 @@ func (s *Wallet) removeAccountLinkRPC(chainKey mhda.ChainKey, addrKey string) er
 		if addr.Network() == networkType &&
 			addr.Account() == accountIndex {
 			nodeKey = types.NodeIndex{
-				ChainKey: addr.MHDA().Chain().Key(),
+				ChainKey: addr.MHDA().Chain().key(),
 				Index:    addr.NodeIndex(),
 			}
 			isExist = true

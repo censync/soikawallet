@@ -18,7 +18,3 @@ type AddTokenDTO struct {
 	Contract string
 	MhdaPath string // ?null
 }
-
-type GetChainsDTO struct {
-	OnlyW3 bool
-}

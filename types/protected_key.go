@@ -7,8 +7,8 @@ import (
 )
 
 type ProtectedKey struct {
-	Key []byte
-	Len int
+	key []byte
+	len int
 }
 
 func NewProtectedKey(key *ecdsa.PrivateKey) *ProtectedKey {
@@ -17,40 +17,40 @@ func NewProtectedKey(key *ecdsa.PrivateKey) *ProtectedKey {
 	return pKey
 }
 
-func (m *ProtectedKey) lock() {
-	if err := syscall.Mprotect(m.Key, syscall.PROT_NONE); err != nil {
+func (pk *ProtectedKey) lockMem() {
+	if err := syscall.Mprotect(pk.key, syscall.PROT_NONE); err != nil {
 		panic(err)
 	}
 }
 
-func (m *ProtectedKey) unlock() {
-	if err := syscall.Mprotect(m.Key, syscall.PROT_READ); err != nil {
+func (pk *ProtectedKey) unlockMem() {
+	if err := syscall.Mprotect(pk.key, syscall.PROT_READ); err != nil {
 		panic(err)
 	}
 }
 
-func (m *ProtectedKey) Set(key *ecdsa.PrivateKey) {
+func (pk *ProtectedKey) Set(key *ecdsa.PrivateKey) {
 	pageSize := syscall.Getpagesize()
 
 	if len(crypto.FromECDSA(key)) > pageSize {
 		panic("data larger than page size")
 	}
-	m.Key = make([]byte, pageSize)
-	if err := syscall.Mprotect(m.Key, syscall.PROT_WRITE); err != nil {
+	pk.key = make([]byte, pageSize)
+	if err := syscall.Mprotect(pk.key, syscall.PROT_WRITE); err != nil {
 		panic(err)
 	}
-	m.Len = copy(m.Key, crypto.FromECDSA(key))
+	pk.len = copy(pk.key, crypto.FromECDSA(key))
 
-	m.lock()
+	pk.lockMem()
 
 	key = nil
 }
 
-func (m *ProtectedKey) Get() *ecdsa.PrivateKey {
+func (pk *ProtectedKey) Get() *ecdsa.PrivateKey {
 
-	m.unlock()
-	defer m.lock()
-	key, err := crypto.ToECDSA(m.Key[0:m.Len])
+	pk.unlockMem()
+	defer pk.lockMem()
+	key, err := crypto.ToECDSA(pk.key[0:pk.len])
 
 	if err != nil {
 		panic(err)
@@ -59,9 +59,9 @@ func (m *ProtectedKey) Get() *ecdsa.PrivateKey {
 	return key
 }
 
-func (m *ProtectedKey) Free() {
-	if m.Key != nil {
-		if err := syscall.Mprotect(m.Key, syscall.PROT_WRITE|syscall.PROT_READ); err != nil {
+func (pk *ProtectedKey) Free() {
+	if pk.key != nil {
+		if err := syscall.Mprotect(pk.key, syscall.PROT_WRITE|syscall.PROT_READ); err != nil {
 			panic(err)
 		}
 	}
