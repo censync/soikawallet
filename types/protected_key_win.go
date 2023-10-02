@@ -23,6 +23,8 @@ func init() {
 	memoryProtectionError = errors.New("not implemented for windows")
 }
 
+// Feature request: Add implementation CreateFileMapping or VirtualProtect or VirtualAlloc
+// for Windows systems
 func NewProtectedKey(key *ecdsa.PrivateKey) *ProtectedKey {
 	return &ProtectedKey{
 		key: crypto.FromECDSA(key),
