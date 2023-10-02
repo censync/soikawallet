@@ -90,7 +90,7 @@ func (t *Tui) initLayout() *tview.Flex {
 		SetTextAlign(tview.AlignCenter)
 
 	// TODO: Move to api
-	if ok, err := types.CheckMProtect(); !ok {
+	if ok, err := types.IsMemoryProtected(); !ok {
 		t.uiEvents.Emit(event_bus.EventWalletNoticeMessage, fmt.Sprintf("[Core] Memory protection error: %s", err))
 	}
 
