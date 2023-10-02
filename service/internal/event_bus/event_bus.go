@@ -12,6 +12,7 @@ const (
 	EventUpdateCurrencies
 
 	EventWalletInitialized
+	EventWalletNoticeMessage
 	EventDrawForce
 	EventShowModal
 	EventQuit

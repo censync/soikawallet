@@ -11,6 +11,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/walletframe"
 	"github.com/censync/soikawallet/service/tui/widgets/statusview"
 	"github.com/censync/soikawallet/service/wallet"
+	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"sync"
@@ -72,6 +73,7 @@ func (t *Tui) initLayout() *tview.Flex {
 	labelTitle.SetBackgroundColor(tcell.ColorDarkGrey).
 		SetBorderPadding(0, 0, 0, 2)
 
+	// Label instance id
 	labelInstanceId := tview.NewTextView().
 		SetDynamicColors(true).
 		SetWrap(false).
@@ -80,6 +82,19 @@ func (t *Tui) initLayout() *tview.Flex {
 
 	labelInstanceId.SetBackgroundColor(tcell.ColorDarkGrey).
 		SetBorderPadding(0, 0, 2, 0)
+
+	// Label notice
+	labelNotice := tview.NewTextView().
+		SetDynamicColors(true).
+		SetWrap(false).
+		SetTextAlign(tview.AlignCenter)
+
+	// TODO: Move to api
+	if ok, err := types.CheckMProtect(); !ok {
+		t.uiEvents.Emit(event_bus.EventWalletNoticeMessage, fmt.Sprintf("[Core] Memory protection error: %s", err))
+	}
+
+	labelNotice.SetBackgroundColor(tcell.ColorDarkGrey)
 
 	layoutStatus := statusview.NewStatusView()
 	layoutStatus.SetDynamicColors(true)
@@ -90,6 +105,7 @@ func (t *Tui) initLayout() *tview.Flex {
 	layoutHeader := tview.NewFlex().
 		SetDirection(tview.FlexColumn).
 		AddItem(labelInstanceId, 0, 1, false).
+		AddItem(labelNotice, 0, 1, false).
 		AddItem(labelTitle, 0, 1, false)
 
 	layout := tview.NewFlex().
@@ -118,6 +134,9 @@ func (t *Tui) initLayout() *tview.Flex {
 					layoutStatus.Info("Wallet updated: " + event.String())
 					labelInstanceId.SetText(fmt.Sprintf("[darkcyan]ID:[black] %s", event.String()))
 					t.w3Events.Emit(event_bus.EventW3WalletAvailable, event.String())
+				case event_bus.EventWalletNoticeMessage:
+					labelNotice.SetText("[red]Memory protection not available in this system")
+					layoutStatus.Error(event.String())
 				case event_bus.EventDrawForce:
 					t.app.Draw()
 				case event_bus.EventShowModal:
@@ -226,9 +245,9 @@ func (t *Tui) Start() error {
 }
 
 func (t *Tui) Stop() {
-	//if t.isVerboseMode {
-	fmt.Println("[TUI] Stopping")
-	//}
+	if t.isVerboseMode {
+		fmt.Println("[TUI] Stopping")
+	}
 	if t.stopped {
 		return
 	}

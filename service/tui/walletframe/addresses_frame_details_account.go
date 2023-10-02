@@ -53,7 +53,7 @@ func (f *frameAddressesDetailsAccount) Layout() *tview.Flex {
 
 	formAccountDesc := tview.NewForm().
 		AddFormItem(inputSelectLabel).
-		AddButton("Set label", f.actionSetLabel).
+		AddButton("set label", f.actionSetLabel).
 		AddButton("Remove label", f.actionRemoveLabel)
 
 	f.layout.AddItem(label, 1, 1, false).

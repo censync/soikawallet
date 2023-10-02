@@ -103,7 +103,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		AddButton("Refresh", func() {
 			// f.actionUpdateAddresses()
 		}).
-		AddButton("Set W3", func() {
+		AddButton("set W3", func() {
 			if f.selectedAddress != nil {
 				err := f.API().SetAddressW3(&dto.SetAddressW3DTO{
 					MhdaPath: f.selectedAddress.Path,
