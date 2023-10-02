@@ -109,7 +109,8 @@ func (pk *ProtectedKey) set(key *ecdsa.PrivateKey) {
 		pk.len = copy(pk.key, crypto.FromECDSA(key))
 
 		// pk.key size must allocate pageSize memory
-		// Known issue on macOS
+		// Known issue on macOS >= Catalina
+		// https://stackoverflow.com/questions/60654834/using-mprotect-to-make-text-segment-writable-on-macos
 		if err := syscall.Mprotect(pk.key, syscall.PROT_WRITE); err != nil {
 			panic(err)
 		}
