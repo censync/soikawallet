@@ -1,3 +1,5 @@
+//go:build !windows
+
 package types
 
 import (
@@ -108,9 +110,10 @@ func (pk *ProtectedKey) set(key *ecdsa.PrivateKey) {
 		pk.key = make([]byte, pageSize)
 		pk.len = copy(pk.key, crypto.FromECDSA(key))
 
-		// pk.key size must allocate pageSize memory
+		// pk.key size must multiple to pageSize memory
 		// Known issue on macOS >= Catalina
 		// https://stackoverflow.com/questions/60654834/using-mprotect-to-make-text-segment-writable-on-macos
+		// l64 implementation: https://github.com/apple-opensource/ld64/blob/fd3feabb0a1eb18ab5d7910f3c3a5eed99cef6ab/src/ld/Options.cpp#L374-L379
 		if err := syscall.Mprotect(pk.key, syscall.PROT_WRITE); err != nil {
 			panic(err)
 		}
