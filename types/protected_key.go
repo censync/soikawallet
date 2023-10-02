@@ -109,6 +109,7 @@ func (pk *ProtectedKey) set(key *ecdsa.PrivateKey) {
 		pk.len = copy(pk.key, crypto.FromECDSA(key))
 
 		// pk.key size must allocate pageSize memory
+		// Known issue on macOS
 		if err := syscall.Mprotect(pk.key, syscall.PROT_WRITE); err != nil {
 			panic(err)
 		}
