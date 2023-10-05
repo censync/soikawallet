@@ -43,7 +43,7 @@ func init() {
 }
 
 func TestNodes_AddRPCNode_Positive(t *testing.T) {
-	// test init
+	// test init_wallet
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
 	assert.NotNil(t, metaNodes.subIndex)
@@ -73,7 +73,7 @@ func TestNodes_AddRPCNode_Positive(t *testing.T) {
 }
 
 func TestNodes_SetRPCAccountLink_Positive(t *testing.T) {
-	// test init
+	// test init_wallet
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
 	assert.NotNil(t, metaNodes.subIndex)
@@ -100,7 +100,7 @@ func TestNodes_MarshalJSON_Positive(t *testing.T) {
 }
 
 func TestNodes_RemoveRPCAccountLink_Positive(t *testing.T) {
-	// test init
+	// test init_wallet
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
 	assert.NotNil(t, metaNodes.subIndex)
@@ -124,7 +124,7 @@ func TestNodes_RemoveRPCAccountLink_Positive(t *testing.T) {
 }
 
 func TestNodes_RemoveRPCNode_Positive(t *testing.T) {
-	// test init
+	// test init_wallet
 	assert.NotNil(t, metaNodes)
 	assert.NotNil(t, metaNodes.nodes)
 	assert.NotNil(t, metaNodes.subIndex)

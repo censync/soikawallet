@@ -109,7 +109,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 			GasUsed:     gasConfig["gas_used"],
 			GasLimit:    gasConfig["gas_limit"], // 30000 or 30e6?
 		})
-	// TODO: Add algorithms to init ChainKey
+	// TODO: Add algorithms to init_wallet ChainKey
 	case chain.BinanceSmartChain.Key(), chain.ArbitrumChain.Key(), chain.OptimismChain.Key(), chain.BaseChain.Key():
 
 		gasCalculator = gas.NewCalcEVML1V1(&gas.CalcEVML1V1{

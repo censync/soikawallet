@@ -3,7 +3,7 @@ package state
 import (
 	"github.com/censync/go-i18n"
 	"github.com/censync/soikawallet/service/internal/event_bus"
-	"github.com/censync/soikawallet/service/tui/widgets/extpages"
+	"github.com/censync/soikawallet/service/tui/twidget/extpages"
 	"github.com/censync/soikawallet/service/wallet"
 )
 

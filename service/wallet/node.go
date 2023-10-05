@@ -8,6 +8,13 @@ import (
 	"github.com/censync/soikawallet/types"
 )
 
+var (
+	errMetaRPCCannotRemoveLinkExists = errors.New("cannot remove rpc, until linked accounts exists")
+	errRPCNotExists                  = errors.New("cannot get RPC instance")
+	errAddrNotFound                  = errors.New("address not found")
+	errChainKeyNotSupported          = errors.New("network is not supported")
+)
+
 func (s *Wallet) RPC(dto *dto.GetRPCListByIndexDTO) *types.RPC {
 	return s.getRPCProvider(dto.ChainKey).RPC(dto.Index)
 }
@@ -41,7 +48,7 @@ func (s *Wallet) RemoveRPC(dto *dto.RemoveRPCDTO) error {
 	}
 
 	if len(s.meta.GetRPCAccountLinks(nodeIndex)) > 0 {
-		return errors.New("cannot remove rpc, until linked accounts exists")
+		return errMetaRPCCannotRemoveLinkExists
 	}
 
 	provider := s.getRPCProvider(dto.ChainKey)
@@ -163,13 +170,13 @@ func (s *Wallet) GetRPCInfo(dto *dto.GetRPCInfoDTO) (map[string]interface{}, err
 
 func (s *Wallet) GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error) {
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return nil, errors.New("network is not supported")
+		return nil, errChainKeyNotSupported
 	}
 
 	rpcProvider := s.getRPCProvider(dto.ChainKey)
 
 	if rpcProvider == nil {
-		return nil, errors.New("cannot get RPC instance")
+		return nil, errRPCNotExists
 	}
 
 	return &resp.BaseCurrency{
@@ -180,7 +187,7 @@ func (s *Wallet) GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurr
 
 func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error) {
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return nil, errors.New("network is not supported")
+		return nil, errChainKeyNotSupported
 	}
 
 	result := resp.AddressTokensListResponse{}
@@ -188,7 +195,7 @@ func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.Ad
 	rpcProvider := s.getRPCProvider(dto.ChainKey)
 
 	if rpcProvider == nil {
-		return nil, errors.New("cannot get RPC instance")
+		return nil, errRPCNotExists
 	}
 
 	rpcTokens := rpcProvider.GetAllTokens()
@@ -222,7 +229,7 @@ func (s *Wallet) GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.Addr
 	addr := s.meta.GetAddress(addrPath.NSS())
 
 	if addr == nil {
-		return nil, errors.New("address not found")
+		return nil, errAddrNotFound
 	}
 	addressLinkedTokenContracts, err := s.meta.GetAddressTokens(addr.Index())
 
@@ -258,7 +265,7 @@ func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
 	)
 
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return nil, errors.New("network is not supported")
+		return nil, errChainKeyNotSupported
 	}
 
 	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()
@@ -298,7 +305,7 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 	)
 
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return errors.New("network is not supported")
+		return errChainKeyNotSupported
 	}
 
 	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()
@@ -365,7 +372,7 @@ func (s *Wallet) UpsertToken(dto *dto.AddTokenDTO) error {
 
 func (s *Wallet) ExecuteRPC(dto *dto.ExecuteRPCRequestDTO) ([]byte, error) {
 	if !types.IsNetworkExists(dto.ChainKey) {
-		return nil, errors.New("network is not supported")
+		return nil, errChainKeyNotSupported
 	}
 
 	defaultNodeIndex := s.getRPCProvider(dto.ChainKey).DefaultNodeId()

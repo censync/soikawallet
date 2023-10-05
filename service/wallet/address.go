@@ -244,7 +244,7 @@ func (s *Wallet) addAddress(path mhda.MHDA) (addr *meta.Address, err error) {
 
 	// TODO: Updated preconfigured
 	if !types.IsNetworkExists(path.Chain().Key()) {
-		return nil, errors.New("network is not supported")
+		return nil, errChainKeyNotSupported
 	}
 	if s.meta.IsAddressExist(path.NSS()) {
 		return nil, errors.New("addr already exists")
