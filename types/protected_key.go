@@ -99,6 +99,7 @@ func (pk *ProtectedKey) unlockMem() {
 }
 
 // set check for OSx https://github.com/apple-oss-distributions/Libsystem/tree/Libsystem-1336
+// TODO: Add mapping per pages size
 func (pk *ProtectedKey) set(key *ecdsa.PrivateKey) {
 	if memoryProtectionAvailable {
 		pageSize := syscall.Getpagesize()

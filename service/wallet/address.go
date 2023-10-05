@@ -16,20 +16,18 @@ const (
 	hardenedKeyStart = uint32(0x80000000) // 2^31
 )
 
-// address deprecated
-/*
-func (s *Wallet) address(path mhda.MHDA) (*meta.Address, error) {
-	addr := s.meta.GetAddress(path.NSS())
-	if addr == nil {
-		return nil, errors.New("addr is not found")
-	}
-	return addr, nil
-}
-*/
+var (
+	errWalletRootKeyNotSet             = errors.New("root key is not set")
+	errAddrKeyCannotCreate             = errors.New("cannot create addr key")
+	errAddrDerivationPathUndefinedType = errors.New("undefined derivation type")
+	errAddrW3AlreadyPermitted          = errors.New("address already permitted for web3")
+	errAddrW3NotPermitted              = errors.New("address not permitted for web3")
+	errCannotCalculateDerivedKey       = errors.New("cannot calculate derived key")
+)
 
 func (s *Wallet) chargeDeriveKey(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
 	if s.rootKey == nil {
-		return nil, errors.New("root key is not set")
+		return nil, errWalletRootKeyNotSet
 	}
 
 	switch path.DerivationType() {
@@ -46,18 +44,18 @@ func (s *Wallet) chargeDeriveKey(path *mhda.DerivationPath) (*ecdsa.PrivateKey, 
 	case mhda.ZIP32:
 		return s.derivationKeyZip32(path)
 	default:
-		return nil, fmt.Errorf("undefined derivation type")
+		return nil, errAddrDerivationPathUndefinedType
 	}
 }
 func (s *Wallet) derivationKeyRoot() (*ecdsa.PrivateKey, error) {
 	if s.rootKey == nil {
-		return nil, errors.New("root key is not set")
+		return nil, errWalletRootKeyNotSet
 	}
 
 	ecAddrKey, err := s.rootKey.ECPrivKey()
 
 	if err != nil {
-		return nil, errors.New("cannot create addr key")
+		return nil, errAddrKeyCannotCreate
 	}
 
 	return ecAddrKey.ToECDSA(), nil
@@ -65,23 +63,26 @@ func (s *Wallet) derivationKeyRoot() (*ecdsa.PrivateKey, error) {
 
 func (s *Wallet) derivationKeyBip32(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
 	if s.rootKey == nil {
-		return nil, errors.New("root key is not set")
+		return nil, errWalletRootKeyNotSet
 	}
 
+	// BIP-32 level
 	bip32Key, err := s.rootKey.Derive(hardenedKeyStart + 32) // ??
 	if err != nil {
-		return nil, errors.New("cannot initialize BIP-32 key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
 	// m / account ' / charge / Address
+	// BIP-32 account level
 	accountKey, err := bip32Key.Derive(hardenedKeyStart + uint32(path.Account()))
 	if err != nil {
-		return nil, errors.New("cannot initialize account key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
+	// BIP-32 address level
 	chargeKey, err := accountKey.Derive(uint32(path.Charge()))
 	if err != nil {
-		return nil, errors.New("cannot initialize charge key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
 	var (
@@ -95,13 +96,13 @@ func (s *Wallet) derivationKeyBip32(path *mhda.DerivationPath) (*ecdsa.PrivateKe
 	}
 
 	if err != nil {
-		return nil, errors.New("cannot create addr key")
+		return nil, errAddrKeyCannotCreate
 	}
 
 	ecAddrKey, err := key.ECPrivKey()
 
 	if err != nil {
-		return nil, errors.New("cannot create addr key")
+		return nil, errAddrKeyCannotCreate
 	}
 
 	return ecAddrKey.ToECDSA(), nil
@@ -109,30 +110,35 @@ func (s *Wallet) derivationKeyBip32(path *mhda.DerivationPath) (*ecdsa.PrivateKe
 
 func (s *Wallet) derivationKeyBip44(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
 	if s.rootKey == nil {
-		return nil, errors.New("root key is not set")
+		return nil, errWalletRootKeyNotSet
 	}
 
+	// BIP-44 level
 	bip44Key, err := s.rootKey.Derive(hardenedKeyStart + 44)
 	if err != nil {
-		return nil, errors.New("cannot initialize BIP-44 key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
 	// m/44'/60'
+	// BIP-44 network (coin) level
 	networkKey, err := bip44Key.Derive(hardenedKeyStart + uint32(path.Coin()))
 	if err != nil {
-		return nil, errors.New("cannot initialize coin key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
 	// m/44'/60'/0'
+	// BIP-44 account level
 	accountKey, err := networkKey.Derive(hardenedKeyStart + uint32(path.Account()))
 	if err != nil {
-		return nil, errors.New("cannot initialize account key")
+		return nil, errCannotCalculateDerivedKey
 	}
+
 	// m/44'/60'/0'/0
+	// BIP-44 charge level
 	chargeKey, err := accountKey.Derive(uint32(path.Charge()))
 
 	if err != nil {
-		return nil, errors.New("cannot initialize charge key")
+		return nil, errCannotCalculateDerivedKey
 	}
 	var (
 		key *hdkeychain.ExtendedKey
@@ -144,14 +150,15 @@ func (s *Wallet) derivationKeyBip44(path *mhda.DerivationPath) (*ecdsa.PrivateKe
 		key, err = chargeKey.Derive(path.AddressIndex().Index)
 	}
 
+	// BIP-44 address level
 	if err != nil {
-		return nil, errors.New("cannot create addr key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
 	ecAddrKey, err := key.ECPrivKey()
 
 	if err != nil {
-		return nil, errors.New("cannot create addr key")
+		return nil, errAddrKeyCannotCreate
 	}
 
 	return ecAddrKey.ToECDSA(), nil
@@ -159,29 +166,32 @@ func (s *Wallet) derivationKeyBip44(path *mhda.DerivationPath) (*ecdsa.PrivateKe
 
 func (s *Wallet) derivationKeyBip84(path *mhda.DerivationPath) (*ecdsa.PrivateKey, error) {
 	if s.rootKey == nil {
-		return nil, errors.New("root key is not set")
+		return nil, errWalletRootKeyNotSet
 	}
-
-	bip44Key, err := s.rootKey.Derive(hardenedKeyStart + 44)
+	// BIP-32 level
+	bip84Key, err := s.rootKey.Derive(hardenedKeyStart + 84)
 	if err != nil {
-		return nil, errors.New("cannot initialize BIP-84 key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
 	// m / 84 ' / 0 ' / account ' / charge / Address
-	networkKey, err := bip44Key.Derive(hardenedKeyStart + uint32(0)) // Coin, BTC=0
+	// BIP-84 network (coin) level (const BTC)
+	networkKey, err := bip84Key.Derive(hardenedKeyStart + uint32(0)) // Coin, BTC=0
 	if err != nil {
-		return nil, errors.New("cannot initialize coin key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
+	// BIP-84 account level
 	accountKey, err := networkKey.Derive(hardenedKeyStart + uint32(path.Account()))
 	if err != nil {
-		return nil, errors.New("cannot initialize account key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
+	// BIP-84 charge level
 	chargeKey, err := accountKey.Derive(uint32(path.Charge()))
 
 	if err != nil {
-		return nil, errors.New("cannot initialize charge key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
 	var (
@@ -194,14 +204,15 @@ func (s *Wallet) derivationKeyBip84(path *mhda.DerivationPath) (*ecdsa.PrivateKe
 		key, err = chargeKey.Derive(path.AddressIndex().Index)
 	}
 
+	// BIP-84 address level
 	if err != nil {
-		return nil, errors.New("cannot create addr key")
+		return nil, errCannotCalculateDerivedKey
 	}
 
 	ecAddrKey, err := key.ECPrivKey()
 
 	if err != nil {
-		return nil, errors.New("cannot create addr key")
+		return nil, errAddrKeyCannotCreate
 	}
 
 	return ecAddrKey.ToECDSA(), nil
@@ -228,7 +239,7 @@ func (s *Wallet) isAccountExists(networkType types.CoinType, accountIndex types.
 
 func (s *Wallet) addAddress(path mhda.MHDA) (addr *meta.Address, err error) {
 	if s.rootKey == nil {
-		return nil, errors.New("root key is not set")
+		return nil, errWalletRootKeyNotSet
 	}
 
 	// TODO: Updated preconfigured
@@ -394,7 +405,7 @@ func (s *Wallet) SetAddressW3(dto *dto.SetAddressW3DTO) error {
 	addr := s.meta.GetAddress(addrPath.NSS())
 
 	if addr.IsW3() {
-		return errors.New("address already permitted as web3")
+		return errAddrW3AlreadyPermitted
 	}
 
 	addr.SetW3()
@@ -415,7 +426,7 @@ func (s *Wallet) UnsetAddressW3(dto *dto.SetAddressW3DTO) error {
 	addr := s.meta.GetAddress(addrPath.NSS())
 
 	if !addr.IsW3() {
-		return errors.New("address not permitted for web3")
+		return errAddrW3NotPermitted
 	}
 
 	addr.UnsetW3()
