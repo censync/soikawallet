@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+var (
+	errMetaLabelUnknownType = errors.New("unknown label type")
+)
+
 func (s *Wallet) GetAccountLabels() map[uint32]string {
 	return s.meta.AccountLabels()
 }
@@ -36,7 +40,7 @@ func (s *Wallet) AddLabel(dto *dto.AddLabelDTO) (uint32, error) {
 	case types.AddressLabel:
 		return s.meta.AddAddressLabel(dto.Title)
 	default:
-		return 0, errors.New("unknown label type")
+		return 0, errMetaLabelUnknownType
 	}
 }
 
@@ -47,7 +51,7 @@ func (s *Wallet) RemoveLabel(dto *dto.RemoveLabelDTO) error {
 	case types.AddressLabel:
 		return s.meta.RemoveAddressLabel(dto.Index)
 	default:
-		return errors.New("unknown label type")
+		return errMetaLabelUnknownType
 	}
 }
 
@@ -58,7 +62,7 @@ func (s *Wallet) SetLabelLink(dto *dto.SetLabelLinkDTO) error {
 	case types.AddressLabel:
 		return s.meta.SetAddressLabelLink(dto.Path, dto.Index)
 	default:
-		return errors.New("unknown label type")
+		return errMetaLabelUnknownType
 	}
 }
 
@@ -69,6 +73,6 @@ func (s *Wallet) RemoveLabelLink(dto *dto.RemoveLabelLinkDTO) error {
 	case types.AddressLabel:
 		return s.meta.RemoveAddressLabelLink(dto.Path)
 	default:
-		return errors.New("unknown label type")
+		return errMetaLabelUnknownType
 	}
 }

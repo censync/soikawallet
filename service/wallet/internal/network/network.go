@@ -18,6 +18,11 @@ type Provider struct {
 	defaultCurrency string
 }
 
+var (
+	errNetworkTypeNotSet = errors.New("network type is not set")
+	errNetworkNotDefined = errors.New("network is not defined")
+)
+
 /*
 var (
 	_ types.NetworkAdapter = tron.Tron{}
@@ -64,13 +69,13 @@ func WithContext(ctx *types.RPCContext) (types.NetworkAdapter, error) {
 	defer networkProviders.mu.RUnlock()
 
 	if !types.IsNetworkExists(ctx.ChainKey()) {
-		return nil, errors.New("network type is not set")
+		return nil, errNetworkTypeNotSet
 	}
 
 	network, ok := networkProviders.networks[ctx.ChainKey()]
 
 	if !ok {
-		return nil, errors.New("network is not defined")
+		return nil, errNetworkNotDefined
 	}
 	return network, nil
 }

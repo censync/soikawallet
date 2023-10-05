@@ -11,6 +11,12 @@ import (
 	"github.com/censync/soikawallet/types/gas"
 )
 
+var (
+	errTokenNotConfigured     = errors.New("token not configured")
+	errTokenTryingApproveBase = errors.New("approving base token")
+	errUndefinedOperation     = errors.New("undefined operation")
+)
+
 func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*resp.CalculatorConfig, error) {
 	var (
 		gasCalculator gas.Calculator
@@ -46,7 +52,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 			tokenConfig := provider.GetTokenConfig(dto.Contract)
 
 			if tokenConfig == nil {
-				return nil, errors.New("token not configured")
+				return nil, errTokenNotConfigured
 			}
 			gasConfig, err = provider.GetGasConfig(ctx, "transfer(address,uint256)", dto.To, dto.Value, tokenConfig)
 		}
@@ -55,16 +61,16 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 			tokenConfig := provider.GetTokenConfig(dto.Contract)
 
 			if tokenConfig == nil {
-				return nil, errors.New("token not configured")
+				return nil, errTokenNotConfigured
 			}
 
 			gasConfig, err = provider.GetGasConfig(ctx, "approve(address,uint256)", dto.To, dto.Value, tokenConfig)
 		} else {
-			return nil, errors.New("cannot approve for base token")
+			return nil, errTokenTryingApproveBase
 		}
 
 	} else {
-		return nil, errors.New("undefined operation")
+		return nil, errUndefinedOperation
 	}
 
 	if err != nil {
