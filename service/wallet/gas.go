@@ -14,6 +14,7 @@ import (
 var (
 	errTokenNotConfigured        = errors.New("token not configured")
 	errTokenAllowanceApproveBase = errors.New("allowance base token")
+	errTokenIncorrectType        = errors.New("incorrect token type")
 	errUndefinedOperation        = errors.New("undefined operation")
 )
 
