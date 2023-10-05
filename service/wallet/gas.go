@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	errTokenNotConfigured     = errors.New("token not configured")
-	errTokenTryingApproveBase = errors.New("approving base token")
-	errUndefinedOperation     = errors.New("undefined operation")
+	errTokenNotConfigured        = errors.New("token not configured")
+	errTokenAllowanceApproveBase = errors.New("allowance base token")
+	errUndefinedOperation        = errors.New("undefined operation")
 )
 
 func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*resp.CalculatorConfig, error) {
@@ -66,7 +66,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 
 			gasConfig, err = provider.GetGasConfig(ctx, "approve(address,uint256)", dto.To, dto.Value, tokenConfig)
 		} else {
-			return nil, errTokenTryingApproveBase
+			return nil, errTokenAllowanceApproveBase
 		}
 
 	} else {

@@ -24,6 +24,11 @@ const (
 	fiatSymbol = "$"
 )
 
+var (
+	errWalletAlreadyInitialized      = errors.New("wallet already initialized")
+	errWalletKeyRootCannotInitialize = errors.New("cannot initialize root key")
+)
+
 type Wallet struct {
 	// instanceId compressed public key for root key, used for identify device instance
 	instanceId     []byte
@@ -49,7 +54,7 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
 
 	// Check for singleton
 	if s.instanceId != nil {
-		return "", errors.New("wallet already initialized")
+		return "", errWalletAlreadyInitialized
 	}
 
 	// SkipMnemonicCheck flag used only for testing vectors
@@ -66,13 +71,14 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
 	masterKey, err := generateKeyFromSeed(&rootSeed)
 
 	if err != nil {
-		return "", errors.New("cannot initialize master key")
+		return "", errWalletKeyRootCannotInitialize
 	}
 
 	masterPubKey, err := masterKey.ECPubKey()
 
+	// ROOT pub key
 	if err != nil {
-		return "", errors.New("cannot initialize master pub key")
+		return "", errAddrKeyCannotCreate
 	}
 
 	*s = Wallet{

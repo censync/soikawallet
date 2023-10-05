@@ -9,6 +9,10 @@ import (
 	"github.com/tyler-smith/go-bip39"
 )
 
+var (
+	errMnemonicGenAttemptsReached = errors.New("reached attempts to generate mnemonic")
+)
+
 // Separated for vectors testing
 func generateKeyFromSeed(seed *[]byte) (*hdkeychain.ExtendedKey, error) {
 	key, err := hdkeychain.NewMaster(*seed, &chaincfg.MainNetParams)
@@ -38,5 +42,5 @@ func (s *Wallet) GenerateMnemonic(dto *dto.GenerateMnemonicDTO) (string, error) 
 		}
 		return mnemonic, nil
 	}
-	return "", errors.New("reached attempts to generate mnemonic")
+	return "", errMnemonicGenAttemptsReached
 }

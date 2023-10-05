@@ -13,6 +13,10 @@ import (
 	"strings"
 )
 
+var (
+	errOpAddrRecipientIncorrect = errors.New("incorrect recipient address")
+)
+
 func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 	dto.To = strings.TrimSpace(dto.To)
 
@@ -28,7 +32,7 @@ func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 	}
 
 	if len(dto.To) < 4 {
-		return 0, errors.New("incorrect recipient address")
+		return 0, errOpAddrRecipientIncorrect
 	}
 
 	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
@@ -39,16 +43,16 @@ func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 	}
 
 	if types.TokenStandard(dto.Standard) == types.TokenBase {
-		return 0, errors.New("allowance not available for base tokens")
+		return 0, errTokenAllowanceApproveBase
 	}
 	tokenConfig := provider.GetTokenConfig(dto.Contract)
 
 	if tokenConfig == nil {
-		return 0, errors.New("token not configured")
+		return 0, errTokenNotConfigured
 	}
 
 	if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
-		return 0, errors.New("incorrect token type")
+		return 0, errTokenNotConfigured
 	}
 	return provider.GetTokenAllowance(ctx, tokenConfig.Contract(), dto.To)
 }
@@ -74,7 +78,7 @@ func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) 
 	}
 
 	if len(dto.To) < 4 {
-		return ``, errors.New("incorrect recipient address")
+		return ``, errOpAddrRecipientIncorrect
 	}
 
 	if dto.Contract == "" {
@@ -82,7 +86,7 @@ func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) 
 	}
 
 	if types.TokenStandard(dto.Standard) == types.TokenBase {
-		return "", errors.New("cannot approve for base token")
+		return "", errTokenAllowanceApproveBase
 	}
 
 	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
@@ -95,7 +99,7 @@ func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) 
 	tokenConfig := provider.GetTokenConfig(dto.Contract)
 
 	if tokenConfig == nil {
-		return ``, errors.New("token not configured")
+		return ``, errTokenNotConfigured
 	}
 
 	result, err := provider.TxApproveToken(ctx, dto.To, dto.Value, tokenConfig, dto.Gas, dto.GasTipCap, dto.GasFeeCap, addr.Key().Get())
@@ -179,7 +183,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 	}
 
 	if len(dto.To) < 4 {
-		return nil, errors.New("incorrect recipient address")
+		return nil, errOpAddrRecipientIncorrect
 	}
 
 	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
@@ -211,7 +215,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 		tokenConfig := provider.GetTokenConfig(dto.Contract)
 
 		if tokenConfig == nil {
-			return nil, errors.New("token not configured")
+			return nil, errTokenNotConfigured
 		}
 
 		if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
