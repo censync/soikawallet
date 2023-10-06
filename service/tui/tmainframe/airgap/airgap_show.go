@@ -3,7 +3,7 @@ package airgap
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/service/tui/twidget/qrview"

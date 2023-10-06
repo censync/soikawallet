@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/config"
-	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"

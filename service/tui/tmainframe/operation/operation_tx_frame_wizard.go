@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget/formtextview"

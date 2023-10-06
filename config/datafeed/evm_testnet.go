@@ -7,6 +7,8 @@ import (
 	"github.com/censync/soikawallet/types/currencies"
 )
 
+// Chainlink testnet data sources
+// https://docs.chain.link/data-feeds/price-feeds/addresses/?network=ethereum&page=1#sepolia-testnet
 var evmFiat = map[currencies.DataFeedType]map[mhda.ChainKey]map[string]string{
 	currencies.FeedChainLink: {
 		mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xaa36a7`).Key(): {

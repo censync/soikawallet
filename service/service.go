@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/service/api_web3"
-	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui"
 	"sync"
 )

@@ -7,7 +7,7 @@ import (
 	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/config/dict"
 	"github.com/censync/soikawallet/config/version"
-	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/tmainframe"
 	"github.com/censync/soikawallet/service/tui/twidget/statusview"
 	"github.com/censync/soikawallet/service/wallet"
