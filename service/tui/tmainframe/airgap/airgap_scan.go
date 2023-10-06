@@ -5,9 +5,9 @@ import (
 	airgap "github.com/censync/go-airgap"
 	"github.com/censync/go-zbar"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
+	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 )

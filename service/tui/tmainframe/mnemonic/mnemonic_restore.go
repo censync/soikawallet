@@ -3,11 +3,11 @@ package mnemonic
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/service/wallet"
+	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"

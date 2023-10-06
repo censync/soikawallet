@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/censync/soikawallet/config"
-	"github.com/censync/soikawallet/service"
+	"github.com/censync/soikawallet/service/tui"
 	"log"
 	"os"
 	"os/signal"
@@ -27,7 +27,7 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Add(3)
 
-	provider := service.NewServiceProvider(cfg, &wg)
+	provider := tui.NewTUIServiceProvider(cfg, &wg)
 
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGHUP)

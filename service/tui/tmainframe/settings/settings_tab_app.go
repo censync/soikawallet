@@ -2,7 +2,7 @@ package settings
 
 import (
 	"fmt"
-	"github.com/censync/soikawallet/service/event_bus"
+	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"os"
 )

@@ -3,9 +3,9 @@
 package about
 
 import (
-	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
+	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"os"

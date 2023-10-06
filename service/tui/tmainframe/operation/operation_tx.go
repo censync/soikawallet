@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
+	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 )
 

@@ -2,7 +2,6 @@ package tmainframe
 
 import (
 	"github.com/censync/go-i18n"
-	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/tmainframe/about"
@@ -19,6 +18,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/tmainframe/w3"
 	"github.com/censync/soikawallet/service/tui/twidget/extpages"
 	"github.com/censync/soikawallet/service/tui/twidget/flexmenu"
+	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 )

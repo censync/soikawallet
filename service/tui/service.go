@@ -1,10 +1,9 @@
-package service
+package tui
 
 import (
 	"github.com/censync/soikawallet/config"
-	"github.com/censync/soikawallet/service/api_web3"
-	"github.com/censync/soikawallet/service/event_bus"
-	"github.com/censync/soikawallet/service/tui"
+	"github.com/censync/soikawallet/service/tui/api_web3"
+	"github.com/censync/soikawallet/types/event_bus"
 	"sync"
 )
 
@@ -19,15 +18,15 @@ type Service struct {
 	uiEvents              *event_bus.EventBus
 	w3Events              *event_bus.EventBus
 	web3ConnectionService *api_web3.Web3Connection
-	tuiService            *tui.Tui
+	tuiService            *Tui
 }
 
-func NewServiceProvider(cfg *config.Config, wg *sync.WaitGroup) *Service {
+func NewTUIServiceProvider(cfg *config.Config, wg *sync.WaitGroup) *Service {
 	uiEvents := event_bus.NewEventBus()
 	w3Events := event_bus.NewEventBus()
 	return &Service{
 		web3ConnectionService: api_web3.NewWeb3Connection(cfg, wg, uiEvents, w3Events),
-		tuiService:            tui.NewTui(cfg, wg, uiEvents, w3Events),
+		tuiService:            NewTui(cfg, wg, uiEvents, w3Events),
 	}
 }
 

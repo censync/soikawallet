@@ -2,9 +2,9 @@ package state
 
 import (
 	"github.com/censync/go-i18n"
-	"github.com/censync/soikawallet/service/event_bus"
 	"github.com/censync/soikawallet/service/tui/twidget/extpages"
 	"github.com/censync/soikawallet/service/wallet"
+	"github.com/censync/soikawallet/types/event_bus"
 )
 
 const (
