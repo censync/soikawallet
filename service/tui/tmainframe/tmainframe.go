@@ -1,24 +1,24 @@
-package walletframe
+package tmainframe
 
 import (
 	"github.com/censync/go-i18n"
 	"github.com/censync/soikawallet/service/internal/event_bus"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
+	"github.com/censync/soikawallet/service/tui/tmainframe/about"
+	"github.com/censync/soikawallet/service/tui/tmainframe/addresses"
+	"github.com/censync/soikawallet/service/tui/tmainframe/airgap"
+	"github.com/censync/soikawallet/service/tui/tmainframe/create_addresses"
+	"github.com/censync/soikawallet/service/tui/tmainframe/init_wallet"
+	"github.com/censync/soikawallet/service/tui/tmainframe/mnemonic"
+	"github.com/censync/soikawallet/service/tui/tmainframe/operation"
+	"github.com/censync/soikawallet/service/tui/tmainframe/rpc"
+	"github.com/censync/soikawallet/service/tui/tmainframe/settings"
+	"github.com/censync/soikawallet/service/tui/tmainframe/token"
+	"github.com/censync/soikawallet/service/tui/tmainframe/transaction"
+	"github.com/censync/soikawallet/service/tui/tmainframe/w3"
 	"github.com/censync/soikawallet/service/tui/twidget/extpages"
 	"github.com/censync/soikawallet/service/tui/twidget/flexmenu"
-	"github.com/censync/soikawallet/service/tui/walletframe/about"
-	"github.com/censync/soikawallet/service/tui/walletframe/addresses"
-	"github.com/censync/soikawallet/service/tui/walletframe/airgap"
-	"github.com/censync/soikawallet/service/tui/walletframe/create_addr"
-	"github.com/censync/soikawallet/service/tui/walletframe/init_wallet"
-	"github.com/censync/soikawallet/service/tui/walletframe/mnemonic"
-	"github.com/censync/soikawallet/service/tui/walletframe/operation"
-	"github.com/censync/soikawallet/service/tui/walletframe/rpc"
-	"github.com/censync/soikawallet/service/tui/walletframe/settings"
-	"github.com/censync/soikawallet/service/tui/walletframe/token"
-	"github.com/censync/soikawallet/service/tui/walletframe/transaction"
-	"github.com/censync/soikawallet/service/tui/walletframe/w3"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 )
@@ -30,27 +30,27 @@ type IExtPage interface {
 	FuncOnDraw()
 }
 
-type WalletFrame struct {
+type TMainFrame struct {
 	state *state.State
 	style *tview.Theme
 }
 
-func Init(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator, style *tview.Theme) *WalletFrame {
+func Init(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator, style *tview.Theme) *TMainFrame {
 
-	frame := &WalletFrame{state: state.InitState(uiEvents, w3Events, tr), style: style}
+	frame := &TMainFrame{state: state.InitState(uiEvents, w3Events, tr), style: style}
 	pages := frame.initPages()
 	pages.SwitchToPage(page.Agreement)
 	frame.state.SetPages(pages)
 	return frame
 }
 
-func (f *WalletFrame) initPages() *extpages.ExtPages {
+func (f *TMainFrame) initPages() *extpages.ExtPages {
 	prepared := map[string]IExtPage{
 		page.SelectInitMode:   init_wallet.NewPageInitMode(f.state),
 		page.SelectInitWallet: init_wallet.NewPageInitWallet(f.state),
 		page.MnemonicInit:     mnemonic.NewPageInitMnemonic(f.state),
 		page.MnemonicRestore:  mnemonic.NewPageRestoreMnemonic(f.state),
-		page.CreateWallets:    create_addr.NewPageCreateWallet(f.state),
+		page.CreateWallets:    create_addresses.NewPageCreateWallet(f.state),
 		page.Addresses:        addresses.NewPageAddresses(f.state),
 		page.Transaction:      transaction.NewPageTransactions(f.state),
 		page.OperationTx:      operation.NewPageOperationTx(f.state),
@@ -84,7 +84,7 @@ func (f *WalletFrame) initPages() *extpages.ExtPages {
 	return pages
 }
 
-func (f *WalletFrame) Layout() *tview.Flex {
+func (f *TMainFrame) Layout() *tview.Flex {
 	layoutMenu := flexmenu.NewFlexMenu(false)
 
 	layoutMenu.
@@ -107,6 +107,6 @@ func (f *WalletFrame) Layout() *tview.Flex {
 	return layoutMain
 }
 
-func (f *WalletFrame) State() *state.State {
+func (f *TMainFrame) State() *state.State {
 	return f.state
 }

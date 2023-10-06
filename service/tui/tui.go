@@ -8,8 +8,8 @@ import (
 	"github.com/censync/soikawallet/config/dict"
 	"github.com/censync/soikawallet/config/version"
 	"github.com/censync/soikawallet/service/internal/event_bus"
+	"github.com/censync/soikawallet/service/tui/tmainframe"
 	"github.com/censync/soikawallet/service/tui/twidget/statusview"
-	"github.com/censync/soikawallet/service/tui/walletframe"
 	"github.com/censync/soikawallet/service/wallet"
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
@@ -21,7 +21,7 @@ type Tui struct {
 	app *tview.Application
 	tr  *i18n.Translator
 
-	frame         *walletframe.WalletFrame
+	mainFrame     *tmainframe.TMainFrame
 	uiEvents      *event_bus.EventBus
 	w3Events      *event_bus.EventBus
 	layout        *tview.Flex
@@ -58,7 +58,7 @@ func NewTui(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *event_bu
 		style:    style,
 		wg:       wg,
 	}
-	tui.frame = walletframe.Init(tui.uiEvents, tui.w3Events, dict.GetTr("en"), tui.style)
+	tui.mainFrame = tmainframe.Init(tui.uiEvents, tui.w3Events, dict.GetTr("en"), tui.style)
 	tui.layout = tui.initLayout()
 	return tui
 }
@@ -111,7 +111,7 @@ func (t *Tui) initLayout() *tview.Flex {
 	layout := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(layoutHeader, 1, 1, false).
-		AddItem(t.frame.Layout(), 0, 6, true).
+		AddItem(t.mainFrame.Layout(), 0, 6, true).
 		AddItem(layoutStatus, 6, 1, false)
 
 	// main TUI event loop
@@ -151,9 +151,9 @@ func (t *Tui) initLayout() *tview.Flex {
 						}
 					}()
 				case event_bus.EventW3Connect:
-					t.frame.State().SwitchToPage("w3_confirm_connect", event.Data())
+					t.mainFrame.State().SwitchToPage("w3_confirm_connect", event.Data())
 				case event_bus.EventW3RequestAccounts:
-					t.frame.State().SwitchToPage("w3_request_accounts", event.Data())
+					t.mainFrame.State().SwitchToPage("w3_request_accounts", event.Data())
 				case event_bus.EventW3ReqCallGetBlockByNumber:
 					go func() {
 						req, ok := event.Data().(*dto.RequestCallGetBlockByNumberDTO)
@@ -173,7 +173,7 @@ func (t *Tui) initLayout() *tview.Flex {
 							layoutStatus.Error("Cannot execute w3 call")
 							return
 						}
-						t.frame.State().EmitW3(event_bus.EventW3CallGetBlockByNumber, &dto.ResponseGetBlockByNumberDTO{
+						t.mainFrame.State().EmitW3(event_bus.EventW3CallGetBlockByNumber, &dto.ResponseGetBlockByNumberDTO{
 							InstanceId: req.InstanceId,
 							Data:       result,
 						})
@@ -181,7 +181,7 @@ func (t *Tui) initLayout() *tview.Flex {
 				// Internal
 				case event_bus.EventW3InternalConnections:
 					layoutStatus.Info("Got connections")
-					t.frame.State().SwitchToPage("w3_connections", event.Data())
+					t.mainFrame.State().SwitchToPage("w3_connections", event.Data())
 				case event_bus.EventQuit:
 					// graceful shutdown
 					// TODO: Uncomment on release
@@ -228,7 +228,7 @@ func (t *Tui) Start() error {
 				t.uiEvents.Emit(event_bus.EventLog, fmt.Sprintf("Resolution: %dx%d", x, y))
 			}
 
-			x1, y1, x2, y2 := t.frame.Layout().GetItem(1).GetRect()
+			x1, y1, x2, y2 := t.mainFrame.Layout().GetItem(1).GetRect()
 
 			if x2 != prevFrameX || y2 != prevFrameY {
 				prevFrameX = x2

@@ -1,4 +1,4 @@
-package create_addr
+package create_addresses
 
 import (
 	"fmt"
