@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 )
 
@@ -70,9 +70,9 @@ func (f *frameAddressesDetailsAccount) actionSetLabel() {
 		//Path:      f.selectedAccount.Path,
 	})
 	if err == nil {
-		f.Emit(event_bus.EventLogSuccess, "Label saved for account")
+		f.Emit(events.EventLogSuccess, "Label saved for account")
 	} else {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set label: %s", err))
+		f.Emit(events.EventLogError, fmt.Sprintf("Cannot set label: %s", err))
 	}
 }
 
@@ -83,8 +83,8 @@ func (f *frameAddressesDetailsAccount) actionRemoveLabel() {
 		// Path:      f.selectedAccount.Path,
 	})
 	if err == nil {
-		f.Emit(event_bus.EventLogSuccess, "Label saved for account")
+		f.Emit(events.EventLogSuccess, "Label saved for account")
 	} else {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot remvove label: %s", err))
+		f.Emit(events.EventLogError, fmt.Sprintf("Cannot remvove label: %s", err))
 	}
 }

@@ -9,8 +9,8 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/wallet/meta"
-	"github.com/censync/soikawallet/service/wallet/protected_key"
 	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/types/protected_key"
 )
 
 const (

@@ -2,9 +2,9 @@ package state
 
 import (
 	"github.com/censync/go-i18n"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/twidget/extpages"
 	"github.com/censync/soikawallet/service/wallet"
-	"github.com/censync/soikawallet/types/event_bus"
 )
 
 const (
@@ -19,8 +19,8 @@ const (
 )
 
 type State struct {
-	uiEvents *event_bus.EventBus
-	w3Events *event_bus.EventBus
+	uiEvents *events.EventBus
+	w3Events *events.EventBus
 
 	walletMode uint8
 	status     uint8
@@ -30,7 +30,7 @@ type State struct {
 	pages         *extpages.ExtPages
 }
 
-func InitState(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator) *State {
+func InitState(uiEvents, w3Events *events.EventBus, tr *i18n.Translator) *State {
 	return &State{
 		uiEvents:   uiEvents,
 		w3Events:   w3Events,
@@ -40,11 +40,11 @@ func InitState(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator) *Sta
 	}
 }
 
-func (s *State) Emit(event event_bus.EventType, data interface{}) {
+func (s *State) Emit(event events.EventType, data interface{}) {
 	s.uiEvents.Emit(event, data)
 }
 
-func (s *State) EmitW3(event event_bus.EventType, data interface{}) {
+func (s *State) EmitW3(event events.EventType, data interface{}) {
 	s.w3Events.Emit(event, data)
 }
 
@@ -85,7 +85,7 @@ func (s *State) SwitchToPage(page string, args ...interface{}) {
 
 	// TODO: Change to channel based uiEvents
 	s.pages.SwitchToPage(page, args...)
-	//s.Emit(event_bus.EventDrawForce, nil)
+	//s.Emit(events.EventDrawForce, nil)
 }
 
 // Current page

@@ -1,4 +1,4 @@
-package event_bus
+package events
 
 const (
 	EventLog EventType = iota + 100

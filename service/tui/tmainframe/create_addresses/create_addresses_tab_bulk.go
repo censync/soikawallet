@@ -45,10 +45,10 @@ func (p *pageCreateAddr) actionCreateAddrBulk() {
 
 		addresses, err := p.API().AddAddresses(req)
 		if err != nil {
-			p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot create addresses: %s", err))
+			p.Emit(events.EventLogError, fmt.Sprintf("Cannot create addresses: %s", err))
 		} else {
 			for _, addr := range addresses {
-				p.Emit(event_bus.EventLogInfo, fmt.Sprintf("Added address: %s %s", addr.Path, addr.Address))
+				p.Emit(events.EventLogInfo, fmt.Sprintf("Added address: %s %s", addr.Path, addr.Address))
 			}
 			p.SwitchToPage(page.PageNameAddresses)
 		}*/

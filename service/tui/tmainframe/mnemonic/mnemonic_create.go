@@ -3,11 +3,11 @@ package mnemonic
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/service/wallet"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/censync/soikawallet/util/seed"
 	"github.com/censync/tview"
@@ -87,11 +87,11 @@ func (p *pageInitMnemonic) FuncOnShow() {
 				Passphrase: inputPassword.GetText(),
 			})
 			if err != nil {
-				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot init_wallet wallet: %s", err))
+				p.Emit(events.EventLogError, fmt.Sprintf("Cannot init_wallet wallet: %s", err))
 			} else {
-				p.Emit(event_bus.EventUpdateCurrencies, nil)
+				p.Emit(events.EventUpdateCurrencies, nil)
 				clipboard.Clear()
-				p.Emit(event_bus.EventWalletInitialized, instanceId)
+				p.Emit(events.EventWalletInitialized, instanceId)
 				p.SwitchToPage(page.CreateWallets)
 			}
 		})
@@ -117,7 +117,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 		AddButton(p.Tr().T("ui.button", "copy_to_clipboard"), func() {
 			err := clipboard.CopyToClipboard(p.mnemonic)
 			if err != nil {
-				p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
+				p.Emit(events.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
 			}
 		})
 
@@ -144,7 +144,7 @@ func (p *pageInitMnemonic) actionMnemonicUpdate() {
 	})
 
 	if err != nil {
-		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot generate mnemonic: %s", err))
+		p.Emit(events.EventLogError, fmt.Sprintf("Cannot generate mnemonic: %s", err))
 		return
 	}
 

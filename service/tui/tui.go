@@ -7,11 +7,11 @@ import (
 	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/config/dict"
 	"github.com/censync/soikawallet/config/version"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/tmainframe"
 	"github.com/censync/soikawallet/service/tui/twidget/statusview"
 	"github.com/censync/soikawallet/service/wallet"
-	"github.com/censync/soikawallet/service/wallet/protected_key"
-	"github.com/censync/soikawallet/types/event_bus"
+	"github.com/censync/soikawallet/types/protected_key"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"sync"
@@ -22,8 +22,8 @@ type Tui struct {
 	tr  *i18n.Translator
 
 	mainFrame     *tmainframe.TMainFrame
-	uiEvents      *event_bus.EventBus
-	w3Events      *event_bus.EventBus
+	uiEvents      *events.EventBus
+	w3Events      *events.EventBus
 	layout        *tview.Flex
 	style         *tview.Theme
 	isVerboseMode bool
@@ -31,7 +31,7 @@ type Tui struct {
 	stopped       bool
 }
 
-func NewTui(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *event_bus.EventBus) *Tui {
+func NewTui(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *events.EventBus) *Tui {
 	/*style := &tview.Theme{
 		PrimitiveBackgroundColor:    tcell.ColorLightYellow,
 		ContrastBackgroundColor:     tcell.ColorOrange,
@@ -91,7 +91,7 @@ func (t *Tui) initLayout() *tview.Flex {
 
 	// TODO: Move to api
 	if ok, err := protected_key.IsMemoryProtected(); !ok {
-		t.uiEvents.Emit(event_bus.EventWalletNoticeMessage, fmt.Sprintf("[Core] Memory protection error: %s", err))
+		t.uiEvents.Emit(events.EventWalletNoticeMessage, fmt.Sprintf("[Core] Memory protection error: %s", err))
 	}
 
 	labelNotice.SetBackgroundColor(tcell.ColorDarkGrey)
@@ -120,28 +120,28 @@ func (t *Tui) initLayout() *tview.Flex {
 			select {
 			case event := <-t.uiEvents.Events():
 				switch event.Type() {
-				case event_bus.EventLog:
+				case events.EventLog:
 					layoutStatus.Log(event.String())
-				case event_bus.EventLogInfo:
+				case events.EventLogInfo:
 					layoutStatus.Info(event.String())
-				case event_bus.EventLogSuccess:
+				case events.EventLogSuccess:
 					layoutStatus.Success(event.String())
-				case event_bus.EventLogWarning:
+				case events.EventLogWarning:
 					layoutStatus.Warn(event.String())
-				case event_bus.EventLogError:
+				case events.EventLogError:
 					layoutStatus.Error(event.String())
-				case event_bus.EventWalletInitialized:
+				case events.EventWalletInitialized:
 					layoutStatus.Info("Wallet updated: " + event.String())
 					labelInstanceId.SetText(fmt.Sprintf("[darkcyan]ID:[black] %s", event.String()))
-					t.w3Events.Emit(event_bus.EventW3WalletAvailable, event.String())
-				case event_bus.EventWalletNoticeMessage:
+					t.w3Events.Emit(events.EventW3WalletAvailable, event.String())
+				case events.EventWalletNoticeMessage:
 					labelNotice.SetText("[red]Memory protection not available in this system")
 					layoutStatus.Error(event.String())
-				case event_bus.EventDrawForce:
+				case events.EventDrawForce:
 					t.app.Draw()
-				case event_bus.EventShowModal:
+				case events.EventShowModal:
 					t.app.SetRoot(event.Data().(*tview.Modal), false)
-				case event_bus.EventUpdateCurrencies:
+				case events.EventUpdateCurrencies:
 					go func() {
 						currencies := wallet.API().UpdateFiatCurrencies()
 						if currencies != nil {
@@ -150,11 +150,11 @@ func (t *Tui) initLayout() *tview.Flex {
 							layoutStatus.Error("Cannot retrieve currencies data")
 						}
 					}()
-				case event_bus.EventW3Connect:
+				case events.EventW3Connect:
 					t.mainFrame.State().SwitchToPage("w3_confirm_connect", event.Data())
-				case event_bus.EventW3RequestAccounts:
+				case events.EventW3RequestAccounts:
 					t.mainFrame.State().SwitchToPage("w3_request_accounts", event.Data())
-				case event_bus.EventW3ReqCallGetBlockByNumber:
+				case events.EventW3ReqCallGetBlockByNumber:
 					go func() {
 						req, ok := event.Data().(*dto.RequestCallGetBlockByNumberDTO)
 						if !ok {
@@ -173,16 +173,16 @@ func (t *Tui) initLayout() *tview.Flex {
 							layoutStatus.Error("Cannot execute w3 call")
 							return
 						}
-						t.mainFrame.State().EmitW3(event_bus.EventW3CallGetBlockByNumber, &dto.ResponseGetBlockByNumberDTO{
+						t.mainFrame.State().EmitW3(events.EventW3CallGetBlockByNumber, &dto.ResponseGetBlockByNumberDTO{
 							InstanceId: req.InstanceId,
 							Data:       result,
 						})
 					}()
 				// Internal
-				case event_bus.EventW3InternalConnections:
+				case events.EventW3InternalConnections:
 					layoutStatus.Info("Got connections")
 					t.mainFrame.State().SwitchToPage("w3_connections", event.Data())
-				case event_bus.EventQuit:
+				case events.EventQuit:
 					// graceful shutdown
 					// TODO: Uncomment on release
 					/*modalConfirmQuit := tview.NewModal().
@@ -213,7 +213,7 @@ func (t *Tui) initLayout() *tview.Flex {
 func (t *Tui) Start() error {
 
 	if t.isVerboseMode {
-		t.uiEvents.Emit(event_bus.EventLog, "Verbose mode enabled")
+		t.uiEvents.Emit(events.EventLog, "Verbose mode enabled")
 
 		var (
 			prevX, prevY           int
@@ -225,7 +225,7 @@ func (t *Tui) Start() error {
 			if x != prevX || y != prevY {
 				prevX = x
 				prevY = y
-				t.uiEvents.Emit(event_bus.EventLog, fmt.Sprintf("Resolution: %dx%d", x, y))
+				t.uiEvents.Emit(events.EventLog, fmt.Sprintf("Resolution: %dx%d", x, y))
 			}
 
 			x1, y1, x2, y2 := t.mainFrame.Layout().GetItem(1).GetRect()
@@ -233,7 +233,7 @@ func (t *Tui) Start() error {
 			if x2 != prevFrameX || y2 != prevFrameY {
 				prevFrameX = x2
 				prevFrameY = y2
-				t.uiEvents.Emit(event_bus.EventLog, fmt.Sprintf("Frame: %dx%d, %dx%d", x1, y1, x2, y2))
+				t.uiEvents.Emit(events.EventLog, fmt.Sprintf("Frame: %dx%d, %dx%d", x1, y1, x2, y2))
 			}
 		})
 	}

@@ -2,9 +2,9 @@ package w3
 
 import (
 	"fmt"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 )
 
@@ -30,11 +30,11 @@ func NewPageW3Connections(state *state.State) *pageW3Connections {
 
 func (p *pageW3Connections) FuncOnShow() {
 	if p.Params() == nil || len(p.Params()) != 1 {
-		p.EmitW3(event_bus.EventW3InternalGetConnections, nil)
+		p.EmitW3(events.EventW3InternalGetConnections, nil)
 	} else {
 		connections, ok := p.Params()[0].(map[string]string)
 		if !ok {
-			p.Emit(event_bus.EventLogError, "Cannot parse connections request")
+			p.Emit(events.EventLogError, "Cannot parse connections request")
 			p.SwitchToPage(p.Pages().GetPrevious())
 		}
 

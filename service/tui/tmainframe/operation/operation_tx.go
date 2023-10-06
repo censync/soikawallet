@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 )
 
@@ -36,7 +36,7 @@ func NewPageOperationTx(state *state.State) *pageOperationTx {
 func (p *pageOperationTx) FuncOnShow() {
 	if p.Params() == nil || len(p.Params()) != 1 {
 		p.Emit(
-			event_bus.EventLogError,
+			events.EventLogError,
 			fmt.Sprintf("Sender address is not set"),
 		)
 		p.SwitchToPage(p.Pages().GetPrevious())
@@ -75,7 +75,7 @@ func (p *pageOperationTx) actionUpdateTokens() {
 
 	if err != nil {
 		p.Emit(
-			event_bus.EventLogError,
+			events.EventLogError,
 			fmt.Sprintf("Cannot get data for %s: %s", p.paramSelectedAddr.Path, err),
 		)
 	}
@@ -85,7 +85,7 @@ func (p *pageOperationTx) actionUpdateTokens() {
 		nodeTokens.AddChild(tokenNode)
 	}
 
-	p.Emit(event_bus.EventDrawForce, nil)
+	p.Emit(events.EventDrawForce, nil)
 }
 
 func (p *pageOperationTx) FuncOnHide() {

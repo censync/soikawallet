@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/twidget/strip_color"
 	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 )
@@ -23,7 +23,7 @@ type addrNodeViewEntry struct {
 func (p *pageAddresses) actionUpdateAddresses() {
 	if p.isUpdating {
 		p.Emit(
-			event_bus.EventLog,
+			events.EventLog,
 			fmt.Sprintf("Updating in process"),
 		)
 		return
@@ -94,7 +94,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 			}
 			p.addrTree.AddChild(networkNode)
 		}
-		p.Emit(event_bus.EventDrawForce, nil)
+		p.Emit(events.EventDrawForce, nil)
 
 		p.balanceSpinner.Start(p.actionTreeSpinnersUpdate)
 		p.actionUpdateBalances()
@@ -128,7 +128,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 							balances = map[string]float64{} // Empty map for stop anim
 							balancesStr = "[gray][cannot get balance]"
 							p.Emit(
-								event_bus.EventLogError,
+								events.EventLogError,
 								fmt.Sprintf("Cannot get data for %s: %s", addrView.addr.Address, err),
 							)
 						}
@@ -174,7 +174,7 @@ func (p *pageAddresses) actionTreeSpinnersUpdate(frame string) {
 			}
 		}
 	}
-	p.Emit(event_bus.EventDrawForce, nil)
+	p.Emit(events.EventDrawForce, nil)
 	if !isSpinnable {
 		p.isUpdating = false
 		p.balanceSpinner.Stop()

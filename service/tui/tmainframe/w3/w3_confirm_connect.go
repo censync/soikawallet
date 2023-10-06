@@ -3,9 +3,9 @@ package w3
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 )
 
@@ -28,7 +28,7 @@ func NewPageW3ConfirmConnect(state *state.State) *pageW3ConfirmConnect {
 func (p *pageW3ConfirmConnect) FuncOnShow() {
 	if p.Params() == nil || len(p.Params()) != 1 {
 		p.Emit(
-			event_bus.EventLogError,
+			events.EventLogError,
 			fmt.Sprintf("Request address is not set"),
 		)
 		p.SwitchToPage(p.Pages().GetPrevious())
@@ -66,7 +66,7 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 	btnConnectionAccept := tview.NewButton(p.Tr().T("ui.button", "accept"))
 
 	btnConnectionAccept.SetSelectedFunc(func() {
-		p.EmitW3(event_bus.EventW3ConnAccepted, &dto.ResponseAcceptDTO{
+		p.EmitW3(events.EventW3ConnAccepted, &dto.ResponseAcceptDTO{
 			InstanceId: connectionReq.InstanceId,
 			Chains:     w3Chains,
 		})
@@ -75,7 +75,7 @@ func (p *pageW3ConfirmConnect) FuncOnShow() {
 	btnConnectionReject := tview.NewButton(p.Tr().T("ui.button", "reject"))
 
 	btnConnectionReject.SetSelectedFunc(func() {
-		p.EmitW3(event_bus.EventW3ConnRejected, &dto.ResponseRejectDTO{
+		p.EmitW3(events.EventW3ConnRejected, &dto.ResponseRejectDTO{
 			InstanceId: connectionReq.InstanceId,
 			RemoteAddr: connectionReq.RemoteAddr,
 		})

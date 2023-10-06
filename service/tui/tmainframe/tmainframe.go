@@ -2,6 +2,7 @@ package tmainframe
 
 import (
 	"github.com/censync/go-i18n"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/tmainframe/about"
@@ -18,7 +19,6 @@ import (
 	"github.com/censync/soikawallet/service/tui/tmainframe/w3"
 	"github.com/censync/soikawallet/service/tui/twidget/extpages"
 	"github.com/censync/soikawallet/service/tui/twidget/flexmenu"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 )
@@ -35,7 +35,7 @@ type TMainFrame struct {
 	style *tview.Theme
 }
 
-func Init(uiEvents, w3Events *event_bus.EventBus, tr *i18n.Translator, style *tview.Theme) *TMainFrame {
+func Init(uiEvents, w3Events *events.EventBus, tr *i18n.Translator, style *tview.Theme) *TMainFrame {
 
 	frame := &TMainFrame{state: state.InitState(uiEvents, w3Events, tr), style: style}
 	pages := frame.initPages()
@@ -97,7 +97,7 @@ func (f *TMainFrame) Layout() *tview.Flex {
 		AddMenuItem("Settings", tcell.KeyF4, func() { f.state.SwitchToPage(page.Settings) }).
 		AddMenuItem("W3 connections", tcell.KeyF3, func() { f.state.SwitchToPage(page.W3Connections) }).
 		AddMenuItem("About", tcell.KeyF1, func() { f.state.SwitchToPage(page.About) }).
-		AddMenuItem("Quit", tcell.KeyF12, func() { f.state.Emit(event_bus.EventQuit, nil) })
+		AddMenuItem("Quit", tcell.KeyF12, func() { f.state.Emit(events.EventQuit, nil) })
 
 	layoutMain := tview.NewFlex().
 		SetDirection(tview.FlexColumn).

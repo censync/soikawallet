@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/config"
-	"github.com/censync/soikawallet/types/event_bus"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/gorilla/websocket"
 	"net"
 	"net/http"
@@ -23,8 +23,8 @@ const (
 
 type Web3Connection struct {
 	walletId string
-	uiEvents *event_bus.EventBus
-	w3Events *event_bus.EventBus
+	uiEvents *events.EventBus
+	w3Events *events.EventBus
 	server   *http.Server
 
 	upgrader websocket.Upgrader // use default options
@@ -35,7 +35,7 @@ type Web3Connection struct {
 	rejected map[string]bool
 }
 
-func NewWeb3Connection(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *event_bus.EventBus) *Web3Connection {
+func NewWeb3Connection(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *events.EventBus) *Web3Connection {
 	upgrader := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 		return true
 	}}
@@ -81,7 +81,7 @@ func (c *Web3Connection) Start() error {
 	c.server.Handler = mux
 
 	c.server.RegisterOnShutdown(func() {
-		c.uiEvents.Emit(event_bus.EventLogInfo, "Socket local server stopped")
+		c.uiEvents.Emit(events.EventLogInfo, "Socket local server stopped")
 	})
 
 	go func() {
@@ -89,16 +89,16 @@ func (c *Web3Connection) Start() error {
 			select {
 			case event := <-c.w3Events.Events():
 				switch event.Type() {
-				case event_bus.EventW3WalletAvailable:
+				case events.EventW3WalletAvailable:
 					c.handlerWalletAvailable(event.Data())
-				case event_bus.EventW3ConnAccepted:
+				case events.EventW3ConnAccepted:
 					c.handlerConnAccepted(event.Data())
-				case event_bus.EventW3ConnRejected:
+				case events.EventW3ConnRejected:
 					c.handlerConnRejected(event.Data())
-				case event_bus.EventW3CallGetBlockByNumber:
+				case events.EventW3CallGetBlockByNumber:
 					c.handlerCallGetBlockByNumber(event.Data())
 				// Internal
-				case event_bus.EventW3InternalGetConnections:
+				case events.EventW3InternalGetConnections:
 					connectionsInfo := map[string]string{}
 					for connectionId, conn := range c.hub {
 						connectionsInfo[connectionId] = fmt.Sprintf(
@@ -107,9 +107,9 @@ func (c *Web3Connection) Start() error {
 							conn.LocalAddr().String(),
 						)
 					}
-					c.uiEvents.Emit(event_bus.EventW3InternalConnections, connectionsInfo)
+					c.uiEvents.Emit(events.EventW3InternalConnections, connectionsInfo)
 				default:
-					c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf(
+					c.uiEvents.Emit(events.EventLogInfo, fmt.Sprintf(
 						"[W3 Connector] Undefined event: %d",
 						event.Type()),
 					)
@@ -121,7 +121,7 @@ func (c *Web3Connection) Start() error {
 	go func() {
 		go func() {
 			c.server.ListenAndServe()
-			c.uiEvents.Emit(event_bus.EventLogInfo, "[W3 Connector] Stopping local server")
+			c.uiEvents.Emit(events.EventLogInfo, "[W3 Connector] Stopping local server")
 		}()
 
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -137,7 +137,7 @@ func (c *Web3Connection) Start() error {
 		}
 
 		if err != nil {
-			c.uiEvents.Emit(event_bus.EventLogError, fmt.Sprintf("[W3 Connector] Cannot stop server: %s", err))
+			c.uiEvents.Emit(events.EventLogError, fmt.Sprintf("[W3 Connector] Cannot stop server: %s", err))
 		}
 		return
 	}()
@@ -203,16 +203,16 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 		_, message, err := conn.ReadMessage()
 
 		if err != nil {
-			c.uiEvents.Emit(event_bus.EventLogError, fmt.Sprintf("[W3 Connector] Connection error: %s", err))
+			c.uiEvents.Emit(events.EventLogError, fmt.Sprintf("[W3 Connector] Connection error: %s", err))
 			break
 		}
 
-		//c.uiEvents.Emit(event_bus.EventLogInfo, fmt.Sprintf("[W3 Connector] Message got: %s", message))
+		//c.uiEvents.Emit(events.EventLogInfo, fmt.Sprintf("[W3 Connector] Message got: %s", message))
 
 		parsedRequest := &RPCMessageReq{}
 		err = json.Unmarshal(message, parsedRequest)
 		if err != nil {
-			c.uiEvents.Emit(event_bus.EventLogWarning, fmt.Sprintf("[W3 Connector] Undefined message: %s", message))
+			c.uiEvents.Emit(events.EventLogWarning, fmt.Sprintf("[W3 Connector] Undefined message: %s", message))
 		}
 
 		if parsedRequest.Id != extensionId {
@@ -229,7 +229,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 					InstanceId: extensionId,
 				})
 			} else {
-				c.uiEvents.Emit(event_bus.EventW3Connect, &dto.ConnectDTO{
+				c.uiEvents.Emit(events.EventW3Connect, &dto.ConnectDTO{
 					InstanceId: extensionId,
 					Origin:     r.Header.Get("Origin"),
 					RemoteAddr: conn.RemoteAddr().String(),
@@ -239,14 +239,14 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 			c.handlerWalletPing(extensionId)
 		case reqCodeRequestAccounts:
 			payload := parsedRequest.Data.(*GetAccountsRequest)
-			c.uiEvents.Emit(event_bus.EventW3RequestAccounts, &dto.RequestAccountsDTO{
+			c.uiEvents.Emit(events.EventW3RequestAccounts, &dto.RequestAccountsDTO{
 				InstanceId: extensionId,
 				Origin:     r.Header.Get("Origin"),
 				ChainKey:   payload.ChainKey,
 			})
 		case reqCodeGetBlockByNumber:
 			payload := parsedRequest.Data.(*RPCRequest)
-			c.uiEvents.Emit(event_bus.EventW3ReqCallGetBlockByNumber, &dto.RequestCallGetBlockByNumberDTO{
+			c.uiEvents.Emit(events.EventW3ReqCallGetBlockByNumber, &dto.RequestCallGetBlockByNumberDTO{
 				InstanceId: extensionId,
 				Origin:     r.Header.Get("Origin"),
 				ChainKey:   payload.ChainKey,
@@ -259,7 +259,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 				c.Stop()
 				return*/
 		default:
-			c.uiEvents.Emit(event_bus.EventLogWarning, fmt.Sprintf("[W3 Connector] Got undefined message: %s", message))
+			c.uiEvents.Emit(events.EventLogWarning, fmt.Sprintf("[W3 Connector] Got undefined message: %s", message))
 		}
 	}
 }
@@ -305,6 +305,6 @@ func (c *Web3Connection) walletStatus() uint8 {
 func (c *Web3Connection) Stop() {
 	defer c.wg.Done()
 	fmt.Println("[Web3] Stopping")
-	// c.uiEvents.Emit(event_bus.EventLogInfo, "Trying stopping socket server")
+	// c.uiEvents.Emit(events.EventLogInfo, "Trying stopping socket server")
 	c.done <- true
 }

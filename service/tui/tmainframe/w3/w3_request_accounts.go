@@ -2,9 +2,9 @@ package w3
 
 import (
 	"fmt"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 )
 
@@ -27,7 +27,7 @@ func NewPageW3RequestAccounts(state *state.State) *pageW3RequestAccounts {
 func (p *pageW3RequestAccounts) FuncOnShow() {
 	if p.Params() == nil || len(p.Params()) != 1 {
 		p.Emit(
-			event_bus.EventLogError,
+			events.EventLogError,
 			fmt.Sprintf("Request address is not set"),
 		)
 		p.SwitchToPage(p.Pages().GetPrevious())

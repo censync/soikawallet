@@ -1,4 +1,4 @@
-package event_bus
+package events
 
 const (
 	EventW3InternalGetConnections           = EventType(190)

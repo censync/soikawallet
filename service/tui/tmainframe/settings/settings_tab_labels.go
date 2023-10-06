@@ -3,7 +3,7 @@ package settings
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/types/event_bus"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/tview"
 )
 
@@ -58,7 +58,7 @@ func (p *pageSettings) tabLabels() *tview.Flex {
 				})
 				if err != nil {
 					p.Emit(
-						event_bus.EventLogError,
+						events.EventLogError,
 						fmt.Sprintf("Cannot add label: %s", err),
 					)
 				} else {
@@ -81,7 +81,7 @@ func (p *pageSettings) tabLabels() *tview.Flex {
 				})
 				if err != nil {
 					p.Emit(
-						event_bus.EventLogError,
+						events.EventLogError,
 						fmt.Sprintf("Cannot remove label: %s", err),
 					)
 				}

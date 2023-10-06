@@ -3,11 +3,11 @@ package mnemonic
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/service/wallet"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
@@ -92,12 +92,12 @@ func (p *pageRestoreMnemonic) actionRestoreWithMnemonic() {
 		Passphrase: p.inputPassword.GetText(),
 	})
 	if err != nil {
-		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot restore wallet: %s", err))
+		p.Emit(events.EventLogError, fmt.Sprintf("Cannot restore wallet: %s", err))
 	} else {
 		//p.SetWallet(wallet)
-		p.Emit(event_bus.EventUpdateCurrencies, nil)
+		p.Emit(events.EventUpdateCurrencies, nil)
 		clipboard.Clear()
-		p.Emit(event_bus.EventWalletInitialized, instanceId)
+		p.Emit(events.EventWalletInitialized, instanceId)
 		p.SwitchToPage(page.CreateWallets)
 	}
 }

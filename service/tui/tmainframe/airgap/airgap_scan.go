@@ -5,9 +5,9 @@ import (
 	airgap "github.com/censync/go-airgap"
 	"github.com/censync/go-zbar"
 	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 )
@@ -58,7 +58,7 @@ func (p *pageAirGapScan) FuncOnShow() {
 func (p *pageAirGapScan) actionScannerStart() {
 	defer func() {
 		if r := recover(); r != nil {
-			p.Emit(event_bus.EventLogError, fmt.Sprintf("Recovered in %s", r))
+			p.Emit(events.EventLogError, fmt.Sprintf("Recovered in %s", r))
 		}
 	}()
 
@@ -79,11 +79,11 @@ func (p *pageAirGapScan) actionScannerStart() {
 	p.scannerInstance.SetConfig(zbar.ZBAR_QRCODE, zbar.ZBAR_CFG_ENABLE, 1)
 
 	if resultCode := p.scannerInstance.SetConfig(zbar.ZBAR_QRCODE, zbar.ZBAR_CFG_ENABLE, 1); resultCode != 0 {
-		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set config, code: %d", resultCode))
+		p.Emit(events.EventLogError, fmt.Sprintf("Cannot set config, code: %d", resultCode))
 	}
 
 	if resultCode := p.scannerInstance.Init("/dev/video0", 1); resultCode != 0 {
-		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot init_wallet camera, code: %d", resultCode))
+		p.Emit(events.EventLogError, fmt.Sprintf("Cannot init_wallet camera, code: %d", resultCode))
 		return
 	}
 
@@ -99,16 +99,16 @@ func (p *pageAirGapScan) handleScan(img *zbar.Image) {
 	if s != nil {
 		wasAdded, err := p.chunks.ReadB64Chunk(s.GetData())
 		if err != nil {
-			p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot read QR: %s", err))
+			p.Emit(events.EventLogError, fmt.Sprintf("Cannot read QR: %s", err))
 		}
 
 		if wasAdded {
 			p.chunksCounter++
-			p.Emit(event_bus.EventLogInfo, fmt.Sprintf("Scanned [%d / %d]", p.chunksCounter, p.chunks.Count()))
+			p.Emit(events.EventLogInfo, fmt.Sprintf("Scanned [%d / %d]", p.chunksCounter, p.chunks.Count()))
 		}
 
 		if p.chunks.IsFilled() {
-			p.Emit(event_bus.EventLogSuccess, "Scan finished")
+			p.Emit(events.EventLogSuccess, "Scan finished")
 			p.actionScannerStop()
 
 			p.actionProcessMessage()
@@ -135,9 +135,9 @@ func (p *pageAirGapScan) actionProcessMessage() {
 	p.chunks = nil
 
 	if err == nil {
-		p.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Operations scanned: %s", result))
+		p.Emit(events.EventLogSuccess, fmt.Sprintf("Operations scanned: %s", result))
 	} else {
-		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot process AirGap message: %s", err))
+		p.Emit(events.EventLogError, fmt.Sprintf("Cannot process AirGap message: %s", err))
 	}
 }
 

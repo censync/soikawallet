@@ -4,9 +4,9 @@ import (
 	"fmt"
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"strconv"
@@ -170,14 +170,14 @@ func (p *pageCreateAddr) actionCreateAddrWizard() {
 		accountStr := entryItem.GetFormItem(0).(*tview.InputField).GetText()
 		accountIndex, err := strconv.ParseUint(accountStr, 0, 32)
 		if err != nil {
-			p.Emit(event_bus.EventLogError, fmt.Sprintf("Incorrect account value for row %d", entry))
+			p.Emit(events.EventLogError, fmt.Sprintf("Incorrect account value for row %d", entry))
 			return
 		}
 
 		indexStr := entryItem.GetFormItem(2).(*tview.InputField).GetText()
 		addrIndex, err := strconv.ParseUint(indexStr, 0, 32)
 		if err != nil {
-			p.Emit(event_bus.EventLogError, fmt.Sprintf("Incorrect index value for row %d", addrIndex))
+			p.Emit(events.EventLogError, fmt.Sprintf("Incorrect index value for row %d", addrIndex))
 			return
 		}
 
@@ -197,10 +197,10 @@ func (p *pageCreateAddr) actionCreateAddrWizard() {
 
 	addresses, err := p.API().AddAddresses(req)
 	if err != nil {
-		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot create addresses: %s", err))
+		p.Emit(events.EventLogError, fmt.Sprintf("Cannot create addresses: %s", err))
 	} else {
 		for _, addr := range addresses {
-			p.Emit(event_bus.EventLogInfo, fmt.Sprintf(
+			p.Emit(events.EventLogInfo, fmt.Sprintf(
 				"Added address: %s %s",
 				types.GetNetworkNameByKey(p.selectedChain.Key()),
 				addr.Address,

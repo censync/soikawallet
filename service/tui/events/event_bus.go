@@ -1,4 +1,4 @@
-package event_bus
+package events
 
 import "fmt"
 

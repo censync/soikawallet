@@ -3,9 +3,9 @@
 package about
 
 import (
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"os"
@@ -76,7 +76,7 @@ func (p *pageAgreement) FuncOnShow() {
 		SetLabelColor(tcell.ColorLightGray).
 		SetBackgroundColor(tcell.ColorDarkSlateGrey).
 		SetSelectedFunc(func() {
-			p.State.Emit(event_bus.EventQuit, nil)
+			p.State.Emit(events.EventQuit, nil)
 		})
 
 	formChoice := tview.NewFlex().

@@ -3,7 +3,7 @@ package tui
 import (
 	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/service/tui/api_web3"
-	"github.com/censync/soikawallet/types/event_bus"
+	"github.com/censync/soikawallet/service/tui/events"
 	"sync"
 )
 
@@ -15,15 +15,15 @@ type IServiceProvider interface {
 }
 
 type Service struct {
-	uiEvents              *event_bus.EventBus
-	w3Events              *event_bus.EventBus
+	uiEvents              *events.EventBus
+	w3Events              *events.EventBus
 	web3ConnectionService *api_web3.Web3Connection
 	tuiService            *Tui
 }
 
 func NewTUIServiceProvider(cfg *config.Config, wg *sync.WaitGroup) *Service {
-	uiEvents := event_bus.NewEventBus()
-	w3Events := event_bus.NewEventBus()
+	uiEvents := events.NewEventBus()
+	w3Events := events.NewEventBus()
 	return &Service{
 		web3ConnectionService: api_web3.NewWeb3Connection(cfg, wg, uiEvents, w3Events),
 		tuiService:            NewTui(cfg, wg, uiEvents, w3Events),

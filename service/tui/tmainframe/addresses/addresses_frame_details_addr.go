@@ -5,11 +5,11 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget/qrview"
 	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
@@ -79,9 +79,9 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		if f.selectedAddress != nil {
 			err := clipboard.CopyToClipboard(f.selectedAddress.Address)
 			if err != nil {
-				f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
+				f.Emit(events.EventLogError, fmt.Sprintf("Cannot copy to clipboard: %s", err))
 			} else {
-				f.Emit(event_bus.EventLogSuccess, "Address copied to clipboard")
+				f.Emit(events.EventLogSuccess, "Address copied to clipboard")
 			}
 		}
 	})
@@ -110,9 +110,9 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 					MhdaPath: f.selectedAddress.Path,
 				})
 				if err != nil {
-					f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot set address for Web 3: %s", err))
+					f.Emit(events.EventLogError, fmt.Sprintf("Cannot set address for Web 3: %s", err))
 				} else {
-					f.Emit(event_bus.EventLogSuccess, "Address permitted for Web 3")
+					f.Emit(events.EventLogSuccess, "Address permitted for Web 3")
 				}
 			}
 		})
@@ -140,11 +140,11 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 				})
 				if err != nil {
 					f.Emit(
-						event_bus.EventLogError,
+						events.EventLogError,
 						fmt.Sprintf("Cannot link node for account: %s", err),
 					)
 				} else {
-					f.Emit(event_bus.EventLog, "SETTED")
+					f.Emit(events.EventLog, "SETTED")
 				}
 			}
 		}).
@@ -157,11 +157,11 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 				})
 				if err != nil {
 					f.Emit(
-						event_bus.EventLogError,
+						events.EventLogError,
 						fmt.Sprintf("Cannot link node for account: %s", err),
 					)
 				} else {
-					f.Emit(event_bus.EventLog, "SETTED")
+					f.Emit(events.EventLog, "SETTED")
 				}
 			}
 		}).
@@ -173,12 +173,12 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 				})
 				if err != nil {
 					f.Emit(
-						event_bus.EventLogError,
+						events.EventLogError,
 						fmt.Sprintf("Cannot unlink node for account: %s", err),
 					)
 				} else {
 					f.Emit(
-						event_bus.EventLog,
+						events.EventLog,
 						fmt.Sprintf("Unlinked"),
 					)
 				}

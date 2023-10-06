@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget/formtextview"
 	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/soikawallet/types/gas"
 	"github.com/censync/tview"
 	"strconv"
@@ -60,7 +60,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 	})
 
 	if err != nil {
-		f.Emit(event_bus.EventLogError, "Cannot get available tokens")
+		f.Emit(events.EventLogError, "Cannot get available tokens")
 		f.SwitchToPage(f.Pages().GetPrevious())
 	}
 
@@ -82,7 +82,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 				if contract, ok := tokensMap[index]; ok {
 					f.selectedToken = (*availableTokens)[contract]
 				} else {
-					f.Emit(event_bus.EventLogError, "Undefined token")
+					f.Emit(events.EventLogError, "Undefined token")
 				}
 			}
 		}).
@@ -95,7 +95,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 		AddButton("Send", func() {
 			f.selectedAmount, err = strconv.ParseFloat(inputValue.GetText(), 64)
 			if err != nil {
-				f.Emit(event_bus.EventLogError, "Incorrect value")
+				f.Emit(events.EventLogError, "Incorrect value")
 				return
 			}
 			f.selectedRecipient = inputAddrReceiver.GetText()
@@ -126,16 +126,16 @@ func (f *frameOperationWizard) actionCheckAllowancePermission() bool {
 	})
 
 	if err != nil {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get allowance: %e", err))
+		f.Emit(events.EventLogError, fmt.Sprintf("Cannot get allowance: %e", err))
 		return false
 	}
 
 	// TODO: Add human check
 	if allowance == 0 {
-		f.Emit(event_bus.EventLogWarning, "Not approved, zero allowance")
+		f.Emit(events.EventLogWarning, "Not approved, zero allowance")
 		return false
 	} else {
-		f.Emit(event_bus.EventLogInfo, fmt.Sprintf("Allowance: %d ", allowance))
+		f.Emit(events.EventLogInfo, fmt.Sprintf("Allowance: %d ", allowance))
 	}
 	return true
 }
@@ -157,18 +157,18 @@ func (f *frameOperationWizard) actionConfigureGas() {
 	})
 
 	if err != nil {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get gas calculator instance: %s", err))
+		f.Emit(events.EventLogError, fmt.Sprintf("Cannot get gas calculator instance: %s", err))
 		return
 	}
 
 	gasCalc, err := gas.Unmarshal(calcConfig.Calculator)
 
 	if err != nil {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot unmarshal gas calculator: %s", err))
+		f.Emit(events.EventLogError, fmt.Sprintf("Cannot unmarshal gas calculator: %s", err))
 		return
 	}
 
-	f.Emit(event_bus.EventLogInfo, gasCalc.Debug())
+	f.Emit(events.EventLogInfo, gasCalc.Debug())
 
 	templateGas := fmt.Sprintf("GasEstimate: %d Base: %s [%d]\nSuggestSlow: %s [%d]\nSuggestRegular: %s [%d]\nSuggestPriority: %s [%d]\nEst gas price: %s Limit gas price: %s",
 		gasCalc.EstimateGas(),
@@ -200,7 +200,7 @@ func (f *frameOperationWizard) actionConfigureGas() {
 
 	f.layout.Clear()
 	f.layout.AddItem(layoutForm, 0, 1, false)
-	//f.Emit(event_bus.EventDrawForce, nil)
+	//f.Emit(events.EventDrawForce, nil)
 }
 
 func (f *frameOperationWizard) actionConfigureAllowance() {
@@ -215,14 +215,14 @@ func (f *frameOperationWizard) actionConfigureAllowance() {
 	})
 
 	if err != nil {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get gas calculator instance: %s", err))
+		f.Emit(events.EventLogError, fmt.Sprintf("Cannot get gas calculator instance: %s", err))
 		return
 	}
 
 	gasCalc, err := gas.Unmarshal(calcConfig.Calculator)
 
 	if err != nil {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot unmarshal gas calculator: %s", err))
+		f.Emit(events.EventLogError, fmt.Sprintf("Cannot unmarshal gas calculator: %s", err))
 		return
 	}
 
@@ -267,10 +267,10 @@ func (f *frameOperationWizard) actionSendApprove(gas, gasTipCap, gasFeePrice uin
 		Contract:  f.selectedToken.Contract,
 	})
 	if err == nil {
-		f.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Transaction approve sent: %s", txId))
+		f.Emit(events.EventLogSuccess, fmt.Sprintf("Transaction approve sent: %s", txId))
 		f.actionConfigureGas()
 	} else {
-		f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot send approve transaction: %s", err))
+		f.Emit(events.EventLogError, fmt.Sprintf("Cannot send approve transaction: %s", err))
 	}
 }
 
@@ -291,19 +291,19 @@ func (f *frameOperationWizard) actionSendTransaction(gas, gasTipCap, gasFeePrice
 		txId, err := f.API().SendTokens(request)
 
 		if err == nil {
-			f.Emit(event_bus.EventLogSuccess, fmt.Sprintf("Transaction sent: %s", txId))
+			f.Emit(events.EventLogSuccess, fmt.Sprintf("Transaction sent: %s", txId))
 		} else {
-			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot send transaction: %s", err))
+			f.Emit(events.EventLogError, fmt.Sprintf("Cannot send transaction: %s", err))
 		}
 	} else {
 
 		airGapData, err := f.API().SendTokensPrepare(request)
 
 		if err == nil {
-			f.Emit(event_bus.EventLogSuccess, "Transaction prepared")
+			f.Emit(events.EventLogSuccess, "Transaction prepared")
 			f.SwitchToPage(page.AirGapShow, airGapData)
 		} else {
-			f.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot prepare transaction: %s", err))
+			f.Emit(events.EventLogError, fmt.Sprintf("Cannot prepare transaction: %s", err))
 		}
 	}
 }

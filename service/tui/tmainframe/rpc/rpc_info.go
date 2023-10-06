@@ -4,10 +4,10 @@ import (
 	"fmt"
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/event_bus"
 	"github.com/censync/tview"
 )
 
@@ -108,7 +108,7 @@ func (p *pageNodeInfo) actionUpdateInfo() {
 		}
 		p.labelRPCInfo.SetText(str)
 	} else {
-		p.Emit(event_bus.EventLogError, fmt.Sprintf("Cannot get rpc info: %s", err))
+		p.Emit(events.EventLogError, fmt.Sprintf("Cannot get rpc info: %s", err))
 	}
 
 }
