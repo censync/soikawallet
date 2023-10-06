@@ -11,7 +11,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/tmainframe"
 	"github.com/censync/soikawallet/service/tui/twidget/statusview"
 	"github.com/censync/soikawallet/service/wallet"
-	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/service/wallet/mpkey"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"sync"
@@ -90,7 +90,7 @@ func (t *Tui) initLayout() *tview.Flex {
 		SetTextAlign(tview.AlignCenter)
 
 	// TODO: Move to api
-	if ok, err := types.IsMemoryProtected(); !ok {
+	if ok, err := mpkey.IsMemoryProtected(); !ok {
 		t.uiEvents.Emit(event_bus.EventWalletNoticeMessage, fmt.Sprintf("[Core] Memory protection error: %s", err))
 	}
 

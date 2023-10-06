@@ -9,6 +9,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/wallet/meta"
+	"github.com/censync/soikawallet/service/wallet/mpkey"
 	"github.com/censync/soikawallet/types"
 )
 
@@ -269,7 +270,7 @@ func (s *Wallet) addAddress(path mhda.MHDA) (addr *meta.Address, err error) {
 
 	addr = meta.NewAddress(
 		path,
-		types.NewProtectedKey(ecAddrKey),
+		mpkey.NewProtectedKey(ecAddrKey),
 		pubKey,
 		provider.Address(pubKey), // TODO: Move addr marshaller from provider
 	)
