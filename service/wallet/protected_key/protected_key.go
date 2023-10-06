@@ -1,6 +1,6 @@
 //go:build !windows
 
-package mpkey
+package protected_key
 
 import (
 	"crypto/ecdsa"

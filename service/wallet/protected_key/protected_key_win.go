@@ -1,7 +1,7 @@
 //go:build windows
 
 // Syscall is not implemented on windows
-package mpkey
+package protected_key
 
 import (
 	"crypto/ecdsa"

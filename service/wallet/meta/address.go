@@ -3,7 +3,7 @@ package meta
 import (
 	"crypto/ecdsa"
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/service/wallet/mpkey"
+	"github.com/censync/soikawallet/service/wallet/protected_key"
 )
 
 const (
@@ -21,7 +21,7 @@ type aIndex uint32
 
 type Address struct {
 	path mhda.MHDA
-	key  *mpkey.ProtectedKey
+	key  *protected_key.ProtectedKey
 	pub  *ecdsa.PublicKey
 	addr string
 
@@ -39,7 +39,7 @@ type Address struct {
 	level uint8 // 0 - root, 1 - account, 2 - charge, 3 - index
 }
 
-func NewAddress(path mhda.MHDA, key *mpkey.ProtectedKey, pub *ecdsa.PublicKey, addr string) *Address {
+func NewAddress(path mhda.MHDA, key *protected_key.ProtectedKey, pub *ecdsa.PublicKey, addr string) *Address {
 	subIndex++
 	return &Address{
 		path:           path,
@@ -70,7 +70,7 @@ func (a *Address) NodeIndex() uint32 {
 	return a.nodeIndex
 }
 
-func (a *Address) Key() *mpkey.ProtectedKey {
+func (a *Address) Key() *protected_key.ProtectedKey {
 	return a.key
 }
 
