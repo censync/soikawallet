@@ -1,8 +1,8 @@
-package wallet
+package core
 
 import (
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/wallet/internal/network"
+	"github.com/censync/soikawallet/service/core/internal/network"
 )
 
 func (s *Wallet) GetAllEvmW3Chains() []*resp.ChainInfo {

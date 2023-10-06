@@ -3,11 +3,11 @@ package mnemonic
 import (
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
+	"github.com/censync/soikawallet/service/core"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/page"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/service/wallet"
 	"github.com/censync/soikawallet/util/clipboard"
 	"github.com/censync/soikawallet/util/seed"
 	"github.com/censync/tview"
@@ -82,12 +82,12 @@ func (p *pageInitMnemonic) FuncOnShow() {
 	btnNext := tview.NewButton(p.Tr().T("ui.button", "next")).
 		SetStyleAttrs(tcell.AttrBold).
 		SetSelectedFunc(func() {
-			instanceId, err := wallet.API().Init(&dto.InitWalletDTO{
+			instanceId, err := core.API().Init(&dto.InitWalletDTO{
 				Mnemonic:   p.mnemonic,
 				Passphrase: inputPassword.GetText(),
 			})
 			if err != nil {
-				p.Emit(events.EventLogError, fmt.Sprintf("Cannot init_wallet wallet: %s", err))
+				p.Emit(events.EventLogError, fmt.Sprintf("Cannot init wallet: %s", err))
 			} else {
 				p.Emit(events.EventUpdateCurrencies, nil)
 				clipboard.Clear()
@@ -138,7 +138,7 @@ func (p *pageInitMnemonic) actionMnemonicUpdate() {
 	//p.inputMnemonic.SetText(``, false)
 	p.inputMnemonic.Clear(false)
 
-	p.mnemonic, err = wallet.API().GenerateMnemonic(&dto.GenerateMnemonicDTO{
+	p.mnemonic, err = core.API().GenerateMnemonic(&dto.GenerateMnemonicDTO{
 		BitSize:  p.selectedMnemonicEntropy,
 		Language: p.selectedMnemonicLanguage,
 	})

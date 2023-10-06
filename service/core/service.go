@@ -1,4 +1,4 @@
-package wallet
+package core
 
 import (
 	"github.com/censync/soikawallet/api/dto"

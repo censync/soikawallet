@@ -94,7 +94,7 @@ func (t *Tron) getHeight(ctx *types.RPCContext) (uint64, error) {
 			} `json:"raw_data"`
 		} `json:"block_header"`
 	}
-	method := `/wallet/getnowblock`
+	method := `/core/getnowblock`
 
 	err := t.getClient(ctx.NodeId()).Do("POST", method, nil, &res)
 	if err != nil {
@@ -108,7 +108,7 @@ func (t *Tron) GetBalance(ctx *types.RPCContext) (float64, error) {
 	var res struct {
 		Balance uint64 `json:"balance"`
 	}
-	method := `/wallet/getaccount`
+	method := `/core/getaccount`
 	req := struct {
 		Address string `json:"address"`
 		Visible bool   `json:"visible"`
@@ -148,7 +148,7 @@ func (t *Tron) TxGetReceipt(ctx *types.RPCContext, tx string) (map[string]interf
 			} `json:"contract"`
 		} `json:"raw_data"`
 	}
-	method := `/wallet/gettransactionbyid`
+	method := `/core/gettransactionbyid`
 	req := struct {
 		Value string `json:"value"`
 	}{

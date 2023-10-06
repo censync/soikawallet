@@ -1,4 +1,4 @@
-package wallet
+package core
 
 import (
 	"crypto/ecdsa"
@@ -8,7 +8,7 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/wallet/meta"
+	"github.com/censync/soikawallet/service/core/meta"
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/soikawallet/types/protected_key"
 )

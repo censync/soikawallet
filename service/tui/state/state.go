@@ -2,9 +2,9 @@ package state
 
 import (
 	"github.com/censync/go-i18n"
+	"github.com/censync/soikawallet/service/core"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/twidget/extpages"
-	"github.com/censync/soikawallet/service/wallet"
 )
 
 const (
@@ -56,8 +56,8 @@ func (s *State) Status() uint8 {
 	return s.status
 }
 
-func (s *State) API() wallet.WalletAdapter {
-	return wallet.API()
+func (s *State) API() core.WalletAdapter {
+	return core.API()
 }
 
 func (s *State) Tr() *i18n.Translator {

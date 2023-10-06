@@ -7,10 +7,10 @@ import (
 	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/config/dict"
 	"github.com/censync/soikawallet/config/version"
+	"github.com/censync/soikawallet/service/core"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/tmainframe"
 	"github.com/censync/soikawallet/service/tui/twidget/statusview"
-	"github.com/censync/soikawallet/service/wallet"
 	"github.com/censync/soikawallet/types/protected_key"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
@@ -143,7 +143,7 @@ func (t *Tui) initLayout() *tview.Flex {
 					t.app.SetRoot(event.Data().(*tview.Modal), false)
 				case events.EventUpdateCurrencies:
 					go func() {
-						currencies := wallet.API().UpdateFiatCurrencies()
+						currencies := core.API().UpdateFiatCurrencies()
 						if currencies != nil {
 							layoutStatus.Success(fmt.Sprintf("Currencies loaded: %v", currencies))
 						} else {
@@ -161,7 +161,7 @@ func (t *Tui) initLayout() *tview.Flex {
 							layoutStatus.Error("Cannot parse w3 request")
 							return
 						}
-						result, err := wallet.API().ExecuteRPC(&dto.ExecuteRPCRequestDTO{
+						result, err := core.API().ExecuteRPC(&dto.ExecuteRPCRequestDTO{
 							InstanceId: req.InstanceId,
 							//Origin:     req.Origin,
 							// RemoteAddr: "",

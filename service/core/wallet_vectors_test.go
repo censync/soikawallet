@@ -1,4 +1,4 @@
-package wallet
+package core
 
 const testPassphrase = `TREZOR`
 
