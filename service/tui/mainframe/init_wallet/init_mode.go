@@ -1,7 +1,7 @@
 package init_wallet
 
 import (
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
@@ -29,14 +29,14 @@ func (p *pageInitMode) FuncOnShow() {
 	btnModeAirGap.SetSelectedFunc(func() {
 		p.SetWalletMode(state.ModeWithAirGap)
 		p.SetStatus(state.StateInitAirGap)
-		p.SwitchToPage(page.AirGapShow)
+		p.SwitchToPage(pages.AirGapShow)
 	})
 
 	btnModeLocal := tview.NewButton("Do not use AirGap [[red]less secure[white]]")
 	btnModeLocal.SetSelectedFunc(func() {
 		p.SetWalletMode(state.ModeWithoutAirGap)
 		p.SetStatus(state.StateInitLocal)
-		p.SwitchToPage(page.SelectInitWallet)
+		p.SwitchToPage(pages.SelectInitWallet)
 	})
 
 	labelAirGap := tview.NewTextView().SetText(p.Tr().T("ui.label", "splash_option_airgap"))

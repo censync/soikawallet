@@ -1,4 +1,4 @@
-package page
+package pages
 
 const (
 	SelectInitMode   = `select_init_mode`

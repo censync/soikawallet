@@ -2,7 +2,7 @@ package addresses
 
 import (
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/service/tui/twidget/spinner"
@@ -56,7 +56,7 @@ func (p *pageAddresses) Layout() *tview.Flex {
 		if p.layoutAddressesTree.InRect(event.Position()) {
 			if action == tview.MouseLeftDoubleClick && p.selectedAddress != nil {
 				if p.layoutAddressesTree.GetCurrentNode().GetLevel() == addrNodeLevelAddr {
-					p.SwitchToPage(page.OperationTx, p.selectedAddress)
+					p.SwitchToPage(pages.OperationTx, p.selectedAddress)
 				}
 				return action, nil
 			}

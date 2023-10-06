@@ -9,7 +9,7 @@ import (
 	"github.com/censync/soikawallet/config/version"
 	"github.com/censync/soikawallet/service/core"
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/tmainframe"
+	"github.com/censync/soikawallet/service/tui/mainframe"
 	"github.com/censync/soikawallet/service/tui/twidget/statusview"
 	"github.com/censync/soikawallet/types/protected_key"
 	"github.com/censync/tview"
@@ -21,7 +21,7 @@ type Tui struct {
 	app *tview.Application
 	tr  *i18n.Translator
 
-	mainFrame     *tmainframe.TMainFrame
+	mainFrame     *mainframe.MainFrame
 	uiEvents      *events.EventBus
 	w3Events      *events.EventBus
 	layout        *tview.Flex
@@ -58,7 +58,7 @@ func NewTui(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *events.E
 		style:    style,
 		wg:       wg,
 	}
-	tui.mainFrame = tmainframe.Init(tui.uiEvents, tui.w3Events, dict.GetTr("en"), tui.style)
+	tui.mainFrame = mainframe.Init(tui.uiEvents, tui.w3Events, dict.GetTr("en"), tui.style)
 	tui.layout = tui.initLayout()
 	return tui
 }

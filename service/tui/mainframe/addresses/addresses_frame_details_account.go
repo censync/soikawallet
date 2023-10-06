@@ -5,7 +5,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
@@ -49,7 +49,7 @@ func (f *frameAddressesDetailsAccount) Layout() *tview.Flex {
 	}
 
 	inputSelectLabel.AddOption(" [ add label ] ", func() {
-		f.SwitchToPage(page.Settings)
+		f.SwitchToPage(pages.Settings)
 	})
 
 	formAccountDesc := tview.NewForm().

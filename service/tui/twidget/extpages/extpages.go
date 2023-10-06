@@ -110,7 +110,7 @@ func (p *ExtPages) GetPageCount() int {
 
 func (p *ExtPages) AddPage(page *ExtPage) *ExtPages {
 	if page == nil {
-		panic("cannot add not initialised page")
+		panic("cannot add not initialised pages")
 	}
 	hasFocus := p.HasFocus()
 	for index, pg := range p.pages {
@@ -149,7 +149,7 @@ func (p *ExtPages) RemovePage(name string) *ExtPages {
 		for index, page := range p.pages {
 			if index < len(p.pages)-1 {
 				if page.Visible() {
-					break // There is a remaining visible page.
+					break // There is a remaining visible pages.
 				}
 			} else {
 				p.current = page

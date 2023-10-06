@@ -41,7 +41,7 @@ func newPageAgreement(state *state.State) *pageAgreement {
 
 func (p *pageAgreement) FuncOnShow() {
 	if p.isAgreementAccepted {
-		p.SwitchToPage(page.PageNameSelectInitWallet)
+		p.SwitchToPage(pages.PageNameSelectInitWallet)
 		return
 	}
 
@@ -69,7 +69,7 @@ func (p *pageAgreement) FuncOnShow() {
 
 	btnAccept := tview.NewButton("Accept").
 		SetSelectedFunc(func() {
-			p.SwitchToPage(page.PageNameSelectInitWallet)
+			p.SwitchToPage(pages.PageNameSelectInitWallet)
 		})
 
 	btnDecline := tview.NewButton("Decline").

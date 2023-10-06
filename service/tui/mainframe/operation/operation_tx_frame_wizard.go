@@ -5,7 +5,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget/formtextview"
 	"github.com/censync/soikawallet/types"
@@ -77,7 +77,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 		SetFieldWidth(10).
 		SetOptions(tokensList, func(text string, index int) {
 			if index == len(tokensList)-1 {
-				f.SwitchToPage(page.TokenAdd, f.selectedAddress.ChainKey, f.selectedAddress.Path)
+				f.SwitchToPage(pages.TokenAdd, f.selectedAddress.ChainKey, f.selectedAddress.Path)
 			} else {
 				if contract, ok := tokensMap[index]; ok {
 					f.selectedToken = (*availableTokens)[contract]
@@ -301,7 +301,7 @@ func (f *frameOperationWizard) actionSendTransaction(gas, gasTipCap, gasFeePrice
 
 		if err == nil {
 			f.Emit(events.EventLogSuccess, "Transaction prepared")
-			f.SwitchToPage(page.AirGapShow, airGapData)
+			f.SwitchToPage(pages.AirGapShow, airGapData)
 		} else {
 			f.Emit(events.EventLogError, fmt.Sprintf("Cannot prepare transaction: %s", err))
 		}

@@ -4,7 +4,7 @@ package about
 
 import (
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
@@ -42,7 +42,7 @@ func NewPageAgreement(state *state.State) *pageAgreement {
 
 func (p *pageAgreement) FuncOnShow() {
 	if p.isAgreementAccepted {
-		p.SwitchToPage(page.SelectInitWallet)
+		p.SwitchToPage(pages.SelectInitWallet)
 	}
 
 	viewTermsOfUse := tview.NewTextView().
@@ -71,7 +71,7 @@ func (p *pageAgreement) FuncOnShow() {
 
 	btnAccept := tview.NewButton("Accept").
 		SetSelectedFunc(func() {
-			p.SwitchToPage(page.SelectInitWallet)
+			p.SwitchToPage(pages.SelectInitWallet)
 		})
 
 	btnDecline := tview.NewButton("Decline").

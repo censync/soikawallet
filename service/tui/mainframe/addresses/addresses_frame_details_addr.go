@@ -6,7 +6,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget/qrview"
 	"github.com/censync/soikawallet/types"
@@ -98,7 +98,7 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		//AddFormItem(viewSelectedAddr).
 		AddButton("Send", func() {
 			if f.selectedAddress != nil {
-				f.SwitchToPage(page.OperationTx, f.selectedAddress)
+				f.SwitchToPage(pages.OperationTx, f.selectedAddress)
 			}
 		}).
 		AddButton("Refresh", func() {

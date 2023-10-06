@@ -44,7 +44,7 @@ func init() {
 	keyLen := copy(bKey, origKey)
 
 	if keyLen > pageSize {
-		memoryProtectionError = errors.New("data larger than page size")
+		memoryProtectionError = errors.New("data larger than pages size")
 		return
 	}
 
@@ -105,7 +105,7 @@ func (pk *ProtectedKey) set(key *ecdsa.PrivateKey) {
 		pageSize := syscall.Getpagesize()
 
 		if len(crypto.FromECDSA(key)) > pageSize {
-			panic("data larger than page size")
+			panic("data larger than pages size")
 		}
 
 		pk.key = make([]byte, pageSize)

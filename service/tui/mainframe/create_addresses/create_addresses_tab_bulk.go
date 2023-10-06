@@ -50,6 +50,6 @@ func (p *pageCreateAddr) actionCreateAddrBulk() {
 			for _, addr := range addresses {
 				p.Emit(events.EventLogInfo, fmt.Sprintf("Added address: %s %s", addr.Path, addr.Address))
 			}
-			p.SwitchToPage(page.PageNameAddresses)
+			p.SwitchToPage(pages.PageNameAddresses)
 		}*/
 }

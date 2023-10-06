@@ -54,7 +54,7 @@ func (p *pageW3Connections) FuncOnShow() {
 
 			p.BaseLayout().AddItem(connectionEntry, 3, 1, false)
 		}
-		// TODO: Add reload page
+		// TODO: Add reload pages
 	}
 
 }

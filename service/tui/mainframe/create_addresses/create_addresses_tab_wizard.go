@@ -5,7 +5,7 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
@@ -207,7 +207,7 @@ func (p *pageCreateAddr) actionCreateAddrWizard() {
 			),
 			)
 		}
-		p.SwitchToPage(page.Addresses)
+		p.SwitchToPage(pages.Addresses)
 	}
 }
 

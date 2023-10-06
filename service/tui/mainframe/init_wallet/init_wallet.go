@@ -1,7 +1,7 @@
 package init_wallet
 
 import (
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
@@ -28,13 +28,13 @@ func (p *pageInitWallet) FuncOnShow() {
 
 	btnWalletCreate.SetSelectedFunc(func() {
 		p.SetStatus(state.StateInitLocal)
-		p.SwitchToPage(page.MnemonicInit)
+		p.SwitchToPage(pages.MnemonicInit)
 	})
 	btnWalletRestore := tview.NewButton(p.Tr().T("ui.button", "wallet_restore"))
 
 	btnWalletRestore.SetSelectedFunc(func() {
 		p.SetStatus(state.StateInitLocal)
-		p.SwitchToPage(page.MnemonicRestore)
+		p.SwitchToPage(pages.MnemonicRestore)
 	})
 
 	layoutButtons := tview.NewFlex().

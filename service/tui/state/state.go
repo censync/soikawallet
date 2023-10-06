@@ -88,7 +88,7 @@ func (s *State) SwitchToPage(page string, args ...interface{}) {
 	//s.Emit(events.EventDrawForce, nil)
 }
 
-// Current page
+// Current pages
 
 func (s *State) Params() []interface{} {
 	return s.pages.Current().Params()

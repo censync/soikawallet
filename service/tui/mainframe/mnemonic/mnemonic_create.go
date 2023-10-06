@@ -5,7 +5,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/core"
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/page"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/util/clipboard"
@@ -92,7 +92,7 @@ func (p *pageInitMnemonic) FuncOnShow() {
 				p.Emit(events.EventUpdateCurrencies, nil)
 				clipboard.Clear()
 				p.Emit(events.EventWalletInitialized, instanceId)
-				p.SwitchToPage(page.CreateWallets)
+				p.SwitchToPage(pages.CreateWallets)
 			}
 		})
 	btnBack := tview.NewButton(p.Tr().T("ui.button", "back")).
