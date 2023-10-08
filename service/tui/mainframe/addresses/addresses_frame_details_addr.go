@@ -120,6 +120,14 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 		AddButton("Refresh", func() {
 			// f.actionUpdateAddresses()
 		}).
+		AddButton("Paste", func() {
+			pasteData, err := clipboard.PasteFromClipboard()
+			if err != nil {
+				f.Emit(events.EventLogError, fmt.Sprintf("Cannot paste: %s", err))
+			} else {
+				f.Emit(events.EventLogSuccess, pasteData)
+			}
+		}).
 		AddButton("set W3", func() {
 			if f.selectedAddress != nil {
 				err := f.API().SetAddressW3(&dto.SetAddressW3DTO{

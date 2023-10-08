@@ -18,19 +18,21 @@ package clipboard
 
 import (
 	"errors"
+	"io"
 	"os/exec"
 )
 
 var (
-	selectedTool  = -1
-	clipboardCopy = [][]string{
+	selectedCopyTool  = -1
+	selectedPasteTool = -1
+	clipboardCopy     = [][]string{
 		{"xsel", "--input", "--clipboard"},
 		{"xclip", "-in", "-selection", "clipboard"},
 		{"wl-copy"},
 		{"termux-clipboard-set"},
 	}
 	clipboardPaste = [][]string{
-		{"xsel", "--output", "--clipboard"},
+		//{"xsel", "--output", "--clipboard"},
 		{"xclip", "-o"},
 		{"wl-paste"},
 		{"termux-clipboard-get"},
@@ -40,21 +42,27 @@ var (
 func init() {
 	for i := 0; i < len(clipboardCopy); i++ {
 		if _, err := exec.LookPath(clipboardCopy[0][0]); err == nil {
-			selectedTool = i
+			selectedCopyTool = i
+			return
+		}
+	}
+	for i := 0; i < len(clipboardPaste); i++ {
+		if _, err := exec.LookPath(clipboardPaste[0][0]); err == nil {
+			selectedPasteTool = i
 			return
 		}
 	}
 }
 
 func Clear() {
-	CopyToClipboard(``)
+	_ = CopyToClipboard(``)
 }
 
 func CopyToClipboard(str string) error {
-	if selectedTool == -1 {
+	if selectedCopyTool == -1 {
 		return errors.New(`cannot find clipboard tool, please, install "xsel", "xclip", "wl-copy" or "termux-clipboard-set" package`)
 	}
-	copyCmd := exec.Command(clipboardCopy[selectedTool][0], clipboardCopy[selectedTool][1:]...)
+	copyCmd := exec.Command(clipboardCopy[selectedCopyTool][0], clipboardCopy[selectedCopyTool][1:]...)
 	in, err := copyCmd.StdinPipe()
 	if err != nil {
 		return err
@@ -70,4 +78,25 @@ func CopyToClipboard(str string) error {
 		return err
 	}
 	return copyCmd.Wait()
+}
+
+func PasteFromClipboard() (string, error) {
+	if selectedPasteTool == -1 {
+		return ``, errors.New(`cannot find clipboard tool, please, install "xsel", "xclip", "wl-paste" or "termux-clipboard-get" package`)
+	}
+	pasteCmd := exec.Command(clipboardCopy[selectedPasteTool][0], clipboardCopy[selectedPasteTool][1:]...)
+	out, err := pasteCmd.StdoutPipe()
+	if err != nil {
+		return ``, err
+	}
+
+	defer out.Close()
+
+	result, err := io.ReadAll(out)
+	if err != nil {
+		return ``, err
+	}
+	_ = pasteCmd.Wait()
+
+	return string(result), nil
 }
