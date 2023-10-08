@@ -1,10 +1,6 @@
 package currencies
 
-import (
-	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
-)
-
+/*
 type TokenPair struct {
 	SymbolSrc  string
 	SymbolDst  string
@@ -25,3 +21,4 @@ type TokenCurrencies struct {
 func (c *TokenCurrencies) Set() {
 
 }
+*/

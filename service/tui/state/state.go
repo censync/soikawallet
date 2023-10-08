@@ -56,7 +56,7 @@ func (s *State) Status() uint8 {
 	return s.status
 }
 
-func (s *State) API() core.WalletAdapter {
+func (s *State) API() core.CoreAdapter {
 	return core.API()
 }
 
