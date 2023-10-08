@@ -34,20 +34,25 @@ func NewStatusView() *StatusView {
 
 func (v *StatusView) Log(str string) {
 	_, _ = fmt.Fprintf(v, "\n[white]%s:[white] [white]%s[white]", time.Now().Format(dateLogFormat), str)
+	v.ScrollToEnd()
 }
 
 func (v *StatusView) Info(str string) {
 	_, _ = fmt.Fprintf(v, "\n[white]%s:[white] [blue]%s[white]", time.Now().Format(dateLogFormat), str)
+	v.ScrollToEnd()
 }
 
 func (v *StatusView) Success(str string) {
 	_, _ = fmt.Fprintf(v, "\n[white]%s:[white] [green]%s[white]", time.Now().Format(dateLogFormat), str)
+	v.ScrollToEnd()
 }
 
 func (v *StatusView) Warn(str string) {
 	_, _ = fmt.Fprintf(v, "\n[white]%s:[white] [orange]%s[white]", time.Now().Format(dateLogFormat), str)
+	v.ScrollToEnd()
 }
 
 func (v *StatusView) Error(str string) {
 	_, _ = fmt.Fprintf(v, "\n[white]%s:[white] [red]%s[white]", time.Now().Format(dateLogFormat), str)
+	v.ScrollToEnd()
 }
