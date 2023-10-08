@@ -37,6 +37,7 @@ var english = i18n.Dictionary{
 		"remove":            "Remove",
 		"accept":            "Accept",
 		"reject":            "Reject",
+		"scan":              "Scan",
 	},
 	"ui.tab": {
 		"wizard": "Wizard",
