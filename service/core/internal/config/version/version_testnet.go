@@ -18,4 +18,4 @@
 
 package version
 
-const VERSION = `0.1-[darkred]testnet`
+const VERSION = `0.1-testnet`

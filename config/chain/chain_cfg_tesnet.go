@@ -21,6 +21,7 @@ package chain
 import mhda "github.com/censync/go-mhda"
 
 var (
+	// TODO: Move this package to services/core/config, provide configs with non-hardcoded config
 	BitcoinChain = mhda.NewChain(mhda.Bitcoin, mhda.BTC, `bitcoin_testnet`)
 	TronChain    = mhda.NewChain(mhda.TronVM, mhda.TRX, `shasta`)
 	// L1

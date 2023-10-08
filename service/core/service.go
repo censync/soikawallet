@@ -37,6 +37,7 @@ type Core interface {
 
 	// Chain operations
 	GetAllEvmW3Chains() []*resp.ChainInfo
+	Version() string
 }
 
 type Address interface {

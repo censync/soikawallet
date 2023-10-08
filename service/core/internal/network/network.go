@@ -20,7 +20,7 @@ import (
 	"errors"
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/config/chain"
-	"github.com/censync/soikawallet/config/networks"
+	"github.com/censync/soikawallet/service/core/internal/config/networks"
 	"github.com/censync/soikawallet/service/core/internal/network/btc"
 	"github.com/censync/soikawallet/service/core/internal/network/evm"
 	"github.com/censync/soikawallet/service/core/internal/network/tron"

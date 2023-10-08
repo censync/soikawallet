@@ -17,8 +17,8 @@
 package tui
 
 import (
-	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/service/tui/api_web3"
+	"github.com/censync/soikawallet/service/tui/config"
 	"github.com/censync/soikawallet/service/tui/events"
 	"sync"
 )

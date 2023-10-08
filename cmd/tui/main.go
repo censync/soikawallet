@@ -18,8 +18,8 @@ package main
 
 import (
 	"flag"
-	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/service/tui"
+	"github.com/censync/soikawallet/service/tui/config"
 	"log"
 	"os"
 	"os/signal"

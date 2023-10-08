@@ -20,10 +20,9 @@ import (
 	"fmt"
 	"github.com/censync/go-i18n"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/config"
 	"github.com/censync/soikawallet/config/dict"
-	"github.com/censync/soikawallet/config/version"
 	"github.com/censync/soikawallet/service/core"
+	"github.com/censync/soikawallet/service/tui/config"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/mainframe"
 	"github.com/censync/soikawallet/service/tui/twidget/statusview"
@@ -79,12 +78,12 @@ func NewTui(cfg *config.Config, wg *sync.WaitGroup, uiEvents, w3Events *events.E
 	return tui
 }
 func (t *Tui) initLayout() *tview.Flex {
-
+	appVersion := t.mainFrame.State().API().Version()
 	labelTitle := tview.NewTextView().
 		SetDynamicColors(true).
 		SetWrap(false).
 		SetTextAlign(tview.AlignRight).
-		SetText(fmt.Sprintf("[darkcyan]Soika Wallet[black] v%s", version.VERSION))
+		SetText(fmt.Sprintf("[darkcyan]Soika Wallet[black] v%s", appVersion))
 
 	labelTitle.SetBackgroundColor(tcell.ColorDarkGrey).
 		SetBorderPadding(0, 0, 0, 2)

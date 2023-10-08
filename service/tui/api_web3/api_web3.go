@@ -22,7 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/config"
+	"github.com/censync/soikawallet/service/tui/config"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/gorilla/websocket"
 	"net"

@@ -26,6 +26,7 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/core/internal/config/version"
 	"github.com/censync/soikawallet/service/core/internal/network"
 	"github.com/censync/soikawallet/service/core/meta"
 	"github.com/censync/soikawallet/types"
@@ -148,6 +149,10 @@ func (s *Wallet) FlushKeys(dto *dto.FlushKeysDTO) {
 			s.addresses[key].key = nil
 		}
 	}*/
+}
+
+func (s *Wallet) Version() string {
+	return version.VERSION
 }
 
 func (s *Wallet) ExportMeta() (*resp.AirGapMessage, error) {
