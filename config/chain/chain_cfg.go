@@ -35,4 +35,8 @@ var (
 	ArbitrumChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa4b1`)
 	AvalancheCChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa86a`)
 	BaseChain       = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x2105`)
+
+	// ZK
+	ZkPolygon = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x44d`)
+	ZkSyncEra = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x144`)
 )

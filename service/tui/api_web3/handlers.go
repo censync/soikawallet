@@ -73,11 +73,12 @@ func (c *Web3Connection) handlerAccountsGet(data interface{}) {
 	}
 }
 
-func (c *Web3Connection) handlerCallGetBlockByNumber(data interface{}) {
-	p := data.(*dto.ResponseGetBlockByNumberDTO)
+// handlerProxyCall provides direct call to rpc
+func (c *Web3Connection) handlerProxyCall(data interface{}) {
+	p := data.(*dto.ResponseProxyCallDTO)
 	m := map[string]interface{}{}
-	json.Unmarshal(p.Data, &m)
-	rpcResponse := c.newRPCResponse(respCodeGetBlockByNumber, map[string]interface{}{
+	_ = json.Unmarshal(p.Data, &m)
+	rpcResponse := c.newRPCResponse(respCodeProxyCall, map[string]interface{}{
 		"block": m,
 	})
 	if conn, ok := c.hub[p.InstanceId]; ok {

@@ -24,7 +24,7 @@ const (
 	reqCodeConnect
 	reqCodeRequestAccounts
 	reqCodeGetBalance
-	reqCodeGetBlockByNumber
+	reqCodeProxyCall
 )
 
 // Response codes
@@ -33,7 +33,7 @@ const (
 	respCodeConnectionAccepted
 	respCodeConnectionRejected
 	respCodeGetAccounts
-	respCodeGetBlockByNumber
+	respCodeProxyCall
 	respCodeError      = 400
 	respCodeErrorFatal = 501
 )

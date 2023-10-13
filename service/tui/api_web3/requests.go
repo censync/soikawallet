@@ -22,6 +22,7 @@ type GetAccountsRequest struct {
 	ChainKey mhda.ChainKey `json:"chain_key"`
 }
 
+// TODO: Provide address for linked nodes
 type RPCRequest struct {
 	ChainKey mhda.ChainKey `json:"chain_key"`
 	Method   string        `json:"request"`

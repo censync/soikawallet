@@ -22,5 +22,5 @@ const (
 	EventW3WalletNotAvailable
 	EventW3ConnAccepted
 	EventW3ConnRejected
-	EventW3CallGetBlockByNumber
+	EventW3ProxyCall
 )

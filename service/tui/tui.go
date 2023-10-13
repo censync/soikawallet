@@ -169,7 +169,7 @@ func (t *Tui) initLayout() *tview.Flex {
 					t.mainFrame.State().SwitchToPage("w3_confirm_connect", event.Data())
 				case events.EventW3RequestAccounts:
 					t.mainFrame.State().SwitchToPage("w3_request_accounts", event.Data())
-				case events.EventW3ReqCallGetBlockByNumber:
+				case events.EventW3ReqProxyCall:
 					go func() {
 						req, ok := event.Data().(*dto.RequestCallGetBlockByNumberDTO)
 						if !ok {
@@ -188,7 +188,7 @@ func (t *Tui) initLayout() *tview.Flex {
 							layoutStatus.Error("Cannot execute w3 call")
 							return
 						}
-						t.mainFrame.State().EmitW3(events.EventW3CallGetBlockByNumber, &dto.ResponseGetBlockByNumberDTO{
+						t.mainFrame.State().EmitW3(events.EventW3ProxyCall, &dto.ResponseProxyCallDTO{
 							InstanceId: req.InstanceId,
 							Data:       result,
 						})

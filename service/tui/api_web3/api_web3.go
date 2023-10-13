@@ -111,8 +111,8 @@ func (c *Web3Connection) Start() error {
 					c.handlerConnAccepted(event.Data())
 				case events.EventW3ConnRejected:
 					c.handlerConnRejected(event.Data())
-				case events.EventW3CallGetBlockByNumber:
-					c.handlerCallGetBlockByNumber(event.Data())
+				case events.EventW3ProxyCall:
+					c.handlerProxyCall(event.Data())
 				// Internal
 				case events.EventW3InternalGetConnections:
 					connectionsInfo := map[string]string{}
@@ -260,9 +260,9 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 				Origin:     r.Header.Get("Origin"),
 				ChainKey:   payload.ChainKey,
 			})
-		case reqCodeGetBlockByNumber:
+		case reqCodeProxyCall:
 			payload := parsedRequest.Data.(*RPCRequest)
-			c.uiEvents.Emit(events.EventW3ReqCallGetBlockByNumber, &dto.RequestCallGetBlockByNumberDTO{
+			c.uiEvents.Emit(events.EventW3ReqProxyCall, &dto.RequestCallGetBlockByNumberDTO{
 				InstanceId: extensionId,
 				Origin:     r.Header.Get("Origin"),
 				ChainKey:   payload.ChainKey,

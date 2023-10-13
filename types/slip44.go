@@ -36,6 +36,10 @@ var (
 		// `Optimism`:    chain.OptimismChain,
 		// `Arbitrum`:    chain.ArbitrumChain,
 		// `Base`:        chain.BaseChain,
+
+		// ZK
+		// `zkEVM`:  chain.ZkPolygon,
+		// `zkSync`: chain.ZkSyncEra,
 	}
 
 	registeredNetworksIndexes    = map[*mhda.Chain]string{}

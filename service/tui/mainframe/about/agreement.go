@@ -20,6 +20,7 @@ package about
 
 import (
 	"github.com/censync/soikawallet/service/tui/events"
+	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
@@ -35,7 +36,7 @@ type pageAgreement struct {
 	isAgreementAccepted bool
 }
 
-func newPageAgreement(state *state.State) *pageAgreement {
+func NewPageAgreement(state *state.State) *pageAgreement {
 	var isAgreementAccepted bool
 
 	layout := tview.NewFlex().
@@ -57,8 +58,7 @@ func newPageAgreement(state *state.State) *pageAgreement {
 
 func (p *pageAgreement) FuncOnShow() {
 	if p.isAgreementAccepted {
-		p.SwitchToPage(pages.PageNameSelectInitWallet)
-		return
+		p.SwitchToPage(pages.SelectInitWallet)
 	}
 
 	viewTermsOfUse := tview.NewTextView().
@@ -85,7 +85,7 @@ func (p *pageAgreement) FuncOnShow() {
 
 	btnAccept := tview.NewButton("Accept").
 		SetSelectedFunc(func() {
-			p.SwitchToPage(pages.PageNameSelectInitWallet)
+			p.SwitchToPage(pages.SelectInitWallet)
 		})
 
 	btnDecline := tview.NewButton("Decline").

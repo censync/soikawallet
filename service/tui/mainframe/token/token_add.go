@@ -86,7 +86,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 
 	inputContractAddr := tview.NewInputField().
 		SetLabel(`Contract address`).
-		SetText("0x8D2973D91C48540E9b7d1175885D97f38D03d0e8") // debug
+		SetText("0x8A953CfE442c5E8855cc6c61b1293FA648BAE472") // debug
 
 	inputSelectTokenStandard := tview.NewDropDown().
 		SetLabel("Type").

@@ -36,7 +36,7 @@ const (
 	EventW3InternalConnections EventType = iota + 170
 	EventW3Connect
 	EventW3RequestAccounts
-	EventW3ReqCallGetBlockByNumber
+	EventW3ReqProxyCall
 
 	EventW3Response
 )

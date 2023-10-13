@@ -58,6 +58,8 @@ var networkProviders = &Provider{
 		chain.ArbitrumChain.Key():     evm.NewEVM(networks.ArbitrumOne),
 		chain.Moonbeam.Key():          evm.NewEVM(networks.Moonbeam),
 		chain.BaseChain.Key():         evm.NewEVM(networks.Base),
+		chain.ZkPolygon.Key():         evm.NewEVM(networks.ZkEVMPolygon),
+		chain.ZkSyncEra.Key():         evm.NewEVM(networks.ZkSyncEra),
 	},
 	defaultCurrency: `USD`,
 }

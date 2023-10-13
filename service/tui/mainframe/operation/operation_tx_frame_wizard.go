@@ -61,7 +61,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 
 	inputAddrReceiver := tview.NewInputField().
 		SetLabel(`Receiver`).
-		SetText("0xd43c8A1870CC06fc7dA7C68Eed0a4D7d73BC2DE6")
+		SetText("0x2CA28e8f6e0ad23794B282CCDB9fCC808017F277")
 
 	inputValue := tview.NewInputField().
 		SetAcceptanceFunc(tview.InputFieldFloat).
