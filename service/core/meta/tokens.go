@@ -20,32 +20,32 @@ import (
 	"encoding/json"
 	"errors"
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
+	types2 "github.com/censync/soikawallet/service/core/internal/types"
 	"sync"
 )
 
 type tokens struct {
 	mu sync.RWMutex
 
-	tokens map[uint32]*types.TokenConfig
+	tokens map[uint32]*types2.TokenConfig
 
 	// addressesLinks represents map[token_index]internal_map_enum_index
-	subIndex map[types.TokenIndex]uint32
+	subIndex map[types2.TokenIndex]uint32
 	links    map[aIndex][]uint32
 }
 
 func (t *tokens) initTokens() {
-	t.tokens = map[uint32]*types.TokenConfig{}
-	t.subIndex = map[types.TokenIndex]uint32{}
+	t.tokens = map[uint32]*types2.TokenConfig{}
+	t.subIndex = map[types2.TokenIndex]uint32{}
 	t.links = map[aIndex][]uint32{}
 	//t.addressesLinks = map[uint32]map[types.AccountIndex][]types.AddressIndex{}
 }
 
-func (t *tokens) AddTokenConfig(chainKey mhda.ChainKey, config *types.TokenConfig) error {
+func (t *tokens) AddTokenConfig(chainKey mhda.ChainKey, config *types2.TokenConfig) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
-	if !types.IsNetworkExists(chainKey) {
+	if !types2.IsNetworkExists(chainKey) {
 		return errors.New("network type is not set")
 	}
 
@@ -56,7 +56,7 @@ func (t *tokens) AddTokenConfig(chainKey mhda.ChainKey, config *types.TokenConfi
 
 	lastIndex++
 
-	tokenIndex := types.TokenIndex{
+	tokenIndex := types2.TokenIndex{
 		ChainKey: chainKey,
 		Contract: config.Contract(),
 	}
@@ -67,7 +67,7 @@ func (t *tokens) AddTokenConfig(chainKey mhda.ChainKey, config *types.TokenConfi
 	return nil
 }
 
-func (t *tokens) RemoveTokenConfig(index types.TokenIndex) error {
+func (t *tokens) RemoveTokenConfig(index types2.TokenIndex) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -84,7 +84,7 @@ func (t *tokens) RemoveTokenConfig(index types.TokenIndex) error {
 
 // addresses links
 
-func (t *tokens) IsTokenConfigAddressLinkExists(addrIdx aIndex, tokenIndex types.TokenIndex) (bool, error) {
+func (t *tokens) IsTokenConfigAddressLinkExists(addrIdx aIndex, tokenIndex types2.TokenIndex) (bool, error) {
 	internalIndex, ok := t.subIndex[tokenIndex]
 	if !ok {
 		return false, errors.New("token is not exist")
@@ -112,7 +112,7 @@ func (t *tokens) GetTokenConfigAddressLinks(tokenIndex types.TokenIndex, account
 	return t.addressesLinks[metaTokenConfig.InternalIndex][accountIndex], nil
 }*/
 
-func (t *tokens) SetTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
+func (t *tokens) SetTokenConfigAddressLink(addrIdx aIndex, tokenIndex types2.TokenIndex) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
@@ -136,11 +136,11 @@ func (t *tokens) SetTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.Toke
 
 // GetAddressTokens TODO: Add composite index, linked to address,
 // includes labels, node, tokens and other links
-func (t *tokens) GetAddressTokens(addrIdx aIndex) ([]*types.TokenConfig, error) {
+func (t *tokens) GetAddressTokens(addrIdx aIndex) ([]*types2.TokenConfig, error) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
-	var result []*types.TokenConfig
+	var result []*types2.TokenConfig
 
 	for _, internalIndex := range t.links[addrIdx] {
 		if tokenConfig, ok := t.tokens[internalIndex]; ok {
@@ -151,7 +151,7 @@ func (t *tokens) GetAddressTokens(addrIdx aIndex) ([]*types.TokenConfig, error) 
 	return result, nil
 }
 
-func (t *tokens) RemoveTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
+func (t *tokens) RemoveTokenConfigAddressLink(addrIdx aIndex, tokenIndex types2.TokenIndex) error {
 	var linkExists bool
 
 	t.mu.Lock()

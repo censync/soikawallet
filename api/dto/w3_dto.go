@@ -34,7 +34,7 @@ type ExecuteRPCRequestDTO struct {
 
 	ChainKey mhda.ChainKey
 	Method   string
-	Params   []string
+	Params   []interface{}
 }
 
 type ResponseAcceptDTO struct {
@@ -63,5 +63,5 @@ type RequestCallGetBlockByNumberDTO struct {
 	Origin     string
 	ChainKey   mhda.ChainKey
 	Method     string
-	Params     []string
+	Params     []interface{}
 }

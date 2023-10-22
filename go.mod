@@ -5,9 +5,9 @@ go 1.18
 require (
 	github.com/btcsuite/btcd v0.23.4
 	github.com/btcsuite/btcd/btcutil v1.1.3
-	github.com/censync/go-airgap v0.0.0-20230822093833-f9f616954fbc
+	github.com/censync/go-airgap v0.0.0-20231022112520-852e68fda659
 	github.com/censync/go-i18n v1.1.0
-	github.com/censync/go-mhda v0.0.0-20230907105920-0f9d9a7b9913
+	github.com/censync/go-mhda v0.0.0-20231022124328-d6599b727b3d
 	github.com/censync/go-zbar v0.0.0-20230729004535-ef25faa3eb24
 	github.com/censync/tview v0.0.0-20231008113733-0e1fc10b3258
 	github.com/ethereum/go-ethereum v1.13.2

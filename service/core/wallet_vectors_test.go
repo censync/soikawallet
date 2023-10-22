@@ -19,7 +19,7 @@ package core
 const testPassphrase = `TREZOR`
 
 type testAddress struct {
-	// ChainKey   string
+	// NetworkType   string
 	Path       string
 	Address    string
 	PublicKey  string

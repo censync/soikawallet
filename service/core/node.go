@@ -21,7 +21,7 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/types"
+	types "github.com/censync/soikawallet/service/core/internal/types"
 )
 
 var (
@@ -35,10 +35,19 @@ func (s *Wallet) RPC(dto *dto.GetRPCListByIndexDTO) *types.RPC {
 	return s.getRPCProvider(dto.ChainKey).RPC(dto.Index)
 }
 
-func (s *Wallet) AllRPC(dto *dto.GetRPCListByNetworkDTO) map[uint32]*types.RPC {
-	return s.getRPCProvider(dto.ChainKey).AllRPC()
+func (s *Wallet) AllRPC(dto *dto.GetRPCListByNetworkDTO) map[uint32]*resp.RPCInfo {
+	result := map[uint32]*resp.RPCInfo{}
+	for index, rpc := range s.getRPCProvider(dto.ChainKey).AllRPC() {
+		result[index] = &resp.RPCInfo{
+			Title:     rpc.Title(),
+			Endpoint:  rpc.Endpoint(),
+			IsDefault: rpc.IsDefault(),
+		}
+	}
+	return result
 }
 
+// AddRPC TODO: Add validation
 func (s *Wallet) AddRPC(dto *dto.AddRPCDTO) error {
 	provider := s.getRPCProvider(dto.ChainKey)
 
@@ -80,7 +89,7 @@ func (s *Wallet) RemoveRPC(dto *dto.RemoveRPCDTO) error {
 
 func (s *Wallet) AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error {
 	/*nodeIndex := types.NodeIndex{
-		ChainKey: dto.ChainKey,
+		NetworkType: dto.NetworkType,
 		Index:    dto.NodeIndex,
 	}
 	return s.setAccountLinkRPC(nodeIndex, types.AccountIndex(dto.AccountIndex))*/
@@ -89,7 +98,7 @@ func (s *Wallet) AccountLinkRPCSet(dto *dto.SetRPCLinkedAccountDTO) error {
 }
 
 func (s *Wallet) setAccountLinkRPC(nodeIndex types.NodeIndex, accountIndex mhda.AccountIndex) error {
-	/*if s.getRPCProvider(nodeIndex.ChainKey).RPC(nodeIndex.Index) == nil {
+	/*if s.getRPCProvider(nodeIndex.NetworkType).RPC(nodeIndex.Index) == nil {
 		return errors.New("undefined node index")
 	}
 
@@ -101,7 +110,7 @@ func (s *Wallet) setAccountLinkRPC(nodeIndex types.NodeIndex, accountIndex mhda.
 
 	// set for addresses
 	for index, addr := range s.meta.Addresses() {
-		if addr.MHDA().Chain().key() == nodeIndex.ChainKey && addr.Account() == accountIndex {
+		if addr.MHDA().Chain().key() == nodeIndex.NetworkType && addr.Account() == accountIndex {
 			s.addresses[index].nodeIndex = nodeIndex.Index
 		}
 	}*/
@@ -109,7 +118,7 @@ func (s *Wallet) setAccountLinkRPC(nodeIndex types.NodeIndex, accountIndex mhda.
 }
 
 func (s *Wallet) RemoveAccountLinkRPC(dto *dto.RemoveRPCLinkedAccountDTO) error {
-	//return s.removeAccountLinkRPC(dto.ChainKey, types.AccountIndex(dto.AccountIndex))
+	//return s.removeAccountLinkRPC(dto.NetworkType, types.AccountIndex(dto.AccountIndex))
 	return nil
 }
 
@@ -125,7 +134,7 @@ func (s *Wallet) removeAccountLinkRPC(chainKey mhda.ChainKey, addrKey string) er
 		if addr.Network() == networkType &&
 			addr.Account() == accountIndex {
 			nodeKey = types.NodeIndex{
-				ChainKey: addr.MHDA().Chain().key(),
+				NetworkType: addr.MHDA().Chain().key(),
 				Index:    addr.NodeIndex(),
 			}
 			isExist = true
@@ -219,7 +228,7 @@ func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.Ad
 	rpcBaseToken := rpcProvider.GetBaseToken()
 
 	result[rpcBaseToken.Contract()] = &resp.AddressTokenEntry{
-		Standard: uint8(rpcBaseToken.Standard()),
+		Standard: string(rpcBaseToken.Standard()),
 		Name:     rpcBaseToken.Name(),
 		Symbol:   rpcBaseToken.Symbol(),
 		Contract: rpcBaseToken.Contract(),
@@ -227,7 +236,7 @@ func (s *Wallet) GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.Ad
 
 	for contract, token := range rpcTokens {
 		result[contract] = &resp.AddressTokenEntry{
-			Standard: uint8(token.Standard()),
+			Standard: string(token.Standard()),
 			Name:     token.Name(),
 			Symbol:   token.Symbol(),
 			Contract: token.Contract(),
@@ -255,7 +264,7 @@ func (s *Wallet) GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.Addr
 	rpcBaseToken := rpcProvider.GetBaseToken()
 
 	result[rpcBaseToken.Contract()] = &resp.AddressTokenEntry{
-		Standard: uint8(rpcBaseToken.Standard()),
+		Standard: string(rpcBaseToken.Standard()),
 		Name:     rpcBaseToken.Name(),
 		Symbol:   rpcBaseToken.Symbol(),
 		Contract: rpcBaseToken.Contract(),
@@ -264,7 +273,7 @@ func (s *Wallet) GetTokensByPath(dto *dto.GetAddressTokensByPathDTO) (*resp.Addr
 	for _, tokenConfig := range addressLinkedTokenContracts {
 
 		result[tokenConfig.Contract()] = &resp.AddressTokenEntry{
-			Standard: uint8(tokenConfig.Standard()),
+			Standard: string(tokenConfig.Standard()),
 			Name:     tokenConfig.Name(),
 			Symbol:   tokenConfig.Symbol(),
 			Contract: tokenConfig.Contract(),
@@ -305,7 +314,7 @@ func (s *Wallet) GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error) {
 	}
 
 	return &resp.TokenConfig{
-		Standard: uint8(tokenConfig.Standard()),
+		Standard: string(tokenConfig.Standard()),
 		Name:     tokenConfig.Name(),
 		Symbol:   tokenConfig.Symbol(),
 		Contract: tokenConfig.Contract(),

@@ -262,7 +262,7 @@ func (c *Web3Connection) handleWS(w http.ResponseWriter, r *http.Request) {
 			})
 		case reqCodeProxyCall:
 			payload := parsedRequest.Data.(*RPCRequest)
-			c.uiEvents.Emit(events.EventW3ReqProxyCall, &dto.RequestCallGetBlockByNumberDTO{
+			c.uiEvents.Emit(events.EventW3ReqProxyCall, &dto.ExecuteRPCRequestDTO{
 				InstanceId: extensionId,
 				Origin:     r.Header.Get("Origin"),
 				ChainKey:   payload.ChainKey,

@@ -88,7 +88,7 @@ type GetGasCalculatorConfigDTO struct {
 	MhdaPath  string
 	To        string
 	Value     float64
-	Standard  uint8
+	Standard  string
 	Contract  string
 }
 
@@ -96,7 +96,7 @@ type GetTokenAllowanceDTO struct {
 	MhdaPath string
 	To       string
 	Value    float64
-	Standard uint8
+	Standard string
 	Contract string
 }
 
@@ -107,7 +107,7 @@ type SendTokensDTO struct {
 	Gas       uint64
 	GasTipCap uint64
 	GasFeeCap uint64
-	Standard  uint8
+	Standard  string
 	Contract  string
 }
 
@@ -165,3 +165,21 @@ type FlushKeysDTO struct {
 type GetFiatCurrencyDTO struct {
 	ChainKey mhda.ChainKey
 }
+
+type GetChainNameByKeyDTO struct {
+	ChainKey mhda.ChainKey
+}
+
+type GetChainByNameDTO struct {
+	ChainName string
+}
+
+type GetTokenStandardNamesByNetworkDTO struct {
+	NetworkType mhda.NetworkType
+}
+
+/*
+type GetTokenStandardByNameDTO struct {
+	StandardName string
+}
+*/

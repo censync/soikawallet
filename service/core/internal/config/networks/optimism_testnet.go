@@ -20,7 +20,7 @@ package networks
 
 import (
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 )
 
 // https://community.optimism.io/docs/useful-tools/networks/#parameters-for-node-operators-2

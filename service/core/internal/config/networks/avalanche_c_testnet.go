@@ -20,7 +20,7 @@ package networks
 
 import (
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 )
 
 // https://support.avax.network/en/articles/7004986-what-derivation-paths-does-avalanche-use

@@ -24,7 +24,6 @@ import (
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget/formtextview"
-	"github.com/censync/soikawallet/types"
 	"github.com/censync/soikawallet/types/gas"
 	"github.com/censync/tview"
 	"strconv"
@@ -130,7 +129,8 @@ func (f *frameOperationWizard) actionCheckAndStart() {
 }
 
 func (f *frameOperationWizard) actionCheckAllowancePermission() bool {
-	if types.TokenStandard(f.selectedToken.Standard) == types.TokenBase {
+	// TODO: Remove magic 1 == TokenBase
+	if f.selectedToken.Standard == `Base` {
 		return true
 	}
 	allowance, err := f.API().GetAllowance(&dto.GetTokenAllowanceDTO{

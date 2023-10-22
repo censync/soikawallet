@@ -74,7 +74,7 @@ func GetChainByName(str string) *mhda.Chain {
 	}
 }
 
-func GetNetworkNameByKey(chainKey mhda.ChainKey) string {
+func GetChainNameByKey(chainKey mhda.ChainKey) string {
 	return registeredNetworksNamesIndex[chainKey]
 }
 

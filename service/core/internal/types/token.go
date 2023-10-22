@@ -19,50 +19,50 @@ package types
 import mhda "github.com/censync/go-mhda"
 
 const (
-	TokenBase    = TokenStandard(1)
-	TokenERC20   = TokenStandard(20)
-	TokenERC721  = TokenStandard(21)
-	TokenERC777  = TokenStandard(22)
-	TokenERC1155 = TokenStandard(23)
-	TokenERC4626 = TokenStandard(24)
-	TokenTRC10   = TokenStandard(40)
-	TokenTRC20   = TokenStandard(41)
-	TokenBEP20   = TokenStandard(50)
+	TokenBase    = TokenStandard(`Base`)
+	TokenERC20   = TokenStandard(`ERC-20`)
+	TokenERC721  = TokenStandard(`ERC-771`)
+	TokenERC777  = TokenStandard(`ERC-777`)
+	TokenERC1155 = TokenStandard(`ERC-1155`)
+	TokenERC4626 = TokenStandard(`ERC-4626`)
+	TokenTRC10   = TokenStandard(`TRC-10`)
+	TokenTRC20   = TokenStandard(`TRC-20`)
+	TokenBEP20   = TokenStandard(`TRC-20`)
 
 	ContractBase = `__base`
 	ContractZero = `0x0000000000000000000000000000000000000000`
 )
 
 var (
-	registeredTokenStandards = map[TokenStandard]string{
-		TokenBase:    `Base`,
-		TokenERC20:   `ERC-20`,
-		TokenERC721:  `ERC-771`,
-		TokenERC777:  `ERC-777`,
-		TokenERC1155: `ERC-1155`,
-		TokenERC4626: `ERC-4626`,
-		TokenTRC10:   `TRC-10`,
-		TokenTRC20:   `TRC-20`,
+	registeredTokenStandards = map[TokenStandard]bool{
+		TokenBase:    true,
+		TokenERC20:   true,
+		TokenERC721:  true,
+		TokenERC777:  true,
+		TokenERC1155: true,
+		TokenERC4626: true,
+		TokenTRC10:   true,
+		TokenTRC20:   true,
 	}
 	activesTokenStandards = map[mhda.NetworkType][]TokenStandard{
 		mhda.EthereumVM: {TokenERC20, TokenERC721, TokenERC1155},
 		mhda.TronVM:     {TokenTRC20, TokenTRC10},
 	}
 	registeredTokenStandardNames = map[mhda.NetworkType][]string{}
-	registeredTokenIndexes       = map[string]TokenStandard{}
+	//registeredTokenIndexes       = map[string]TokenStandard{}
 )
 
-type TokenStandard uint8
+type TokenStandard string
 
 func init() {
-	for tokenStandard, tokenStandardName := range registeredTokenStandards {
+	/*for tokenStandard, tokenStandardName := range registeredTokenStandards {
 		registeredTokenIndexes[tokenStandardName] = tokenStandard
-	}
+	}*/
 
 	for networkType, activeTokenStandards := range activesTokenStandards {
 		names := make([]string, 0)
-		for _, tokenStandard := range activeTokenStandards {
-			names = append(names, registeredTokenStandards[tokenStandard])
+		for tokenStandard, _ := range activeTokenStandards {
+			names = append(names, string(tokenStandard))
 		}
 		//sort.Strings(names)
 		registeredTokenStandardNames[networkType] = names
@@ -73,11 +73,12 @@ func GetTokenStandardNames(networkType mhda.NetworkType) []string {
 	return registeredTokenStandardNames[networkType]
 }
 
-func GetTokenStandardNamesByChain(networkType mhda.ChainKey) []string {
-	// mhda.ParseURN()
-	//return registeredTokenStandardNames[networkType]
-	// TODO: Remove debug
-	return []string{`ERC-20`, `ERC-771`, `ERC-1155`}
+func GetTokenStandardNamesByChain(networkType mhda.NetworkType) []string {
+	var result []string
+	for _, standardName := range registeredTokenStandardNames[networkType] {
+		result = append(result, standardName)
+	}
+	return result
 }
 
 func GetTokenStandards(networkType mhda.NetworkType) []TokenStandard {
@@ -85,9 +86,9 @@ func GetTokenStandards(networkType mhda.NetworkType) []TokenStandard {
 }
 
 func GetTokenStandByName(str string) TokenStandard {
-	if tokenStandard, ok := registeredTokenIndexes[str]; ok {
-		return tokenStandard
+	if _, ok := registeredTokenStandards[TokenStandard(str)]; ok {
+		return TokenStandard(str)
 	} else {
-		return 0
+		return ``
 	}
 }

@@ -20,9 +20,13 @@ import (
 	"encoding/json"
 	"errors"
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
 	"strings"
 	"sync"
+)
+
+const (
+	AccountLabel = 1
+	AddressLabel = 2
 )
 
 type label struct {
@@ -214,8 +218,8 @@ func (m *Meta) RemoveAddressLabelLink(addrKey string) error {
 
 func (l *labels) MarshalJSON() ([]byte, error) {
 	result := map[uint8]interface{}{
-		types.AccountLabel: l.labelsAccount.Labels(),
-		types.AddressLabel: l.labelsAddress.Labels(),
+		AccountLabel: l.labelsAccount.Labels(),
+		AddressLabel: l.labelsAddress.Labels(),
 	}
 	return json.Marshal(result)
 }

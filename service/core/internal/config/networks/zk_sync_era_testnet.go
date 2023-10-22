@@ -14,9 +14,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the  soikawallet library. If not, see <http://www.gnu.org/licenses/>.
 
-package types
+//go:build testnet
 
-const (
-	AccountLabel = 1
-	AddressLabel = 2
+package networks
+
+import (
+	mhda "github.com/censync/go-mhda"
+	"github.com/censync/soikawallet/service/core/internal/types"
+)
+
+var ZkSyncEra = types.NewNetwork(
+	mhda.ETH,
+	`zkSync Era Testnet`,
+	`ETH`,
+	18,
+	1e9,
+	"gwei",
+	true,
+	&types.EVMConfig{
+		ChainId: 0x118,
+	},
+).SetDefaultRPC(
+	`https://testnet.era.zksync.dev`,
+	`https://goerli.explorer.zksync.io/`, // /block/ /address/ /tx/
 )

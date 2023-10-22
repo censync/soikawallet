@@ -26,7 +26,6 @@ import (
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/mainframe"
 	"github.com/censync/soikawallet/service/tui/twidget/statusview"
-	"github.com/censync/soikawallet/types/protected_key"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"sync"
@@ -105,9 +104,9 @@ func (t *Tui) initLayout() *tview.Flex {
 		SetTextAlign(tview.AlignCenter)
 
 	// TODO: Move to api
-	if ok, err := protected_key.IsMemoryProtected(); !ok {
+	/*if ok, err := protected_key.IsMemoryProtected(); !ok {
 		t.uiEvents.Emit(events.EventWalletNoticeMessage, fmt.Sprintf("[Core] Memory protection error: %s", err))
-	}
+	}*/
 
 	labelNotice.SetBackgroundColor(tcell.ColorDarkGrey)
 
@@ -171,7 +170,7 @@ func (t *Tui) initLayout() *tview.Flex {
 					t.mainFrame.State().SwitchToPage("w3_request_accounts", event.Data())
 				case events.EventW3ReqProxyCall:
 					go func() {
-						req, ok := event.Data().(*dto.RequestCallGetBlockByNumberDTO)
+						req, ok := event.Data().(*dto.ExecuteRPCRequestDTO)
 						if !ok {
 							layoutStatus.Error("Cannot parse w3 request")
 							return
@@ -182,7 +181,7 @@ func (t *Tui) initLayout() *tview.Flex {
 							// RemoteAddr: "",
 							ChainKey: req.ChainKey,
 							Method:   req.Method,
-							Params:   nil,
+							Params:   req.Params,
 						})
 						if err != nil {
 							layoutStatus.Error("Cannot execute w3 call")

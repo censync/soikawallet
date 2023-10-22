@@ -21,12 +21,28 @@ import (
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/util/seed"
 	"github.com/tyler-smith/go-bip39"
+	"strings"
+)
+
+const (
+	Entropy128 = 128
+	Entropy160 = 160
+	Entropy192 = 192
+	Entropy224 = 224
+	Entropy256 = 256
 )
 
 var (
 	errMnemonicGenAttemptsReached = errors.New("reached attempts to generate mnemonic")
+
+	mnemonicCount = map[int]int{
+		12: Entropy128,
+		15: Entropy160,
+		18: Entropy192,
+		21: Entropy224,
+		24: Entropy256,
+	}
 )
 
 // Separated for vectors testing
@@ -51,7 +67,7 @@ func (s *Wallet) GenerateMnemonic(dto *dto.GenerateMnemonicDTO) (string, error) 
 			// log.Printf("Cannot generate mnemonic: %s\n", err)
 			continue
 		}
-		err = seed.Check(mnemonic)
+		err = mnemonicCheck(mnemonic)
 		if err != nil {
 			// log.Printf("Generated bad mnemonic: %s\n", err)
 			continue
@@ -59,4 +75,51 @@ func (s *Wallet) GenerateMnemonic(dto *dto.GenerateMnemonicDTO) (string, error) 
 		return mnemonic, nil
 	}
 	return "", errMnemonicGenAttemptsReached
+}
+
+// 128 - 12, 160 - 15, 192 - 18, 224 - 21, 256 - 24
+func mnemonicCheck(mnemonic string) error {
+	entropy := entropyByMnemonic(mnemonic)
+
+	if entropy == 0 {
+		return errors.New("undefined entropy")
+	}
+
+	if !checkDuplicates(mnemonic) {
+		return errors.New("mnemonic has duplicates prefix")
+	}
+	return nil
+}
+
+func entropyByMnemonic(mnemonic string) int {
+	wordsCount := len(strings.Fields(mnemonic))
+	return mnemonicCount[wordsCount]
+}
+
+func checkDuplicates(str string) bool {
+	var index = map[string]bool{}
+	arr := strings.Fields(str)
+	for idx := range arr {
+		prefix := substr(arr[idx], 4)
+		if _, ok := index[prefix]; !ok {
+			index[prefix] = true
+		} else {
+			return false
+		}
+	}
+	return true
+}
+
+func substr(input string, length int) string {
+	asRunes := []rune(input)
+
+	if 0 >= len(asRunes) {
+		return ""
+	}
+
+	if length > len(asRunes) {
+		length = len(asRunes) - 0
+	}
+
+	return string(asRunes[0 : 0+length])
 }

@@ -17,9 +17,9 @@
 package core
 
 import (
+	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/types"
 )
 
 var walletInstance CoreAdapter = &Wallet{}
@@ -36,7 +36,13 @@ type Core interface {
 	GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.AccountResponse
 
 	// Chain operations
+	GetAllChains() []mhda.ChainKey
 	GetAllEvmW3Chains() []*resp.ChainInfo
+	GetChainNameByKey(dto *dto.GetChainNameByKeyDTO) string
+	GetAllChainNames() []string
+	GetChainByName(dto *dto.GetChainByNameDTO) *mhda.Chain
+
+	// common operations
 	Version() string
 }
 
@@ -83,7 +89,7 @@ type Label interface {
 }
 
 type RPC interface {
-	AllRPC(dto *dto.GetRPCListByNetworkDTO) map[uint32]*types.RPC
+	AllRPC(dto *dto.GetRPCListByNetworkDTO) map[uint32]*resp.RPCInfo
 	AddRPC(dto *dto.AddRPCDTO) error
 	RemoveRPC(dto *dto.RemoveRPCDTO) error
 
@@ -99,6 +105,7 @@ type Token interface {
 	GetBaseCurrency(dto *dto.GetTokensByNetworkDTO) (*resp.BaseCurrency, error)
 	GetAllTokensByNetwork(dto *dto.GetTokensByNetworkDTO) (*resp.AddressTokensListResponse, error)
 	GetToken(dto *dto.GetTokenDTO) (*resp.TokenConfig, error)
+	GetTokenStandardNamesByChain(dto *dto.GetTokenStandardNamesByNetworkDTO) []string
 }
 
 type CoreAdapter interface {

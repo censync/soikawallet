@@ -20,10 +20,10 @@ import (
 	"fmt"
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
+	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
 )
 
@@ -37,7 +37,7 @@ type pageNodeInfo struct {
 
 	// var
 	selectedChain  *mhda.Chain
-	availableNodes map[uint32]*types.RPC
+	availableNodes map[uint32]*resp.RPCInfo
 	selectedNode   uint32
 }
 
@@ -59,8 +59,10 @@ func (p *pageNodeInfo) FuncOnShow() {
 	inputSelectNetwork := tview.NewDropDown().
 		SetLabel("Select network").
 		SetFieldWidth(10).
-		SetOptions(types.GetChainNames(), func(text string, index int) {
-			p.selectedChain = types.GetChainByName(text)
+		SetOptions(p.API().GetAllChainNames(), func(text string, index int) {
+			p.selectedChain = p.API().GetChainByName(&dto.GetChainByNameDTO{
+				ChainName: text,
+			})
 			p.availableNodes = p.API().AllRPC(&dto.GetRPCListByNetworkDTO{
 				ChainKey: p.selectedChain.Key(),
 			})
@@ -98,11 +100,11 @@ func (p *pageNodeInfo) actionUpdateNodesList() {
 	index := 0
 	for nodeIndex, nodeInfo := range p.availableNodes {
 		labelFormat := "#%d - %s"
-		if nodeInfo.IsDefault() {
+		if nodeInfo.IsDefault {
 			labelFormat = "[Default] " + labelFormat
 		}
 		nodesIndex[index] = nodeIndex
-		nodesLabels = append(nodesLabels, fmt.Sprintf(labelFormat, nodeIndex, nodeInfo.Title()))
+		nodesLabels = append(nodesLabels, fmt.Sprintf(labelFormat, nodeIndex, nodeInfo.Title))
 		index++
 	}
 

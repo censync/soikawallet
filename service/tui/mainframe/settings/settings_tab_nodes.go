@@ -91,10 +91,10 @@ func (p *pageSettings) actionUpdateRPCList() {
 			btnRemoveEntry := tview.NewButton("Remove")
 
 			nodeDescFormat := ""
-			if rpc.IsDefault() {
-				nodeDescFormat = fmt.Sprintf("#%d - %s\nRPC:%s\n[Default]", index, rpc.Title(), rpc.Endpoint())
+			if rpc.IsDefault {
+				nodeDescFormat = fmt.Sprintf("#%d - %s\nRPC:%s\n[Default]", index, rpc.Title, rpc.Endpoint)
 			} else {
-				nodeDescFormat = fmt.Sprintf("#%d - %s\nRPC:%s\nLinked accounts: %d", index, rpc.Title(), rpc.Endpoint(), linkedAccountCount)
+				nodeDescFormat = fmt.Sprintf("#%d - %s\nRPC:%s\nLinked accounts: %d", index, rpc.Title, rpc.Endpoint, linkedAccountCount)
 			}
 
 			rpcEntry := tview.NewFlex().

@@ -19,7 +19,7 @@ package meta
 import (
 	"crypto/ecdsa"
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types/protected_key"
+	"github.com/censync/soikawallet/service/core/internal/types/protected_key"
 )
 
 const (

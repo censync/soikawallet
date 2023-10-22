@@ -20,10 +20,10 @@ package networks
 
 import (
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
+	types2 "github.com/censync/soikawallet/service/core/internal/types"
 )
 
-var Tron = types.NewNetwork(
+var Tron = types2.NewNetwork(
 	mhda.TRX,
 	`Tron (Testnet)`,
 	`TRX`,
@@ -36,7 +36,7 @@ var Tron = types.NewNetwork(
 	`https://api.shasta.trongrid.io`, // https://rpc.soikawallet.app:8431/tron_testnet
 	`https://shasta.tronscan.org/`,   // /block/ /address/ /tx/
 ).SetBuiltinToken(
-	types.TokenTRC20,
+	types2.TokenTRC20,
 	`USDT on Shasta Test Net`,
 	`USDT`,
 	`TG3XXyExBkPp9nzdajDZsozEu4BkaSJozs`,

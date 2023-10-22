@@ -23,8 +23,12 @@ import (
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
+)
+
+const (
+	AccountLabel = 1
+	AddressLabel = 2
 )
 
 type frameAddressesDetailsAccount struct {
@@ -80,7 +84,7 @@ func (f *frameAddressesDetailsAccount) Layout() *tview.Flex {
 
 func (f *frameAddressesDetailsAccount) actionSetLabel() {
 	err := f.API().SetLabelLink(&dto.SetLabelLinkDTO{
-		LabelType: types.AccountLabel,
+		LabelType: AccountLabel,
 		Index:     f.selectedLabelIndex,
 		// TODO: Finish
 		//Path:      f.selectedAccount.Path,
@@ -94,7 +98,7 @@ func (f *frameAddressesDetailsAccount) actionSetLabel() {
 
 func (f *frameAddressesDetailsAccount) actionRemoveLabel() {
 	err := f.API().RemoveLabelLink(&dto.RemoveLabelLinkDTO{
-		LabelType: types.AccountLabel,
+		LabelType: AccountLabel,
 		// TODO: Finish
 		// Path:      f.selectedAccount.Path,
 	})

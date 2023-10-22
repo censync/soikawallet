@@ -28,10 +28,9 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/core/internal/config/version"
 	"github.com/censync/soikawallet/service/core/internal/network"
+	types2 "github.com/censync/soikawallet/service/core/internal/types"
+	"github.com/censync/soikawallet/service/core/internal/types/currencies"
 	"github.com/censync/soikawallet/service/core/meta"
-	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/currencies"
-	"github.com/censync/soikawallet/util/seed"
 	"golang.org/x/crypto/pbkdf2"
 	"strings"
 )
@@ -54,11 +53,11 @@ type Wallet struct {
 	currenciesFiat *currencies.FiatCurrencies
 }
 
-func (s *Wallet) getNetworkProvider(ctx *types.RPCContext) (types.NetworkAdapter, error) {
+func (s *Wallet) getNetworkProvider(ctx *types2.RPCContext) (types2.NetworkAdapter, error) {
 	return network.WithContext(ctx)
 }
 
-func (s *Wallet) getRPCProvider(chainKey mhda.ChainKey) types.RPCAdapter {
+func (s *Wallet) getRPCProvider(chainKey mhda.ChainKey) types2.RPCAdapter {
 	return network.Get(chainKey)
 }
 
@@ -76,7 +75,7 @@ func (s *Wallet) Init(dto *dto.InitWalletDTO) (string, error) {
 
 	// SkipMnemonicCheck flag used only for testing vectors
 	if !dto.SkipMnemonicCheck {
-		err = seed.Check(dto.Mnemonic)
+		err = mnemonicCheck(dto.Mnemonic)
 	}
 
 	if err != nil {
@@ -124,7 +123,7 @@ func (s *Wallet) GetAccountsByNetwork(dto *dto.GetAccountsByNetworkDTO) []*resp.
 
 	for accountIndex := range accountsIndex {
 		// Deprecated
-		// 	accountPath, err := types.CreateAccountPath(types.CoinType(dto.ChainKey), accountIndex)
+		// 	accountPath, err := types.CreateAccountPath(types.CoinType(dto.NetworkType), accountIndex)
 		// 	if err != nil {
 		// 		continue
 		//	}
@@ -162,7 +161,7 @@ func (s *Wallet) ExportMeta() (*resp.AirGapMessage, error) {
 	}
 	airgapMsg := airgap.NewAirGap(airgap.VersionDefault, s.instanceId).
 		CreateMessage().
-		AddOperation(types.OpMetaWallet, data)
+		AddOperation(types2.OpMetaWallet, data)
 	chunks, err := airgapMsg.MarshalB64Chunks()
 	if err != nil {
 		return nil, err

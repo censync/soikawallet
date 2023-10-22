@@ -24,8 +24,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/util/clipboard"
-	"github.com/censync/soikawallet/util/seed"
+	"github.com/censync/soikawallet/service/tui/util/clipboard"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"strconv"
@@ -39,6 +38,9 @@ type pageInitMnemonic struct {
 	// ui
 	inputMnemonic *tview.Form
 
+	// read-only
+	entropyList []string
+
 	// vars
 	selectedMnemonicEntropy  int
 	selectedMnemonicLanguage string
@@ -50,8 +52,9 @@ func NewPageInitMnemonic(state *state.State) *pageInitMnemonic {
 		SetDirection(tview.FlexColumn)
 
 	return &pageInitMnemonic{
-		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		State:       state,
+		entropyList: []string{"128", "160", "192", "224", "256"},
+		BaseFrame:   twidget.NewBaseFrame(layout),
 	}
 }
 
@@ -73,11 +76,11 @@ func (p *pageInitMnemonic) FuncOnShow() {
 	inputDropDownEntropy := tview.NewDropDown().
 		SetLabel(p.Tr().T("ui.label", "entropy")).
 		SetFieldWidth(5).
-		SetOptions(seed.EntropyList(), func(option string, optionIndex int) {
+		SetOptions(p.entropyList, func(option string, optionIndex int) {
 			p.selectedMnemonicEntropy, _ = strconv.Atoi(option)
 			p.actionMnemonicUpdate()
 		}).
-		SetCurrentOption(len(seed.EntropyList()) - 1)
+		SetCurrentOption(len(p.entropyList) - 1)
 
 	inputDropDownLanguage := tview.NewDropDown().
 		SetLabel(p.Tr().T("ui.label", "language")).

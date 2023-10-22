@@ -24,7 +24,6 @@ import (
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
 )
 
@@ -36,8 +35,8 @@ type pageTokenAdd struct {
 	layoutTokenAdd *tview.Flex
 
 	// vars
-	paramSelectedChainKey       mhda.ChainKey
-	selectedTokenStandard       types.TokenStandard
+	paramSelectedChainKey       *mhda.Chain
+	selectedTokenStandard       string
 	paramSelectedDerivationPath string
 }
 
@@ -69,7 +68,18 @@ func (p *pageTokenAdd) FuncOnShow() {
 	}
 
 	// TODO: Add exception handling
-	p.paramSelectedChainKey = p.Params()[0].(mhda.ChainKey)
+	chainKey, err := mhda.ChainFromKey(p.Params()[0].(mhda.ChainKey))
+
+	if err != nil {
+		p.Emit(
+			events.EventLogError,
+			fmt.Sprintf("Incorrect chainKey"),
+		)
+		p.SwitchToPage(p.Pages().GetPrevious())
+	}
+
+	p.paramSelectedChainKey = chainKey
+
 	p.paramSelectedDerivationPath = p.Params()[1].(string)
 
 	p.layoutTokenAdd.AddItem(p.uiTokenAddForm(), 0, 1, false)
@@ -91,8 +101,10 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 	inputSelectTokenStandard := tview.NewDropDown().
 		SetLabel("Type").
 		SetFieldWidth(10).
-		SetOptions(types.GetTokenStandardNamesByChain(p.paramSelectedChainKey), func(text string, index int) {
-			p.selectedTokenStandard = types.GetTokenStandByName(text)
+		SetOptions(p.API().GetTokenStandardNamesByChain(&dto.GetTokenStandardNamesByNetworkDTO{
+			NetworkType: p.paramSelectedChainKey.NetworkType(),
+		}), func(text string, index int) {
+			p.selectedTokenStandard = text
 		}).
 		SetCurrentOption(0)
 
@@ -101,7 +113,7 @@ func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 		AddFormItem(inputSelectTokenStandard).
 		AddButton("Check contract", func() {
 			tokenInfo, err := p.API().GetToken(&dto.GetTokenDTO{
-				ChainKey: p.paramSelectedChainKey,
+				ChainKey: p.paramSelectedChainKey.Key(),
 				Contract: inputContractAddr.GetText(),
 			})
 			if err != nil {
@@ -131,8 +143,8 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 	layoutForm.AddFormItem(inputContractAddr).
 		AddButton("Add token", func() {
 			err := p.API().UpsertToken(&dto.AddTokenDTO{
-				Standard: uint8(p.selectedTokenStandard),
-				ChainKey: p.paramSelectedChainKey,
+				Standard: p.selectedTokenStandard,
+				ChainKey: p.paramSelectedChainKey.Key(),
 				Contract: tokenConfig.Contract,
 				MhdaPath: p.paramSelectedDerivationPath,
 			})

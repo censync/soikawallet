@@ -26,5 +26,5 @@ type GetAccountsRequest struct {
 type RPCRequest struct {
 	ChainKey mhda.ChainKey `json:"chain_key"`
 	Method   string        `json:"request"`
-	Params   []string      `json:"params"`
+	Params   []interface{} `json:"params"`
 }

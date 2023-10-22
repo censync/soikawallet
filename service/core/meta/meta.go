@@ -19,7 +19,7 @@ package meta
 import (
 	"encoding/json"
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
+	types2 "github.com/censync/soikawallet/service/core/internal/types"
 	"sync/atomic"
 	"time"
 )
@@ -92,14 +92,14 @@ func (m *Meta) SetAddress(nssKey string, address *Address) {
 
 // Nodes operations
 
-func (m *Meta) AddRPCNode(index types.NodeIndex, rpc *types.RPC) error {
+func (m *Meta) AddRPCNode(index types2.NodeIndex, rpc *types2.RPC) error {
 	err := m.nodes.AddRPCNode(index, rpc)
 	if err == nil {
 		m.NonceAdd()
 	}
 	return err
 }
-func (m *Meta) RemoveRPCNode(nodeIndex types.NodeIndex) error {
+func (m *Meta) RemoveRPCNode(nodeIndex types2.NodeIndex) error {
 	err := m.nodes.RemoveRPCNode(nodeIndex)
 	if err == nil {
 		m.NonceAdd()
@@ -107,7 +107,7 @@ func (m *Meta) RemoveRPCNode(nodeIndex types.NodeIndex) error {
 	return err
 }
 
-func (m *Meta) SetRPCAddressLink(addrIdx aIndex, nodeIndex types.NodeIndex) error {
+func (m *Meta) SetRPCAddressLink(addrIdx aIndex, nodeIndex types2.NodeIndex) error {
 	err := m.nodes.SetRPCAddressLink(addrIdx, nodeIndex)
 	if err == nil {
 		m.NonceAdd()
@@ -115,7 +115,7 @@ func (m *Meta) SetRPCAddressLink(addrIdx aIndex, nodeIndex types.NodeIndex) erro
 	return err
 }
 
-func (m *Meta) RemoveRPCAccountLink(addrIdx aIndex, nodeIndex types.NodeIndex) error {
+func (m *Meta) RemoveRPCAccountLink(addrIdx aIndex, nodeIndex types2.NodeIndex) error {
 	err := m.nodes.RemoveRPCAccountLink(addrIdx, nodeIndex)
 	if err == nil {
 		m.NonceAdd()
@@ -125,7 +125,7 @@ func (m *Meta) RemoveRPCAccountLink(addrIdx aIndex, nodeIndex types.NodeIndex) e
 
 // Tokens
 
-func (m *Meta) AddTokenConfig(chainKey mhda.ChainKey, config *types.TokenConfig) error {
+func (m *Meta) AddTokenConfig(chainKey mhda.ChainKey, config *types2.TokenConfig) error {
 	err := m.tokens.AddTokenConfig(chainKey, config)
 	if err == nil {
 		m.NonceAdd()
@@ -133,7 +133,7 @@ func (m *Meta) AddTokenConfig(chainKey mhda.ChainKey, config *types.TokenConfig)
 	return err
 }
 
-func (m *Meta) RemoveTokenConfig(index types.TokenIndex) error {
+func (m *Meta) RemoveTokenConfig(index types2.TokenIndex) error {
 	err := m.tokens.RemoveTokenConfig(index)
 	if err == nil {
 		m.NonceAdd()
@@ -141,7 +141,7 @@ func (m *Meta) RemoveTokenConfig(index types.TokenIndex) error {
 	return err
 }
 
-func (m *Meta) SetTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
+func (m *Meta) SetTokenConfigAddressLink(addrIdx aIndex, tokenIndex types2.TokenIndex) error {
 	err := m.tokens.SetTokenConfigAddressLink(addrIdx, tokenIndex)
 	if err == nil {
 		m.NonceAdd()
@@ -149,7 +149,7 @@ func (m *Meta) SetTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenI
 	return err
 }
 
-func (m *Meta) RemoveTokenConfigAddressLink(addrIdx aIndex, tokenIndex types.TokenIndex) error {
+func (m *Meta) RemoveTokenConfigAddressLink(addrIdx aIndex, tokenIndex types2.TokenIndex) error {
 	err := m.tokens.RemoveTokenConfigAddressLink(addrIdx, tokenIndex)
 	if err == nil {
 		m.NonceAdd()

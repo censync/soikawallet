@@ -45,7 +45,7 @@ type AirGapMessage struct {
 }
 
 type AddressTokenEntry struct {
-	Standard uint8
+	Standard string
 	Name     string
 	Symbol   string
 	Contract string
@@ -66,7 +66,7 @@ type AddressTokenBalanceEntry struct {
 type AddressTokensBalanceListResponse map[string]*AddressTokenBalanceEntry
 
 type TokenConfig struct {
-	Standard uint8
+	Standard string
 	Name     string
 	Symbol   string
 	Contract string
@@ -80,4 +80,10 @@ type ChainInfo struct {
 
 type CalculatorConfig struct {
 	Calculator []byte
+}
+
+type RPCInfo struct {
+	Title     string
+	Endpoint  string
+	IsDefault bool
 }

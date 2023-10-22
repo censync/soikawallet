@@ -20,10 +20,10 @@ package networks
 
 import (
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
+	types2 "github.com/censync/soikawallet/service/core/internal/types"
 )
 
-var Polygon = types.NewNetwork(
+var Polygon = types2.NewNetwork(
 	mhda.MATIC,
 	`Polygon`,
 	`MATIC`,
@@ -31,32 +31,32 @@ var Polygon = types.NewNetwork(
 	1e9,
 	"gwei",
 	true,
-	&types.EVMConfig{
+	&types2.EVMConfig{
 		ChainId: 0x89,
 	},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/polygon`, // https://polygon-rpc.com
 	`https://polygonscan.com/`,                 // /block/ /address/ /tx/
 ).SetBuiltinToken(
-	types.TokenERC20,
+	types2.TokenERC20,
 	`(PoS) Tether USD`,
 	`USDT`,
 	`0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
 	6,
 ).SetBuiltinToken(
-	types.TokenERC20,
+	types2.TokenERC20,
 	`USD network (PoS)`,
 	`USDC`,
 	`0x2791bca1f2de4661ed88a30c99a7a9449aa84174`,
 	6,
 ).SetBuiltinToken(
-	types.TokenERC20,
+	types2.TokenERC20,
 	`(PoS) Binance USD`,
 	`BUSD`,
 	`0xdAb529f40E671A1D4bF91361c21bf9f0C9712ab7`,
 	18,
 ).SetBuiltinToken(
-	types.TokenERC20,
+	types2.TokenERC20,
 	`(PoS) Dai Stablecoin`,
 	`DAI`,
 	`0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063`,

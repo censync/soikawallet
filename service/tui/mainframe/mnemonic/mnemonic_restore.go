@@ -24,7 +24,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/util/clipboard"
+	"github.com/censync/soikawallet/service/tui/util/clipboard"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"os"

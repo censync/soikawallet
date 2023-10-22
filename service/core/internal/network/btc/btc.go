@@ -21,7 +21,7 @@ import (
 	"errors"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
-	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 )

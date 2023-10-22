@@ -22,7 +22,6 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/twidget/strip_color"
-	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 )
@@ -53,7 +52,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 	p.actionUpdateFrameDetails()
 
 	if p.API() != nil {
-		for _, chainKey := range types.GetChains() {
+		for _, chainKey := range p.API().GetAllChains() {
 			accounts := p.API().GetAccountsByNetwork(&dto.GetAccountsByNetworkDTO{
 				ChainKey: chainKey,
 			})
@@ -62,7 +61,12 @@ func (p *pageAddresses) actionUpdateAddresses() {
 				continue
 			}
 
-			networkNode := tview.NewTreeNode(types.GetNetworkNameByKey(chainKey))
+			// TODO: Change to receive all into UI cache, and get without key
+			networkNodeTitle := p.API().GetChainNameByKey(&dto.GetChainNameByKeyDTO{
+				ChainKey: chainKey,
+			})
+
+			networkNode := tview.NewTreeNode(networkNodeTitle)
 
 			for _, account := range accounts {
 				accountNodeTitle := ""
@@ -79,10 +83,13 @@ func (p *pageAddresses) actionUpdateAddresses() {
 					account: account,
 				})
 				stripColor := strip_color.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
-				for _, address := range p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
+
+				addrByAccount := p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
 					ChainKey:     chainKey,
 					AccountIndex: uint32(account.Account),
-				}) {
+				})
+
+				for _, address := range addrByAccount {
 					addrIndexFormat := "%d - %s"
 
 					if address.AddressIndex.IsHardened {

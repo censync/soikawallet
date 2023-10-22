@@ -1,19 +1,24 @@
-## Dependencies
+## SoikaWallet - MultiChain Hierarchical Deterministic Wallet
+
+This is non-custodial, multi-chain secured opensource wallet, with AirGap support.
+
+### Dependencies
 
 zbar  https://zbar.sourceforge.net/
 
-### Ubuntu
+#### Ubuntu
 
 ```shell
 sudo apt-get -y install zbar-tools
 ```
-### RHEL
+
+#### RHEL
+
 ```shell
 sudo yum -y install zbar.
 ```
 
-
-### MacOS:
+#### MacOS:
 
 brew
 
@@ -27,13 +32,10 @@ port
 sudo port install zbar 
 ```
 
-## Environments
+### Components
 
-| Variable                        | Type   | Description     |
-|---------------------------------|--------|-----------------|
-| SOIKAWALLET_MNEMONIC            | string | mnemonic phrase |
-| SOIKAWALLET_MNEMONIC_PASSPHRASE | string | passphrase salt |
-| SOIKAWALLET_AGREEMENT_ACCEPTED  | string | "true" or empty |
+* core - core sdk
+* tui - terminal UI
 
 ## License
 

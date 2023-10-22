@@ -19,7 +19,7 @@ package core
 import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/core/internal/config/datafeed"
-	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 	"math"
 )
 

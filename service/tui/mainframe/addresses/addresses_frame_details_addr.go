@@ -25,8 +25,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/soikawallet/service/tui/twidget/qrview"
-	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/util/clipboard"
+	"github.com/censync/soikawallet/service/tui/util/clipboard"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 )
@@ -78,7 +77,11 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 	pathTitle := ""
 	addr, err := mhda.ParseNSS(f.selectedAddress.Path)
 	if err == nil {
-		pathTitle = types.GetNetworkNameByKey(addr.Chain().Key()) + " " + addr.DerivationPath().String()
+		// What is it?
+		pathTitle = f.API().GetChainNameByKey(&dto.GetChainNameByKeyDTO{
+			ChainKey: addr.Chain().Key(),
+		})
+		pathTitle = fmt.Sprintf("%s %s", pathTitle, addr.DerivationPath().String())
 	}
 
 	viewSelectedPath := tview.NewTextView().

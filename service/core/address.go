@@ -24,9 +24,9 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/core/internal/types"
+	"github.com/censync/soikawallet/service/core/internal/types/protected_key"
 	"github.com/censync/soikawallet/service/core/meta"
-	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/types/protected_key"
 )
 
 const (
@@ -247,7 +247,7 @@ func (s *Wallet) derivationKeyZip32(path *mhda.DerivationPath) (*ecdsa.PrivateKe
 /*
 func (s *Wallet) isAccountExists(networkType types.CoinType, accountIndex types.AccountIndex) bool {
 	for _, addr := range s.addresses {
-		if addr.ChainKey() == networkType && addr.Account() == accountIndex {
+		if addr.NetworkType() == networkType && addr.Account() == accountIndex {
 			return true
 		}
 	}
@@ -323,6 +323,7 @@ func (s *Wallet) AddAddresses(dto *dto.AddAddressesDTO) (addresses []*resp.Addre
 	return addresses, nil
 }
 
+// TODO: Add error for response
 func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*resp.AddressResponse {
 	var addresses []*resp.AddressResponse
 

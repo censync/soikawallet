@@ -22,7 +22,6 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/pages"
-	"github.com/censync/soikawallet/types"
 	"github.com/censync/tview"
 	"github.com/gdamore/tcell/v2"
 	"strconv"
@@ -73,8 +72,11 @@ func (p *pageCreateAddr) uiGlobalSettingsForm() *tview.Form {
 	inputSelectNetwork := tview.NewDropDown().
 		SetLabel(p.Tr().T("ui.label", "choose_chain")).
 		SetFieldWidth(10).
-		SetOptions(types.GetChainNames(), func(text string, index int) {
-			p.selectedChain = types.GetChainByName(text)
+		// TODO: Optimize it
+		SetOptions(p.API().GetAllChainNames(), func(text string, index int) {
+			p.selectedChain = p.API().GetChainByName(&dto.GetChainByNameDTO{
+				ChainName: text,
+			})
 			p.actionUpdateSelectedChain()
 		}).
 		SetCurrentOption(0)
@@ -218,7 +220,9 @@ func (p *pageCreateAddr) actionCreateAddrWizard() {
 		for _, addr := range addresses {
 			p.Emit(events.EventLogInfo, fmt.Sprintf(
 				"Added address: %s %s",
-				types.GetNetworkNameByKey(p.selectedChain.Key()),
+				p.API().GetChainNameByKey(&dto.GetChainNameByKeyDTO{
+					ChainKey: p.selectedChain.Key(), //TODO: Optimize it
+				}),
 				addr.Address,
 			),
 			)

@@ -20,10 +20,10 @@ package networks
 
 import (
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types"
+	types2 "github.com/censync/soikawallet/service/core/internal/types"
 )
 
-var BSC = types.NewNetwork(
+var BSC = types2.NewNetwork(
 	mhda.BSC,
 	`Binance Smart Chain`,
 	`BNB`,
@@ -31,26 +31,26 @@ var BSC = types.NewNetwork(
 	1e9,
 	"gwei",
 	true,
-	&types.EVMConfig{
+	&types2.EVMConfig{
 		ChainId: 0x38,
 	},
 ).SetDefaultRPC(
 	`https://bsc-dataseed1.binance.org/`,
 	`https://bscscan.com/`, // /block/ /address/ /tx/
 ).SetBuiltinToken(
-	types.TokenBEP20,
+	types2.TokenBEP20,
 	`Ethereum`,
 	`ETH`,
 	`0x2170ed0880ac9a755fd29b2688956bd959f933f8`,
 	18,
 ).SetBuiltinToken(
-	types.TokenBEP20,
+	types2.TokenBEP20,
 	`BUSD`,
 	`BUSD`,
 	`0x55d398326f99059ff775485246999027b3197955`,
 	18,
 ).SetBuiltinToken(
-	types.TokenBEP20,
+	types2.TokenBEP20,
 	`USD network`,
 	`USDC`,
 	`0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d`,

@@ -21,16 +21,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
-type Client struct {
+type ApiClient struct {
 	Host string
 	*http.Client
 }
 
-func (c *Client) Do(method, path string, payload, dst interface{}) error {
+func (c *ApiClient) Do(method, path string, payload, dst interface{}) error {
 	encodedPayload, err := json.Marshal(payload)
 
 	if err != nil {
@@ -53,7 +53,8 @@ func (c *Client) Do(method, path string, payload, dst interface{}) error {
 		return errors.New(fmt.Sprintf("cannot execute request: code %d", resp.StatusCode))
 	}
 	defer resp.Body.Close()
-	data, err := ioutil.ReadAll(resp.Body)
+
+	data, err := io.ReadAll(resp.Body)
 
 	return json.Unmarshal(data, &dst)
 }

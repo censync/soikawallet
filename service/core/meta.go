@@ -19,7 +19,7 @@ package core
 import (
 	"errors"
 	"github.com/censync/soikawallet/api/dto"
-	"github.com/censync/soikawallet/types"
+	"github.com/censync/soikawallet/service/core/meta"
 	"strings"
 )
 
@@ -46,14 +46,14 @@ func (s *Wallet) AddLabel(dto *dto.AddLabelDTO) (uint32, error) {
 		return 0, errors.New("maximum 20 chars")
 	}
 
-	if dto.LabelType != types.AccountLabel && dto.LabelType != types.AddressLabel {
+	if dto.LabelType != meta.AccountLabel && dto.LabelType != meta.AddressLabel {
 		return 0, errors.New("unknown label type")
 	}
 
 	switch dto.LabelType {
-	case types.AccountLabel:
+	case meta.AccountLabel:
 		return s.meta.AddAccountLabel(dto.Title)
-	case types.AddressLabel:
+	case meta.AddressLabel:
 		return s.meta.AddAddressLabel(dto.Title)
 	default:
 		return 0, errMetaLabelUnknownType
@@ -62,9 +62,9 @@ func (s *Wallet) AddLabel(dto *dto.AddLabelDTO) (uint32, error) {
 
 func (s *Wallet) RemoveLabel(dto *dto.RemoveLabelDTO) error {
 	switch dto.LabelType {
-	case types.AccountLabel:
+	case meta.AccountLabel:
 		return s.meta.RemoveAccountLabel(dto.Index)
-	case types.AddressLabel:
+	case meta.AddressLabel:
 		return s.meta.RemoveAddressLabel(dto.Index)
 	default:
 		return errMetaLabelUnknownType
@@ -73,9 +73,9 @@ func (s *Wallet) RemoveLabel(dto *dto.RemoveLabelDTO) error {
 
 func (s *Wallet) SetLabelLink(dto *dto.SetLabelLinkDTO) error {
 	switch dto.LabelType {
-	case types.AccountLabel:
+	case meta.AccountLabel:
 		return s.meta.SetAccountLabelLink(dto.Path, dto.Index)
-	case types.AddressLabel:
+	case meta.AddressLabel:
 		return s.meta.SetAddressLabelLink(dto.Path, dto.Index)
 	default:
 		return errMetaLabelUnknownType
@@ -84,9 +84,9 @@ func (s *Wallet) SetLabelLink(dto *dto.SetLabelLinkDTO) error {
 
 func (s *Wallet) RemoveLabelLink(dto *dto.RemoveLabelLinkDTO) error {
 	switch dto.LabelType {
-	case types.AccountLabel:
+	case meta.AccountLabel:
 		return s.meta.RemoveAccountLabelLink(dto.Path)
-	case types.AddressLabel:
+	case meta.AddressLabel:
 		return s.meta.RemoveAddressLabelLink(dto.Path)
 	default:
 		return errMetaLabelUnknownType

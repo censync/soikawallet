@@ -19,26 +19,26 @@ package meta
 import (
 	"encoding/json"
 	"errors"
-	"github.com/censync/soikawallet/types"
+	types2 "github.com/censync/soikawallet/service/core/internal/types"
 	"sync"
 )
 
 type nodes struct {
 	mu       sync.RWMutex
-	nodes    map[uint32]*types.RPC
-	subIndex map[types.NodeIndex]uint32
+	nodes    map[uint32]*types2.RPC
+	subIndex map[types2.NodeIndex]uint32
 	links    map[aIndex][]uint32
 }
 
 func (n *nodes) initNodes() {
-	n.nodes = map[uint32]*types.RPC{}
-	n.subIndex = map[types.NodeIndex]uint32{}
+	n.nodes = map[uint32]*types2.RPC{}
+	n.subIndex = map[types2.NodeIndex]uint32{}
 	n.links = map[aIndex][]uint32{}
 
 	// n.accountsLinks = map[types.NodeIndex][]types.AccountIndex{}
 }
 
-func (n *nodes) AddRPCNode(index types.NodeIndex, rpc *types.RPC) error {
+func (n *nodes) AddRPCNode(index types2.NodeIndex, rpc *types2.RPC) error {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
@@ -60,7 +60,7 @@ func (n *nodes) AddRPCNode(index types.NodeIndex, rpc *types.RPC) error {
 	return nil
 }
 
-func (n *nodes) RemoveRPCNode(nodeIndex types.NodeIndex) error {
+func (n *nodes) RemoveRPCNode(nodeIndex types2.NodeIndex) error {
 	n.mu.Lock()
 	defer n.mu.Unlock()
 
@@ -79,7 +79,7 @@ func (n *nodes) RemoveRPCNode(nodeIndex types.NodeIndex) error {
 
 // Linked accounts
 
-func (n *nodes) IsRPCAccountLinkExists(addrIdx aIndex, nodeIndex types.NodeIndex) bool {
+func (n *nodes) IsRPCAccountLinkExists(addrIdx aIndex, nodeIndex types2.NodeIndex) bool {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 
@@ -100,7 +100,7 @@ func (n *nodes) IsRPCAccountLinkExists(addrIdx aIndex, nodeIndex types.NodeIndex
 }
 
 // WTF?
-func (n *nodes) GetRPCAccountLinks(nodeIndex types.NodeIndex) []aIndex {
+func (n *nodes) GetRPCAccountLinks(nodeIndex types2.NodeIndex) []aIndex {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 
@@ -127,7 +127,7 @@ func (n *nodes) GetRPCAccountLinks(nodeIndex types.NodeIndex) []aIndex {
 	return result
 }
 
-func (n *nodes) GetRPCAccountLinksCount(nodeIndex types.NodeIndex) int {
+func (n *nodes) GetRPCAccountLinksCount(nodeIndex types2.NodeIndex) int {
 	var result int
 
 	internalIndex, ok := n.subIndex[nodeIndex]
@@ -148,7 +148,7 @@ func (n *nodes) GetRPCAccountLinksCount(nodeIndex types.NodeIndex) int {
 	return result
 }
 
-func (n *nodes) SetRPCAddressLink(addrIdx aIndex, nodeIndex types.NodeIndex) error {
+func (n *nodes) SetRPCAddressLink(addrIdx aIndex, nodeIndex types2.NodeIndex) error {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 
@@ -166,7 +166,7 @@ func (n *nodes) SetRPCAddressLink(addrIdx aIndex, nodeIndex types.NodeIndex) err
 	return nil
 }
 
-func (n *nodes) RemoveRPCAccountLink(addrIdx aIndex, nodeIndex types.NodeIndex) error {
+func (n *nodes) RemoveRPCAccountLink(addrIdx aIndex, nodeIndex types2.NodeIndex) error {
 	var linkExists bool
 
 	n.mu.Lock()
@@ -198,7 +198,7 @@ func (n *nodes) MarshalJSON() ([]byte, error) {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 
-	nodesExport := map[string]*types.RPC{}
+	nodesExport := map[string]*types2.RPC{}
 	/*for nodeIndex, node := range n.nodes {
 		nodesExport[fmt.Sprintf("%d:%d", nodeIndex.CoinType, nodeIndex.Index)] = node
 	}

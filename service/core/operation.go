@@ -25,7 +25,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/config/chain"
-	"github.com/censync/soikawallet/types"
+	types2 "github.com/censync/soikawallet/service/core/internal/types"
 	"strings"
 )
 
@@ -51,14 +51,14 @@ func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 		return 0, errOpAddrRecipientIncorrect
 	}
 
-	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
+	ctx := types2.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
 		return 0, err
 	}
 
-	if types.TokenStandard(dto.Standard) == types.TokenBase {
+	if types2.TokenStandard(dto.Standard) == types2.TokenBase {
 		return 0, errTokenAllowanceApproveBase
 	}
 	tokenConfig := provider.GetTokenConfig(dto.Contract)
@@ -67,7 +67,7 @@ func (s *Wallet) GetAllowance(dto *dto.GetTokenAllowanceDTO) (uint64, error) {
 		return 0, errTokenNotConfigured
 	}
 
-	if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
+	if tokenConfig.Standard() != types2.TokenStandard(dto.Standard) {
 		return 0, errTokenNotConfigured
 	}
 	return provider.GetTokenAllowance(ctx, tokenConfig.Contract(), dto.To)
@@ -101,11 +101,11 @@ func (s *Wallet) ApproveTokens(dto *dto.SendTokensDTO) (txId string, err error) 
 		return "", errors.New("contract not set")
 	}
 
-	if types.TokenStandard(dto.Standard) == types.TokenBase {
+	if types2.TokenStandard(dto.Standard) == types2.TokenBase {
 		return "", errTokenAllowanceApproveBase
 	}
 
-	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
+	ctx := types2.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
@@ -151,7 +151,7 @@ func (s *Wallet) SendTokensPrepare(dto *dto.SendTokensDTO) (*resp.AirGapMessage,
 
 	airgapMsg := airgap.NewAirGap(airgap.VersionDefault, s.instanceId).
 		CreateMessage().
-		AddOperation(types.OpTxSend, airGapMessageBin)
+		AddOperation(types2.OpTxSend, airGapMessageBin)
 
 	chunks, err := airgapMsg.MarshalB64Chunks()
 
@@ -202,14 +202,14 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 		return nil, errOpAddrRecipientIncorrect
 	}
 
-	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
+	ctx := types2.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if types.TokenStandard(dto.Standard) == types.TokenBase {
+	if types2.TokenStandard(dto.Standard) == types2.TokenBase {
 		isLegacy := false
 		switch addr.MHDA().Chain().Key() {
 		case chain.BinanceSmartChain.Key(), chain.ArbitrumChain.Key(), chain.OptimismChain.Key():
@@ -234,7 +234,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 			return nil, errTokenNotConfigured
 		}
 
-		if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
+		if tokenConfig.Standard() != types2.TokenStandard(dto.Standard) {
 			return nil, errTokenIncorrectType
 		}
 

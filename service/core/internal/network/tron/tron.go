@@ -21,8 +21,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"github.com/btcsuite/btcd/btcutil/base58"
-	"github.com/censync/soikawallet/types"
-	"github.com/censync/soikawallet/util/apiclient"
+	"github.com/censync/soikawallet/service/core/internal/apiclient"
+	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"math/big"
 	"net"
@@ -46,8 +46,8 @@ func NewTron(baseNetwork *types.BaseNetwork) *Tron {
 	return address
 }*/
 
-func (t *Tron) getClient(nodeId uint32) *apiclient.Client {
-	return &apiclient.Client{
+func (t *Tron) getClient(nodeId uint32) *apiclient.ApiClient {
+	return &apiclient.ApiClient{
 		Host: t.DefaultRPC().Endpoint(),
 		Client: &http.Client{
 			Timeout: 10 * time.Second,
@@ -65,23 +65,6 @@ func (t *Tron) getClient(nodeId uint32) *apiclient.Client {
 		},
 	}
 }
-
-/*
-	Test it
-	publicKey := ""
-	publicKeyBytes, _ := hex.DecodeString(publicKey)
-
-	hash := sha256.Sum256(publicKeyBytes)
-	address := hex.EncodeToString(hash[:])
-
-	// Trim to 20 bytes and convert to hexadecimal string representation
-	address = hex.EncodeToString([]byte(address[:40]))
-
-	// Add "41" prefix to indicate the address is for Tron
-	address = "41" + address
-
-	fmt.Println("Tron address:", address)
-*/
 
 func (t *Tron) Address(pub *ecdsa.PublicKey) string {
 	addr := crypto.PubkeyToAddress(*pub).Hex()

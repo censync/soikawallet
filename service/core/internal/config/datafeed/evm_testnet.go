@@ -20,7 +20,7 @@ package datafeed
 
 import (
 	mhda "github.com/censync/go-mhda"
-	"github.com/censync/soikawallet/types/currencies"
+	"github.com/censync/soikawallet/service/core/internal/types/currencies"
 )
 
 // Chainlink testnet data sources

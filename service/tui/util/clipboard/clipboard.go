@@ -32,7 +32,7 @@ var (
 		{"termux-clipboard-set"},
 	}
 	clipboardPaste = [][]string{
-		//{"xsel", "--output", "--clipboard"},
+		{"xsel", "--output", "--clipboard"},
 		{"xclip", "-o"},
 		{"wl-paste"},
 		{"termux-clipboard-get"},

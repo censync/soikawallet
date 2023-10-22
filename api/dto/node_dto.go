@@ -29,7 +29,7 @@ type GetTokenDTO struct {
 }
 
 type AddTokenDTO struct {
-	Standard uint8
+	Standard string
 	ChainKey mhda.ChainKey
 	Contract string
 	MhdaPath string // ?null
