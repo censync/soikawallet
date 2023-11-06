@@ -19,7 +19,7 @@ package meta
 import (
 	json "encoding/json"
 	mhda "github.com/censync/go-mhda"
-	types2 "github.com/censync/soikawallet/service/core/internal/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -66,9 +66,9 @@ func TestNodes_AddRPCNode_Positive(t *testing.T) {
 	assert.NotNil(t, metaNodes.links)
 
 	for index := range testDataRPC {
-		rpc := types2.NewRPC(testDataRPC[index][0], testDataRPC[index][1], false)
+		rpc := types.NewRPC(testDataRPC[index][0], testDataRPC[index][1], false)
 
-		nodeIndex := types2.NodeIndex{
+		nodeIndex := types.NodeIndex{
 			ChainKey: chainKey.Key(),
 			Index:    uint32(index + 1),
 		}
@@ -96,7 +96,7 @@ func TestNodes_SetRPCAccountLink_Positive(t *testing.T) {
 	assert.NotNil(t, metaNodes.links)
 
 	for addrIdx := aIndex(randomOffset); addrIdx < aIndex(len(testDataRPC)+randomOffset); addrIdx++ {
-		nodeIndex := types2.NodeIndex{
+		nodeIndex := types.NodeIndex{
 			ChainKey: chainKey.Key(),
 			Index:    uint32(addrIdx - randomOffset + 1),
 		}
@@ -123,7 +123,7 @@ func TestNodes_RemoveRPCAccountLink_Positive(t *testing.T) {
 	assert.NotNil(t, metaNodes.links)
 
 	for addrIdx := aIndex(randomOffset); addrIdx < aIndex(len(testDataRPC)+randomOffset); addrIdx++ {
-		nodeIndex := types2.NodeIndex{
+		nodeIndex := types.NodeIndex{
 			ChainKey: chainKey.Key(),
 			Index:    uint32(addrIdx - randomOffset + 1),
 		}
@@ -155,7 +155,7 @@ func TestNodes_RemoveRPCNode_Positive(t *testing.T) {
 	}
 
 	for index := len(testDataRPC); index > 0; index-- {
-		nodeIndex := types2.NodeIndex{
+		nodeIndex := types.NodeIndex{
 			ChainKey: chainKey.Key(),
 			Index:    uint32(index + 1),
 		}

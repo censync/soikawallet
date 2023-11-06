@@ -24,13 +24,13 @@ import (
 	"github.com/censync/soikawallet/service/core/internal/clients/evm"
 	"github.com/censync/soikawallet/service/core/internal/clients/tron"
 	"github.com/censync/soikawallet/service/core/internal/config/networks"
-	types2 "github.com/censync/soikawallet/service/core/internal/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 	"sync"
 )
 
 type Provider struct {
 	mu              sync.RWMutex
-	networks        map[mhda.ChainKey]types2.NetworkAdapter
+	networks        map[mhda.ChainKey]types.NetworkAdapter
 	defaultCurrency string
 }
 
@@ -47,7 +47,7 @@ var (
 )*/
 
 var networkProviders = &Provider{
-	networks: map[mhda.ChainKey]types2.NetworkAdapter{
+	networks: map[mhda.ChainKey]types.NetworkAdapter{
 		chain.BitcoinChain.Key():      btc.NewBTC(networks.Bitcoin),
 		chain.EthereumChain.Key():     evm.NewEVM(networks.Ethereum),
 		chain.TronChain.Key():         tron.NewTron(networks.Tron),
@@ -72,7 +72,7 @@ func (s *Provider) IsExists(chainKey mhda.ChainKey) bool {
 	return ok
 }
 
-func Get(chainKey mhda.ChainKey) types2.NetworkAdapter {
+func Get(chainKey mhda.ChainKey) types.NetworkAdapter {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 
@@ -82,11 +82,11 @@ func Get(chainKey mhda.ChainKey) types2.NetworkAdapter {
 	return nil
 }
 
-func WithContext(ctx *types2.RPCContext) (types2.NetworkAdapter, error) {
+func WithContext(ctx *types.RPCContext) (types.NetworkAdapter, error) {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 
-	if !types2.IsNetworkExists(ctx.ChainKey()) {
+	if !types.IsNetworkExists(ctx.ChainKey()) {
 		return nil, errNetworkTypeNotSet
 	}
 
@@ -98,7 +98,7 @@ func WithContext(ctx *types2.RPCContext) (types2.NetworkAdapter, error) {
 	return network, nil
 }
 
-func GetAll() map[mhda.ChainKey]types2.NetworkAdapter {
+func GetAll() map[mhda.ChainKey]types.NetworkAdapter {
 	networkProviders.mu.RLock()
 	defer networkProviders.mu.RUnlock()
 

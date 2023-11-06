@@ -23,7 +23,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/config/chain"
-	types2 "github.com/censync/soikawallet/service/core/internal/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/censync/soikawallet/types/gas"
 )
 
@@ -53,7 +53,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 		return nil, err
 	}
 
-	ctx := types2.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
+	ctx := types.NewRPCContext(addr.MHDA().Chain().Key(), addr.NodeIndex(), addr.Address())
 	provider, err := s.getNetworkProvider(ctx)
 
 	if fiatPair := s.currenciesFiat.Get(provider.Currency()); fiatPair != nil {
@@ -63,7 +63,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 
 	// TODO: Optimize method
 	if dto.Operation == "transfer" {
-		if types2.TokenStandard(dto.Standard) == types2.TokenBase {
+		if types.TokenStandard(dto.Standard) == types.TokenBase {
 			gasConfig, err = provider.GetGasConfig(ctx)
 		} else {
 			tokenConfig := provider.GetTokenConfig(dto.Contract)
@@ -74,7 +74,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 			gasConfig, err = provider.GetGasConfig(ctx, "transfer(address,uint256)", dto.To, dto.Value, tokenConfig)
 		}
 	} else if dto.Operation == "approve" {
-		if types2.TokenStandard(dto.Standard) != types2.TokenBase {
+		if types.TokenStandard(dto.Standard) != types.TokenBase {
 			tokenConfig := provider.GetTokenConfig(dto.Contract)
 
 			if tokenConfig == nil {

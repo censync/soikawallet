@@ -17,7 +17,7 @@
 package meta
 
 import (
-	types2 "github.com/censync/soikawallet/service/core/internal/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -57,8 +57,8 @@ func TestTokens_AddTokenConfig_Positive(t *testing.T) {
 	assert.NotNil(t, metaTokens.links)
 
 	for index := range testDataTokens {
-		tokenConfig := types2.NewTokenConfig(
-			types2.TokenERC20,
+		tokenConfig := types.NewTokenConfig(
+			types.TokenERC20,
 			testDataTokens[index][0],
 			testDataTokens[index][1],
 			testDataTokens[index][2],
@@ -79,7 +79,7 @@ func TestTokens_AddTokenConfig_Positive(t *testing.T) {
 	}
 
 	for tokenIndex, tokenConfig := range metaTokens.tokens {
-		assert.Equal(t, types2.TokenERC20, tokenConfig.Standard())
+		assert.Equal(t, types.TokenERC20, tokenConfig.Standard())
 		assert.Equal(t, testDataTokens[tokenIndex-1][0], tokenConfig.Name())
 		assert.Equal(t, testDataTokens[tokenIndex-1][1], tokenConfig.Symbol())
 		assert.Equal(t, testDataTokens[tokenIndex-1][2], tokenConfig.Contract())

@@ -28,7 +28,7 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/core/internal/clients"
 	"github.com/censync/soikawallet/service/core/internal/config/version"
-	types2 "github.com/censync/soikawallet/service/core/internal/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/censync/soikawallet/service/core/internal/types/currencies"
 	"github.com/censync/soikawallet/service/core/meta"
 	"golang.org/x/crypto/pbkdf2"
@@ -53,11 +53,11 @@ type Wallet struct {
 	currenciesFiat *currencies.FiatCurrencies
 }
 
-func (s *Wallet) getNetworkProvider(ctx *types2.RPCContext) (types2.NetworkAdapter, error) {
+func (s *Wallet) getNetworkProvider(ctx *types.RPCContext) (types.NetworkAdapter, error) {
 	return clients.WithContext(ctx)
 }
 
-func (s *Wallet) getRPCProvider(chainKey mhda.ChainKey) types2.RPCAdapter {
+func (s *Wallet) getRPCProvider(chainKey mhda.ChainKey) types.RPCAdapter {
 	return clients.Get(chainKey)
 }
 
@@ -161,7 +161,7 @@ func (s *Wallet) ExportMeta() (*resp.AirGapMessage, error) {
 	}
 	airgapMsg := airgap.NewAirGap(airgap.VersionDefault, s.instanceId).
 		CreateMessage().
-		AddOperation(types2.OpMetaWallet, data)
+		AddOperation(types.OpMetaWallet, data)
 	chunks, err := airgapMsg.MarshalB64Chunks()
 	if err != nil {
 		return nil, err

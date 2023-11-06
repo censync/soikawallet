@@ -20,10 +20,10 @@ package networks
 
 import (
 	mhda "github.com/censync/go-mhda"
-	types2 "github.com/censync/soikawallet/service/core/internal/types"
+	"github.com/censync/soikawallet/service/core/internal/types"
 )
 
-var Tron = types2.NewNetwork(
+var Tron = types.NewNetwork(
 	mhda.TRX,
 	`Tron`,
 	`TRX`,
@@ -36,43 +36,43 @@ var Tron = types2.NewNetwork(
 	`https://rpc.soikawallet.app:8431/tron`, // `http://3.225.171.164`,
 	`https://tronscan.org/`,                 // /block/ /address/ /tx/
 ).SetBuiltinToken(
-	types2.TokenTRC20,
+	types.TokenTRC20,
 	`Wrapped TRX`,
 	`WTRX`,
 	`TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR`,
 	6,
 ).SetBuiltinToken(
-	types2.TokenTRC20,
+	types.TokenTRC20,
 	`Wrapped BitTorrent`,
 	`WBTT`,
 	`TKfjV9RNKJJCqPvBtK8L7Knykh7DNWvnYt`,
 	6,
 ).SetBuiltinToken(
-	types2.TokenTRC20,
+	types.TokenTRC20,
 	`Bitcoin`,
 	`BTC`,
 	`TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9`,
 	8,
 ).SetBuiltinToken(
-	types2.TokenTRC20,
+	types.TokenTRC20,
 	`Ethereum`,
 	`ETH`,
 	`THb4CqiFdwNHsWsQCs4JhzwjMWys4aqCbF`,
 	18,
 ).SetBuiltinToken(
-	types2.TokenTRC20,
+	types.TokenTRC20,
 	`Tether USD`,
 	`USDT`,
 	`TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t`,
 	6,
 ).SetBuiltinToken(
-	types2.TokenTRC20,
+	types.TokenTRC20,
 	`USD network`,
 	`USDC`,
 	`TEkxiTehnzSmSe2XqrBj4w32RUN966rdz8`,
 	6,
 ).SetBuiltinToken(
-	types2.TokenTRC20,
+	types.TokenTRC20,
 	`Decentralized USD`,
 	`USDD`,
 	`TPYmHEhy5n8TCEfYGqW2rPxsghSfzghPDn`,
