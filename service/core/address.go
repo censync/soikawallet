@@ -39,6 +39,7 @@ var (
 	errAddrDerivationPathUndefinedType = errors.New("undefined derivation type")
 	errAddrW3AlreadyPermitted          = errors.New("address already permitted for web3")
 	errAddrW3NotPermitted              = errors.New("address not permitted for web3")
+	errAddrAlreadyExist                = errors.New("addr already exists")
 	errCannotCalculateDerivedKey       = errors.New("cannot calculate derived key")
 )
 
@@ -264,7 +265,7 @@ func (s *Wallet) addAddress(path mhda.MHDA) (addr *meta.Address, err error) {
 		return nil, errChainKeyNotSupported
 	}
 	if s.meta.IsAddressExist(path.NSS()) {
-		return nil, errors.New("addr already exists")
+		return nil, errAddrAlreadyExist
 	}
 
 	// Create addr

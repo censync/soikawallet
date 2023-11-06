@@ -23,7 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/censync/soikawallet/service/core/internal/abi/oracle/chainlink"
-	"github.com/censync/soikawallet/service/core/internal/abi/token/erc20"
+	"github.com/censync/soikawallet/service/core/internal/abi/tokens/erc20"
 	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
