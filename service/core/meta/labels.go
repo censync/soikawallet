@@ -184,6 +184,7 @@ func (l *labels) AddressLabels() map[uint32]string {
 	return l.labelsAddress.labels
 }
 
+// TODO: Check addrKey
 func (m *Meta) GetAddressLabel(addrKey string) string {
 	addrOpts, ok := m.addresses[addrKey]
 	if !ok {

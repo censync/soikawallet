@@ -20,7 +20,7 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
-	"github.com/censync/soikawallet/service/core/internal/network"
+	"github.com/censync/soikawallet/service/core/internal/clients"
 	"github.com/censync/soikawallet/service/core/internal/types"
 )
 
@@ -43,7 +43,7 @@ func (s *Wallet) GetChainByName(dto *dto.GetChainByNameDTO) *mhda.Chain {
 
 func (s *Wallet) GetAllEvmW3Chains() []*resp.ChainInfo {
 	var result []*resp.ChainInfo
-	for chainKey, provider := range network.GetAll() {
+	for chainKey, provider := range clients.GetAll() {
 		if provider.IsW3() {
 			result = append(result, &resp.ChainInfo{
 				ChainKey: chainKey,

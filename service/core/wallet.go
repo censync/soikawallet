@@ -26,8 +26,8 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
+	"github.com/censync/soikawallet/service/core/internal/clients"
 	"github.com/censync/soikawallet/service/core/internal/config/version"
-	"github.com/censync/soikawallet/service/core/internal/network"
 	types2 "github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/censync/soikawallet/service/core/internal/types/currencies"
 	"github.com/censync/soikawallet/service/core/meta"
@@ -54,11 +54,11 @@ type Wallet struct {
 }
 
 func (s *Wallet) getNetworkProvider(ctx *types2.RPCContext) (types2.NetworkAdapter, error) {
-	return network.WithContext(ctx)
+	return clients.WithContext(ctx)
 }
 
 func (s *Wallet) getRPCProvider(chainKey mhda.ChainKey) types2.RPCAdapter {
-	return network.Get(chainKey)
+	return clients.Get(chainKey)
 }
 
 // Init initializes static instance of wallet with mnemonic and optional passphrase.

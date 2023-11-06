@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-package network
+package clients
 
 import (
 	"errors"
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/config/chain"
+	"github.com/censync/soikawallet/service/core/internal/clients/btc"
+	"github.com/censync/soikawallet/service/core/internal/clients/evm"
+	"github.com/censync/soikawallet/service/core/internal/clients/tron"
 	"github.com/censync/soikawallet/service/core/internal/config/networks"
-	"github.com/censync/soikawallet/service/core/internal/network/btc"
-	"github.com/censync/soikawallet/service/core/internal/network/evm"
-	"github.com/censync/soikawallet/service/core/internal/network/tron"
 	types2 "github.com/censync/soikawallet/service/core/internal/types"
 	"sync"
 )

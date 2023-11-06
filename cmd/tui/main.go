@@ -46,7 +46,7 @@ func main() {
 	provider := tui.NewTUIServiceProvider(cfg, &wg)
 
 	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGHUP)
+	signal.Notify(signalChannel, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT, syscall.SIGHUP)
 	go func() {
 		defer wg.Done()
 		<-signalChannel
