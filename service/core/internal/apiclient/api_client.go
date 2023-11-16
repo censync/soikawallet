@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/censync/soikawallet/service/core/internal/config/version"
 	"io"
 	"net/http"
 )
@@ -44,6 +45,8 @@ func (c *ApiClient) Do(method, path string, payload, dst interface{}) error {
 	}
 	request.Header.Set("Content-Type", "application/json")
 
+	request.Header.Set("User-Agent", fmt.Sprintf("Soika Wallet / %s", version.VERSION))
+	request.Header.Set("TRON-PRO-API-KEY", "b57151c7-fa3e-4400-a382-2d53fc2ae5a0")
 	resp, err := c.Client.Do(request)
 	if err != nil {
 		return errors.New("cannot process request: " + err.Error())
