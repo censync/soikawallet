@@ -60,7 +60,7 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 
 	inputAddrReceiver := tview.NewInputField().
 		SetLabel(`Receiver`).
-		SetText("0x2CA28e8f6e0ad23794B282CCDB9fCC808017F277")
+		SetText("")
 
 	inputValue := tview.NewInputField().
 		SetAcceptanceFunc(tview.InputFieldFloat).
@@ -146,13 +146,15 @@ func (f *frameOperationWizard) actionCheckAllowancePermission() bool {
 		return false
 	}
 
+	f.Emit(events.EventLogInfo, fmt.Sprintf("Allowance: %d ", allowance))
+
 	// TODO: Add human check
-	if allowance == 0 {
+	/*if allowance == 0 {
 		f.Emit(events.EventLogWarning, "Not approved, zero allowance")
 		return false
 	} else {
 		f.Emit(events.EventLogInfo, fmt.Sprintf("Allowance: %d ", allowance))
-	}
+	}*/
 	return true
 }
 

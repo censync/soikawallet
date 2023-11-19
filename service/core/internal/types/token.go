@@ -48,35 +48,14 @@ var (
 		mhda.EthereumVM: {TokenERC20, TokenERC721, TokenERC1155},
 		mhda.TronVM:     {TokenTRC20, TokenTRC10},
 	}
-	registeredTokenStandardNames = map[mhda.NetworkType][]string{}
-	//registeredTokenIndexes       = map[string]TokenStandard{}
 )
 
 type TokenStandard string
 
-func init() {
-	/*for tokenStandard, tokenStandardName := range registeredTokenStandards {
-		registeredTokenIndexes[tokenStandardName] = tokenStandard
-	}*/
-
-	for networkType, activeTokenStandards := range activesTokenStandards {
-		names := make([]string, 0)
-		for tokenStandard, _ := range activeTokenStandards {
-			names = append(names, string(tokenStandard))
-		}
-		//sort.Strings(names)
-		registeredTokenStandardNames[networkType] = names
-	}
-}
-
-func GetTokenStandardNames(networkType mhda.NetworkType) []string {
-	return registeredTokenStandardNames[networkType]
-}
-
 func GetTokenStandardNamesByChain(networkType mhda.NetworkType) []string {
 	var result []string
-	for _, standardName := range registeredTokenStandardNames[networkType] {
-		result = append(result, standardName)
+	for _, standardName := range activesTokenStandards[networkType] {
+		result = append(result, string(standardName))
 	}
 	return result
 }

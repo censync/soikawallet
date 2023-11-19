@@ -446,15 +446,16 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 	if err != nil {
 		return ``, err
 	}
-	allowance, err := e.GetTokenAllowance(ctx, token.Contract(), to)
+	/*allowance, err := e.GetTokenAllowance(ctx, token.Contract(), to)
 
 	if err != nil {
 		return "", err
 	}
 
+	// Check target for recipient is contract (and allowance approved)
 	if allowance == 0 {
 		return ``, errors.New("not approved")
-	}
+	}*/
 
 	transferFnSignature := []byte("transfer(address,uint256)")
 	hash := sha3.NewLegacyKeccak256()

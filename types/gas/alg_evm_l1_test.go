@@ -28,7 +28,6 @@ func TestCalcEVML1V1_MarshalJSON(t *testing.T) {
 			FiatSymbol:   "$",
 			FiatCurrency: 1900,
 		},
-		Units:       2100,
 		BaseFee:     24,
 		PriorityFee: 34,
 		GasUsed:     123123,

@@ -75,6 +75,7 @@ func (m *RPCMap) Add(title, endpoint string) (uint32, error) {
 
 	lastIndex++
 	m.data[lastIndex] = &RPC{
+		index:    lastIndex,
 		title:    title,
 		endpoint: endpoint,
 	}

@@ -13,10 +13,12 @@ require (
 	github.com/ethereum/go-ethereum v1.13.5
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/gorilla/websocket v1.5.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/stretchr/testify v1.8.4
 	github.com/tyler-smith/go-bip39 v1.1.0
 	golang.org/x/crypto v0.15.0
+	golang.org/x/net v0.18.0
 )
 
 require (
@@ -49,7 +51,6 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/term v0.14.0 // indirect

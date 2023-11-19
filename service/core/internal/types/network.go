@@ -93,17 +93,23 @@ func (c *RPCContext) CurrentAccount() string {
 }
 
 type RPC struct {
+	index     uint32
 	title     string
 	endpoint  string
 	isDefault bool
 }
 
-func NewRPC(title, endpoint string, isDefault bool) *RPC {
+func NewRPC(index uint32, title, endpoint string, isDefault bool) *RPC {
 	return &RPC{
+		index:     index,
 		title:     title,
 		endpoint:  endpoint,
 		isDefault: isDefault,
 	}
+}
+
+func (r *RPC) Index() uint32 {
+	return r.index
 }
 
 func (r *RPC) Title() string {

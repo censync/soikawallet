@@ -14,40 +14,31 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the  soikawallet library. If not, see <http://www.gnu.org/licenses/>.
 
-package types
+package tasks
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/stretchr/testify/assert"
-	"strconv"
-	"testing"
+	"errors"
+	"github.com/sirupsen/logrus"
+	"sync"
 )
 
-const (
-	testRPCIndex     = 1
-	testRPCTitle     = "My test RPC"
-	testRPCEndpoint  = "https://rpc.example.com/testnet"
-	testRPCIsDefault = true
+type TaskHub struct {
+	tasks map[string]*Task
+	mu    sync.RWMutex
+}
+
+var (
+	log = logrus.WithFields(logrus.Fields{"service": "connector", "module": "tasks"})
 )
 
-func TestRPC_MarshalJSON(t *testing.T) {
-	rpc := NewRPC(
-		testRPCIndex,
-		testRPCTitle,
-		testRPCEndpoint,
-		testRPCIsDefault,
-	)
+func (t *TaskHub) Add(task *Task) error {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
 
-	strJSON, err := json.Marshal(rpc)
-	assert.Nil(t, err)
+	if _, ok := t.tasks[task.Id]; ok {
+		return errors.New("task already exist")
+	}
 
-	assert.Equal(t, []byte(fmt.Sprintf(
-		`["%s","%s","%s"]`,
-		testRPCTitle,
-		testRPCEndpoint,
-		strconv.FormatBool(testRPCIsDefault)),
-	),
-		strJSON,
-	)
+	t.tasks[task.Id] = task
+	return nil
 }

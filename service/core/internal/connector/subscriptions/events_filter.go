@@ -14,40 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the  soikawallet library. If not, see <http://www.gnu.org/licenses/>.
 
-package types
+package subscriptions
 
-import (
-	"encoding/json"
-	"fmt"
-	"github.com/stretchr/testify/assert"
-	"strconv"
-	"testing"
-)
+import mhda "github.com/censync/go-mhda"
 
-const (
-	testRPCIndex     = 1
-	testRPCTitle     = "My test RPC"
-	testRPCEndpoint  = "https://rpc.example.com/testnet"
-	testRPCIsDefault = true
-)
+// EventsFilter map[chain_key]map[subscription_id][]Filter
+type EventsFilter map[mhda.ChainKey]map[string][]*Filter
 
-func TestRPC_MarshalJSON(t *testing.T) {
-	rpc := NewRPC(
-		testRPCIndex,
-		testRPCTitle,
-		testRPCEndpoint,
-		testRPCIsDefault,
-	)
+type FilterFunc func(arg ...interface{}) bool
 
-	strJSON, err := json.Marshal(rpc)
-	assert.Nil(t, err)
-
-	assert.Equal(t, []byte(fmt.Sprintf(
-		`["%s","%s","%s"]`,
-		testRPCTitle,
-		testRPCEndpoint,
-		strconv.FormatBool(testRPCIsDefault)),
-	),
-		strJSON,
-	)
+type Filter struct {
+	TaskId     string
+	Conditions []FilterFunc
 }

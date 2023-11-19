@@ -66,7 +66,7 @@ func TestNodes_AddRPCNode_Positive(t *testing.T) {
 	assert.NotNil(t, metaNodes.links)
 
 	for index := range testDataRPC {
-		rpc := types.NewRPC(testDataRPC[index][0], testDataRPC[index][1], false)
+		rpc := types.NewRPC(uint32(index), testDataRPC[index][0], testDataRPC[index][1], false)
 
 		nodeIndex := types.NodeIndex{
 			ChainKey: chainKey.Key(),

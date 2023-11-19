@@ -14,40 +14,16 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the  soikawallet library. If not, see <http://www.gnu.org/licenses/>.
 
-package types
+package client
 
-import (
-	"encoding/json"
-	"fmt"
-	"github.com/stretchr/testify/assert"
-	"strconv"
-	"testing"
-)
+import "context"
 
-const (
-	testRPCIndex     = 1
-	testRPCTitle     = "My test RPC"
-	testRPCEndpoint  = "https://rpc.example.com/testnet"
-	testRPCIsDefault = true
-)
-
-func TestRPC_MarshalJSON(t *testing.T) {
-	rpc := NewRPC(
-		testRPCIndex,
-		testRPCTitle,
-		testRPCEndpoint,
-		testRPCIsDefault,
-	)
-
-	strJSON, err := json.Marshal(rpc)
-	assert.Nil(t, err)
-
-	assert.Equal(t, []byte(fmt.Sprintf(
-		`["%s","%s","%s"]`,
-		testRPCTitle,
-		testRPCEndpoint,
-		strconv.FormatBool(testRPCIsDefault)),
-	),
-		strJSON,
-	)
+type Client interface {
+	Index() uint32
+	Dial() error
+	StartSubscription(string, []interface{}) (<-chan interface{}, <-chan struct{}, error)
+	Call(ctx context.Context, method string, params []interface{}) (interface{}, error)
+	IsReady() bool
+	Stop()
+	Disconnect()
 }

@@ -15,7 +15,7 @@ sudo apt-get -y install zbar-tools
 #### RHEL
 
 ```shell
-sudo yum -y install zbar.
+sudo yum -y install zbar
 ```
 
 #### MacOS:
@@ -30,6 +30,13 @@ port
 
 ```shell
 sudo port install zbar 
+```
+
+
+#### Build dependencies
+
+```
+sudo apt-get -y install libzbar-dev
 ```
 
 ### Components
