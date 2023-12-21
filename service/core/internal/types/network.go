@@ -24,6 +24,7 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/types/gas"
 	"math/big"
+	"time"
 )
 
 const (
@@ -72,8 +73,10 @@ func NewRPCContext(chainKey mhda.ChainKey, nodeId uint32, address ...string) *RP
 		}
 		currentAccount = address[0]
 	}
+	ctx, _ := context.WithDeadline(context.Background(), time.Now().Add(2000*time.Millisecond))
+
 	return &RPCContext{
-		Context:        context.Background(),
+		Context:        ctx,
 		chainKey:       chainKey,
 		nodeId:         nodeId,
 		currentAccount: currentAccount,

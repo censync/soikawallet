@@ -60,6 +60,7 @@ var networkProviders = &Provider{
 		chain.BaseChain.Key():         evm.NewEVM(networks.Base),
 		chain.ZkPolygon.Key():         evm.NewEVM(networks.ZkEVMPolygon),
 		chain.ZkSyncEra.Key():         evm.NewEVM(networks.ZkSyncEra),
+		chain.MantleChain.Key():       evm.NewEVM(networks.Mantle),
 	},
 	defaultCurrency: `USD`,
 }

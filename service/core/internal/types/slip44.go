@@ -33,6 +33,7 @@ var (
 		`Tron`:        chain.TronChain,
 
 		//  TODO: Add gas calculator for L2 chains
+		// `Mantle`: 	  chain.MantleChain,
 		// `Optimism`:    chain.OptimismChain,
 		// `Arbitrum`:    chain.ArbitrumChain,
 		// `Base`:        chain.BaseChain,
