@@ -801,7 +801,7 @@ func strToWei(value string) (*big.Int, error) {
 	weiMod := wei
 
 	if dotIndex > 0 {
-		floatVal := value[dotIndex+1:]
+		floatVal := strings.TrimRight(value[dotIndex+1:], "0")
 
 		if len(floatVal) > 18 {
 			return nil, errors.New("max precision is 18")
