@@ -140,7 +140,7 @@ func (p *pageOperationCall) actionUpdateForm() {
 		labelArgsForm := tview.NewForm().
 			SetHorizontal(true).
 			AddDropDown(
-				"type",
+				"data type",
 				[]string{" Select ▼ ",
 					"int", "int8", "int16", "int32", "int64", "int128", "int256",
 					"uint", "uint8", "uint16", "uint32", "uint64", "uint128", "uint256",
@@ -149,7 +149,14 @@ func (p *pageOperationCall) actionUpdateForm() {
 				func(option string, optionIndex int) {
 
 				}).
-			AddInputField("value", "", 20, nil, nil).
+			AddDropDown(
+				"value type",
+				[]string{" Select ▼ ", "value", "array"},
+				0,
+				func(option string, optionIndex int) {
+
+				}).
+			AddInputField("value", "", 40, nil, nil).
 			AddButton("Add row", func() {
 
 			}).
