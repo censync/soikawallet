@@ -89,6 +89,12 @@ func (p *pageOperationCall) Layout() *tview.Flex {
 		AddItem(layoutOptionsForm, 0, 1, false)
 
 	layoutOptionsForm.
+		AddButton("Load ABI", func() {
+		}).
+		AddButton("Load prepared", func() {
+		}).
+		AddButton("Save prepared", func() {
+		}).
 		AddButton("add", func() {
 			p.argCount++
 		}).
@@ -144,10 +150,10 @@ func (p *pageOperationCall) actionUpdateForm() {
 
 				}).
 			AddInputField("value", "", 20, nil, nil).
-			AddButton("+", func() {
+			AddButton("Add row", func() {
 
 			}).
-			AddButton("-", func() {
+			AddButton("Remove row", func() {
 
 			})
 
