@@ -23,12 +23,12 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 )
 
 type pageNodeInfo struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	// ui
@@ -49,7 +49,7 @@ func NewPageNodeInfo(state *state.State) *pageNodeInfo {
 
 	return &pageNodeInfo{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

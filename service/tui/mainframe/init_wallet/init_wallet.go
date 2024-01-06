@@ -19,12 +19,12 @@ package init_wallet
 import (
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 )
 
 type pageInitWallet struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 }
 
@@ -35,7 +35,7 @@ func NewPageInitWallet(state *state.State) *pageInitWallet {
 
 	return &pageInitWallet{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

@@ -24,9 +24,9 @@ import (
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget/qrview"
 	"github.com/censync/soikawallet/service/tui/util/clipboard"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/qrview"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -120,8 +120,10 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 				f.SwitchToPage(pages.OperationTx, f.selectedAddress)
 			}
 		}).
-		AddButton("Refresh", func() {
-			// f.actionUpdateAddresses()
+		AddButton("Call", func() {
+			if f.selectedAddress != nil {
+				f.SwitchToPage(pages.OperationCall, f.selectedAddress)
+			}
 		}).
 		AddButton("Paste", func() {
 			pasteData, err := clipboard.PasteFromClipboard()

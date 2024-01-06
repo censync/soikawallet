@@ -18,13 +18,13 @@ package settings
 
 import (
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/service/tui/twidget/tabs"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/tabs"
+	"github.com/censync/twidget/twoframes"
 )
 
 type pageSettings struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	// vars
@@ -36,7 +36,7 @@ func NewPageSettings(state *state.State) *pageSettings {
 
 	return &pageSettings{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

@@ -22,15 +22,15 @@ import (
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 	"github.com/gdamore/tcell/v2"
 	"os"
 	"strings"
 )
 
 type pageAgreement struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	isAgreementAccepted bool
@@ -50,7 +50,7 @@ func NewPageAgreement(state *state.State) *pageAgreement {
 	}
 
 	return &pageAgreement{
-		BaseFrame:           twidget.NewBaseFrame(layout),
+		BaseFrame:           twoframes.NewBaseFrame(layout),
 		State:               state,
 		isAgreementAccepted: isAgreementAccepted,
 	}

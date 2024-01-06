@@ -25,7 +25,8 @@ import (
 	"github.com/censync/soikawallet/service/tui/mainframe/create_addresses"
 	"github.com/censync/soikawallet/service/tui/mainframe/init_wallet"
 	"github.com/censync/soikawallet/service/tui/mainframe/mnemonic"
-	"github.com/censync/soikawallet/service/tui/mainframe/operation"
+	"github.com/censync/soikawallet/service/tui/mainframe/op_call"
+	"github.com/censync/soikawallet/service/tui/mainframe/op_tx"
 	"github.com/censync/soikawallet/service/tui/mainframe/rpc"
 	"github.com/censync/soikawallet/service/tui/mainframe/settings"
 	"github.com/censync/soikawallet/service/tui/mainframe/token"
@@ -33,9 +34,9 @@ import (
 	"github.com/censync/soikawallet/service/tui/mainframe/w3"
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget/extpages"
-	"github.com/censync/soikawallet/service/tui/twidget/flexmenu"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/extpages"
+	"github.com/censync/twidget/flexmenu"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -69,7 +70,8 @@ func (f *MainFrame) initPages() *extpages.ExtPages {
 		pages.CreateWallets:    create_addresses.NewPageCreateWallet(f.state),
 		pages.Addresses:        addresses.NewPageAddresses(f.state),
 		pages.Transaction:      transaction.NewPageTransactions(f.state),
-		pages.OperationTx:      operation.NewPageOperationTx(f.state),
+		pages.OperationTx:      op_tx.NewPageOperationTx(f.state),
+		pages.OperationCall:    op_call.NewPageOperationCall(f.state),
 		pages.TokenAdd:         token.NewPageTokenAdd(f.state),
 		pages.RPCInfo:          rpc.NewPageNodeInfo(f.state),
 		pages.Settings:         settings.NewPageSettings(f.state),

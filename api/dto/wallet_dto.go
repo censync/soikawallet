@@ -90,6 +90,7 @@ type GetGasCalculatorConfigDTO struct {
 	Value     float64
 	Standard  string
 	Contract  string
+	Data      string
 }
 
 type GetTokenAllowanceDTO struct {

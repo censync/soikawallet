@@ -20,9 +20,9 @@ import (
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/service/tui/twidget/spinner"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/spinner"
+	"github.com/censync/twidget/twoframes"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -33,7 +33,7 @@ const (
 )
 
 type pageAddresses struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	// ui
@@ -56,7 +56,7 @@ func NewPageAddresses(state *state.State) *pageAddresses {
 
 	return &pageAddresses{
 		State:               state,
-		BaseFrame:           twidget.NewBaseFrame(layout),
+		BaseFrame:           twoframes.NewBaseFrame(layout),
 		layoutAddressesTree: tview.NewTreeView(),
 		balanceSpinner:      spinner.NewSpinner(spinner.SpinThree, 180),
 	}

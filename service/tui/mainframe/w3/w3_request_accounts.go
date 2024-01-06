@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 )
 
 type pageW3RequestAccounts struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 }
 
@@ -36,7 +36,7 @@ func NewPageW3RequestAccounts(state *state.State) *pageW3RequestAccounts {
 
 	return &pageW3RequestAccounts{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

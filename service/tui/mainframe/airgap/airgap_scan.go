@@ -23,13 +23,13 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 	"github.com/gdamore/tcell/v2"
 )
 
 type pageAirGapScan struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	// vars
@@ -44,7 +44,7 @@ func NewPageAirGapScan(state *state.State) *pageAirGapScan {
 		SetDirection(tview.FlexColumn)
 	return &pageAirGapScan{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

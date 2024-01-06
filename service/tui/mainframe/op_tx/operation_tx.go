@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
 
-package operation
+package op_tx
 
 import (
 	"fmt"
@@ -22,12 +22,12 @@ import (
 	"github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 )
 
 type pageOperationTx struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	paramSelectedAddr *responses.AddressResponse
@@ -45,7 +45,7 @@ func NewPageOperationTx(state *state.State) *pageOperationTx {
 
 	return &pageOperationTx{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

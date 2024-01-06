@@ -20,7 +20,7 @@ import (
 	"github.com/censync/go-i18n"
 	"github.com/censync/soikawallet/service/core"
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/twidget/extpages"
+	"github.com/censync/twidget/extpages"
 )
 
 const (

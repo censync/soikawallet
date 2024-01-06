@@ -19,13 +19,13 @@ package create_addresses
 import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
-	"github.com/censync/soikawallet/service/tui/twidget/tabs"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/tabs"
+	"github.com/censync/twidget/twoframes"
 )
 
 type pageCreateAddr struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	// ui
@@ -60,7 +60,7 @@ func NewPageCreateWallet(state *state.State) *pageCreateAddr {
 
 	return &pageCreateAddr{
 		State:       state,
-		BaseFrame:   twidget.NewBaseFrame(layout),
+		BaseFrame:   twoframes.NewBaseFrame(layout),
 		addrPoolGap: defaultAddrPoolGap,
 		//rxAddressPath: regexp.MustCompile(`(m/44[Hh']/[0-9]+[Hh']/[0-9]+[Hh']/[0|1]/[0-9]+[Hh']*)`),
 	}

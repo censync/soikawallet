@@ -23,16 +23,16 @@ import (
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/service/tui/util/clipboard"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 	"github.com/gdamore/tcell/v2"
 	"strconv"
 	"strings"
 )
 
 type pageInitMnemonic struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	// ui
@@ -54,7 +54,7 @@ func NewPageInitMnemonic(state *state.State) *pageInitMnemonic {
 	return &pageInitMnemonic{
 		State:       state,
 		entropyList: []string{"128", "160", "192", "224", "256"},
-		BaseFrame:   twidget.NewBaseFrame(layout),
+		BaseFrame:   twoframes.NewBaseFrame(layout),
 	}
 }
 

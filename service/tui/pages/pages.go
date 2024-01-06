@@ -25,6 +25,7 @@ const (
 	Addresses        = `addresses`
 	Transaction      = `transaction`
 	OperationTx      = `operation_tx`
+	OperationCall    = `operation_call`
 	TokenAdd         = `token_add`
 	RPCInfo          = `rpc_info`
 	Settings         = `settings`

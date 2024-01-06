@@ -30,6 +30,7 @@ import (
 )
 
 type ClientEVM struct {
+	isWs        bool
 	index       uint32
 	rpc         string
 	headers     http.Header

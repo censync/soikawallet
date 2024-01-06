@@ -25,8 +25,8 @@ import (
 	"github.com/censync/soikawallet/service/tui/config"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/mainframe"
-	"github.com/censync/soikawallet/service/tui/twidget/statusview"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/statusview"
 	"github.com/gdamore/tcell/v2"
 	"sync"
 )

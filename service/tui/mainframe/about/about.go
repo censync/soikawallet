@@ -18,12 +18,12 @@ package about
 
 import (
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 )
 
 type pageAbout struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 }
 
@@ -35,7 +35,7 @@ func NewPageAbout(state *state.State) *pageAbout {
 
 	return &pageAbout{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

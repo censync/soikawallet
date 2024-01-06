@@ -21,12 +21,12 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 )
 
 type pageW3ConfirmConnect struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 }
 
@@ -37,7 +37,7 @@ func NewPageW3ConfirmConnect(state *state.State) *pageW3ConfirmConnect {
 
 	return &pageW3ConfirmConnect{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

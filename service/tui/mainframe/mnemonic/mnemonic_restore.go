@@ -23,16 +23,16 @@ import (
 	"github.com/censync/soikawallet/service/tui/events"
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
-	"github.com/censync/soikawallet/service/tui/twidget"
 	"github.com/censync/soikawallet/service/tui/util/clipboard"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 	"github.com/gdamore/tcell/v2"
 	"os"
 	"strings"
 )
 
 type pageRestoreMnemonic struct {
-	*twidget.BaseFrame
+	*twoframes.BaseFrame
 	*state.State
 
 	// ui
@@ -46,7 +46,7 @@ func NewPageRestoreMnemonic(state *state.State) *pageRestoreMnemonic {
 
 	return &pageRestoreMnemonic{
 		State:     state,
-		BaseFrame: twidget.NewBaseFrame(layout),
+		BaseFrame: twoframes.NewBaseFrame(layout),
 	}
 }
 

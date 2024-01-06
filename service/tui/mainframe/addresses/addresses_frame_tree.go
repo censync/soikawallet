@@ -21,8 +21,8 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/service/tui/events"
-	"github.com/censync/soikawallet/service/tui/twidget/strip_color"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/stripcolor"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -82,7 +82,7 @@ func (p *pageAddresses) actionUpdateAddresses() {
 				accountNode.SetReference(&accountNodeViewEntry{
 					account: account,
 				})
-				stripColor := strip_color.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
+				stripColor := stripcolor.NewStripColor(tcell.ColorLightGray, tcell.ColorDimGrey)
 
 				addrByAccount := p.API().GetAddressesByAccount(&dto.GetAddressesByAccountDTO{
 					ChainKey:     chainKey,
