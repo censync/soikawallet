@@ -21,9 +21,23 @@ import (
 )
 
 func TestEVM_floatToWei(t *testing.T) {
-	var floatValues = []float64{122188888.88881111, 9.999999, 0.33, 0.11, 0.22, 0.000005}
+	var floatValues = []float64{122188888.888811112233, 9.999999, 0.33, 0.11, 0.22, 0.000005}
 	for index := range floatValues {
 		result := floatToWei(floatValues[index])
 		t.Log(floatValues[index], result.String())
+	}
+}
+
+func TestEVM_strToWei(t *testing.T) {
+	var floatValues = []string{"999", "999.0", "12345.54321", "122188888.888811112233344455", "9.999999", "0.33", "0.11", "0.22", "0.000005"}
+	for index := range floatValues {
+		result, err := strToWei(floatValues[index])
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Log(floatValues[index], result.String())
+
 	}
 }

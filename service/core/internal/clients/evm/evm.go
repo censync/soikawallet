@@ -260,11 +260,11 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 	if len(args) > 0 {
 		switch args[0].(string) {
 		case "approve(address,uint256)":
-			result["units"], err = e.gasEstimateApprove(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+			result["units"], err = e.gasEstimateApprove(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
 		case "transfer(address,uint256)":
-			result["units"], err = e.gasEstimateTransfer(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+			result["units"], err = e.gasEstimateTransfer(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
 		case "transferFrom(address,address,uint256)":
-			result["units"], err = e.gasEstimateTransferFrom(ctx, args[1].(string), args[2].(float64), args[3].(*types.TokenConfig))
+			result["units"], err = e.gasEstimateTransferFrom(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
 		default:
 			return nil, fmt.Errorf("wrong methond: %s", args[0])
 		}
@@ -288,13 +288,13 @@ func gasCalcPrepared(methodName string, args ...interface{}) []byte {
 		panic(err)
 	}
 
-	method, ok := parsedABI.Methods["transferFrom"]
+	method, ok := parsedABI.Methods[methodName]
 
 	if !ok {
 		panic("method not found")
 	}
 
-	data, err := method.Inputs.Pack(args)
+	data, err := method.Inputs.Pack(args...)
 
 	if err != nil {
 		panic(err)
@@ -306,9 +306,13 @@ func gasCalcPrepared(methodName string, args ...interface{}) []byte {
 	return callData
 }
 
-func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, spender string, amount float64, token *types.TokenConfig) (uint64, error) {
+func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, spender, value string, token *types.TokenConfig) (uint64, error) {
 	addrSpender := common.HexToAddress(spender)
-	weiAmount := floatToWei(amount)
+	weiAmount, err := strToWei(value)
+
+	if err != nil {
+		return 0, err
+	}
 
 	preparedData := gasCalcPrepared("approve", addrSpender, weiAmount)
 
@@ -326,9 +330,13 @@ func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, spender string, amount f
 	return gas, err
 }
 
-func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to string, amount float64, token *types.TokenConfig) (uint64, error) {
+func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to, value string, token *types.TokenConfig) (uint64, error) {
 	addrTo := common.HexToAddress(to)
-	weiAmount := floatToWei(amount)
+	weiAmount, err := strToWei(value)
+
+	if err != nil {
+		return 0, err
+	}
 
 	preparedData := gasCalcPrepared("transfer", addrTo, weiAmount)
 
@@ -346,10 +354,14 @@ func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to string, amount float
 	return gas, err
 }
 
-func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, amount float64, token *types.TokenConfig) (uint64, error) {
+func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, value string, token *types.TokenConfig) (uint64, error) {
 	addrFrom := common.HexToAddress(ctx.CurrentAccount())
 	addrTo := common.HexToAddress(to)
-	weiAmount := floatToWei(amount)
+	weiAmount, err := strToWei(value)
+
+	if err != nil {
+		return 0, err
+	}
 
 	preparedData := gasCalcPrepared("transferFrom", addrFrom, addrTo, weiAmount)
 
@@ -367,7 +379,7 @@ func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, amount f
 
 // Transactions
 
-func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gas, gasTipCap, gasFeeCap uint64, isLegacy bool, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, gasFeeCap uint64, isLegacy bool, key *ecdsa.PrivateKey) (interface{}, error) {
 	var txData ethTypes.TxData
 	chainId, err := e.getChainId(ctx)
 
@@ -382,7 +394,11 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gas, g
 	}
 
 	addrTo := common.HexToAddress(to)
-	weiValue := floatToWei(value)
+	weiValue, err := strToWei(value)
+
+	if err != nil {
+		return 0, err
+	}
 
 	if !isLegacy {
 		txData = &ethTypes.DynamicFeeTx{
@@ -429,7 +445,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value float64, gas, g
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	chainId, err := e.getChainId(ctx)
 
 	if err != nil {
@@ -465,7 +481,11 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 	addrTo := common.HexToAddress(to)
 	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
 
-	weiValue := floatToWei(value)
+	weiValue, err := strToWei(value)
+
+	if err != nil {
+		return 0, err
+	}
 
 	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
 
@@ -502,7 +522,7 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to string, value float64, token
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	chainId, err := e.getChainId(ctx)
 
 	if err != nil {
@@ -528,7 +548,11 @@ func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value float64, to
 	addrTo := common.HexToAddress(to)
 	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
 
-	weiValue := floatToWei(value)
+	weiValue, err := strToWei(value)
+
+	if err != nil {
+		return 0, err
+	}
 
 	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
 
@@ -755,15 +779,52 @@ func (e *EVM) GetBlock(ctx *types.RPCContext, blockNumber uint64) ([]byte, error
 	return json.Marshal(block)
 }
 
-// TODO: fix precision
-func floatToWei(value float64) *big.Int {
-	weiValue := new(big.Float).SetFloat64(value)
-
-	weiValue.Mul(weiValue, new(big.Float).SetUint64(gwei))
-
-	result := new(big.Int)
-	weiValue.Int(result) //
-	result.Mul(result, new(big.Int).SetUint64(gwei))
+func uint64Pow(base, exp uint64) uint64 {
+	result := uint64(1)
+	for {
+		if exp&1 == 1 {
+			result *= base
+		}
+		exp >>= 1
+		if exp == 0 {
+			break
+		}
+		base *= base
+	}
 
 	return result
+}
+
+func strToWei(value string) (*big.Int, error) {
+	dotIndex := strings.Index(value, `.`)
+	weiResult := new(big.Int)
+	weiMod := wei
+
+	if dotIndex > 0 {
+		floatVal := value[dotIndex+1:]
+
+		if len(floatVal) > 18 {
+			return nil, errors.New("max precision is 18")
+		}
+
+		floatMod := uint64Pow(10, uint64(len(floatVal)))
+		weiMod /= floatMod
+
+		strWei := value[:dotIndex] + floatVal
+
+		_, ok := weiResult.SetString(strWei, 10)
+
+		if !ok {
+			return nil, errors.New("cannot parse numeric value")
+		}
+
+	} else {
+		_, ok := weiResult.SetString(value, 10)
+
+		if !ok {
+			return nil, errors.New("cannot parse numeric value")
+		}
+	}
+	weiResult.Mul(weiResult, new(big.Int).SetUint64(weiMod))
+	return weiResult, nil
 }

@@ -87,7 +87,7 @@ type GetGasCalculatorConfigDTO struct {
 	Operation string
 	MhdaPath  string
 	To        string
-	Value     float64
+	Value     string
 	Standard  string
 	Contract  string
 	Data      string
@@ -96,7 +96,7 @@ type GetGasCalculatorConfigDTO struct {
 type GetTokenAllowanceDTO struct {
 	MhdaPath string
 	To       string
-	Value    float64
+	Value    string
 	Standard string
 	Contract string
 }
@@ -104,7 +104,7 @@ type GetTokenAllowanceDTO struct {
 type SendTokensDTO struct {
 	MhdaPath  string
 	To        string
-	Value     float64
+	Value     string
 	Gas       uint64
 	GasTipCap uint64
 	GasFeeCap uint64

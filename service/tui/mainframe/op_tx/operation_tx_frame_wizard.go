@@ -26,7 +26,6 @@ import (
 	"github.com/censync/soikawallet/types/gas"
 	"github.com/censync/tview"
 	"github.com/censync/twidget/formtextview"
-	"strconv"
 )
 
 type frameOperationWizard struct {
@@ -37,7 +36,7 @@ type frameOperationWizard struct {
 	selectedAddress   *resp.AddressResponse
 	selectedToken     *resp.AddressTokenEntry
 	selectedRecipient string
-	selectedAmount    float64
+	selectedAmount    string
 }
 
 func newFrameOperationWizard(state *state.State, selectedAddress *resp.AddressResponse) *frameOperationWizard {
@@ -108,11 +107,8 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 		AddFormItem(inputValue).
 		AddFormItem(inputAddrCurrency).
 		AddButton("Send", func() {
-			f.selectedAmount, err = strconv.ParseFloat(inputValue.GetText(), 64)
-			if err != nil {
-				f.Emit(events.EventLogError, "Incorrect value")
-				return
-			}
+			// TODO: Add float validation
+			f.selectedAmount = inputValue.GetText()
 			f.selectedRecipient = inputAddrReceiver.GetText()
 			f.actionCheckAndStart()
 		})
