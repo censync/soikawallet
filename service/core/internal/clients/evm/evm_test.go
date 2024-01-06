@@ -20,16 +20,28 @@ import (
 	"testing"
 )
 
+var (
+	testAmountStrValues = []string{
+		"999", "999.10", "12345.54321",
+		"122188888.888811112233344455", "9.12345", "0.123", "0.0000012345",
+	}
+	testAmountWeiValues = []string{
+		"999000000000000000000", "999100000000000000000", "12345543210000000000000",
+		"122188888888811112233344455", "9123450000000000000", "123000000000000000",
+		"1234500000000",
+	}
+)
+
 func TestEVM_strToWei(t *testing.T) {
-	var floatValues = []string{"999", "999.0", "12345.54321", "122188888.888811112233344455", "9.999999", "0.33", "0.11", "0.22", "0.000005"}
-	for index := range floatValues {
-		result, err := strToWei(floatValues[index])
+	for index := range testAmountStrValues {
+		result, err := strToWei(testAmountStrValues[index])
 
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		t.Log(floatValues[index], result.String())
-
+		if result.String() != testAmountWeiValues[index] {
+			t.Fatalf("cannot convert value %x", testAmountStrValues[index])
+		}
 	}
 }
