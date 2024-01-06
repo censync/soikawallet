@@ -29,16 +29,15 @@ var (
 	EthereumChain     = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xaa36a7`)
 	PolygonChain      = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x13881`)
 	Moonbeam          = mhda.NewChain(mhda.EthereumVM, mhda.GLMR, `0x507`)
+	AvalancheCChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa869`)
 
 	// L2
 	// https://community.optimism.io/docs/useful-tools/networks/#op-sepolia
 	OptimismChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xaa37dc`)
 	//https://docs.arbitrum.io/getting-started-users
-	ArbitrumChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x66eed`)
-	AvalancheCChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa869`)
-	BaseChain       = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x14a33`)
-
-	MantleChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x1389`)
+	ArbitrumChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x66eed`)
+	BaseChain     = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x14a33`)
+	MantleChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x1389`)
 
 	// ZK
 	ZkPolygon = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x5a2`)

@@ -32,7 +32,6 @@ import (
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"golang.org/x/crypto/sha3"
 	"log"
 	"math"
 	"math/big"
@@ -43,12 +42,16 @@ const (
 	wei         = uint64(1e18)
 	gwei        = uint64(1e9)
 	gasMinLimit = 21000
+
+	TxFlagDynamic = uint8(1)
+	TxFlagLegacy  = uint8(2)
+	TxFlagL2      = uint8(3)
+	//TxFlagL2_Mnt  = uint8(4)
 )
 
 var abiMap = map[string]string{
-	"approve":      `[{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`,
-	"transfer":     `[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`,
-	"transferFrom": `[{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`,
+	"approve":  `[{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`,
+	"transfer": `[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`,
 }
 
 type EVM struct {
@@ -218,7 +221,7 @@ func (e *EVM) getGasEstimate(ctx *types.RPCContext, msg *ethereum.CallMsg) (uint
 	return client.EstimateGas(ctx, *msg)
 }
 
-func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[string]uint64, error) {
+func (e *EVM) GetGasConfig(ctx *types.RPCContext, txType uint8, args ...interface{}) (map[string]uint64, error) {
 	result := map[string]uint64{
 		"base_fee":     0,
 		"priority_fee": 0,
@@ -234,37 +237,48 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 	}
 
 	// Not working for L2
-	block, err := e.getBlock(ctx, height)
+	if txType != TxFlagL2 {
+		block, err := e.getBlock(ctx, height)
 
-	if err != nil {
-		return result, err
+		if err != nil {
+			return result, err
+		}
+
+		result["gas_used"] = block.GasUsed()
+
+		gasLimit := block.GasLimit()
+		result["gas_limit"] = gasLimit
+
+		baseFee := block.BaseFee()
+		if baseFee != nil {
+			result["base_fee"] = baseFee.Uint64()
+		}
+
+		gasTipCap, err := e.getGasTipCap(ctx)
+		if err != nil {
+			return result, err
+		}
+		if gasTipCap != nil {
+			result["priority_fee"] = gasTipCap.Uint64()
+		}
+
+	} else {
+		gasPrice, err := e.getGasPrice(ctx)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// gas_price
+		result["base_fee"] = gasPrice.Uint64()
 	}
 
-	result["gas_used"] = block.GasUsed()
-
-	gasLimit := block.GasLimit()
-	result["gas_limit"] = gasLimit
-
-	baseFee := block.BaseFee()
-	if baseFee != nil {
-		result["base_fee"] = baseFee.Uint64()
-	}
-
-	gasTipCap, err := e.getGasTipCap(ctx)
-	if err != nil {
-		return result, err
-	}
-	if gasTipCap != nil {
-		result["priority_fee"] = gasTipCap.Uint64()
-	}
 	if len(args) > 0 {
 		switch args[0].(string) {
-		case "approve(address,uint256)":
+		case "approve":
 			result["units"], err = e.gasEstimateApprove(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
-		case "transfer(address,uint256)":
+		case "transfer":
 			result["units"], err = e.gasEstimateTransfer(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
-		case "transferFrom(address,address,uint256)":
-			result["units"], err = e.gasEstimateTransferFrom(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
 		default:
 			return nil, fmt.Errorf("wrong methond: %s", args[0])
 		}
@@ -314,7 +328,7 @@ func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, spender, value string, t
 		return 0, err
 	}
 
-	preparedData := gasCalcPrepared("approve", addrSpender, weiAmount)
+	callData := gasCalcPrepared("approve", addrSpender, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -323,7 +337,7 @@ func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, spender, value string, t
 	dataTx := ethereum.CallMsg{
 		From: addrFrom,
 		To:   &tokenContract,
-		Data: preparedData,
+		Data: callData,
 	}
 
 	gas, err := e.getGasEstimate(ctx, &dataTx)
@@ -338,7 +352,7 @@ func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to, value string, token
 		return 0, err
 	}
 
-	preparedData := gasCalcPrepared("transfer", addrTo, weiAmount)
+	callData := gasCalcPrepared("transfer", addrTo, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -347,30 +361,7 @@ func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to, value string, token
 	dataTx := ethereum.CallMsg{
 		From: addrFrom,
 		To:   &tokenContract,
-		Data: preparedData,
-	}
-
-	gas, err := e.getGasEstimate(ctx, &dataTx)
-	return gas, err
-}
-
-func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, value string, token *types.TokenConfig) (uint64, error) {
-	addrFrom := common.HexToAddress(ctx.CurrentAccount())
-	addrTo := common.HexToAddress(to)
-	weiAmount, err := strToWei(value)
-
-	if err != nil {
-		return 0, err
-	}
-
-	preparedData := gasCalcPrepared("transferFrom", addrFrom, addrTo, weiAmount)
-
-	tokenContract := common.HexToAddress(token.Contract())
-
-	dataTx := ethereum.CallMsg{
-		From: addrFrom,
-		To:   &tokenContract,
-		Data: preparedData,
+		Data: callData,
 	}
 
 	gas, err := e.getGasEstimate(ctx, &dataTx)
@@ -379,7 +370,7 @@ func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, value st
 
 // Transactions
 
-func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, gasFeeCap uint64, isLegacy bool, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, gasFeeCap uint64, txType uint8, key *ecdsa.PrivateKey) (interface{}, error) {
 	var txData ethTypes.TxData
 	chainId, err := e.getChainId(ctx)
 
@@ -400,7 +391,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 		return 0, err
 	}
 
-	if !isLegacy {
+	if txType == TxFlagDynamic {
 		txData = &ethTypes.DynamicFeeTx{
 			ChainID:   chainId,
 			GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
@@ -411,7 +402,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 			Value:     weiValue,
 			Data:      nil,
 		}
-	} else {
+	} else if txType == TxFlagLegacy {
 		txData = &ethTypes.LegacyTx{
 			GasPrice: new(big.Int).SetUint64(gasTipCap),
 			Gas:      gas,
@@ -420,6 +411,19 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 			Value:    weiValue,
 			Data:     nil,
 		}
+	} else if txType == TxFlagL2 {
+		// Optimism
+		txData = &ethTypes.LegacyTx{
+			GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
+			Gas:      gas,
+			Nonce:    nonce,
+			To:       &addrTo,
+			Value:    weiValue,
+			Data:     nil,
+		}
+
+	} else {
+		return nil, errors.New("undefined tx flag")
 	}
 
 	tx := ethTypes.NewTx(txData)
@@ -462,37 +466,15 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.
 	if err != nil {
 		return ``, err
 	}
-	/*allowance, err := e.GetTokenAllowance(ctx, token.Contract(), to)
-
-	if err != nil {
-		return "", err
-	}
-
-	// Check target for recipient is contract (and allowance approved)
-	if allowance == 0 {
-		return ``, errors.New("not approved")
-	}*/
-
-	transferFnSignature := []byte("transfer(address,uint256)")
-	hash := sha3.NewLegacyKeccak256()
-	hash.Write(transferFnSignature)
-	methodID := hash.Sum(nil)[:4]
 
 	addrTo := common.HexToAddress(to)
-	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
-
-	weiValue, err := strToWei(value)
+	weiAmount, err := strToWei(value)
 
 	if err != nil {
 		return 0, err
 	}
 
-	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
-
-	var data []byte
-	data = append(data, methodID...)
-	data = append(data, paddedAddress...)
-	data = append(data, paddedAmount...)
+	callData := gasCalcPrepared("transfer", addrTo, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -503,7 +485,7 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.
 		Gas:       gas,
 		Nonce:     nonce,
 		To:        &tokenContract,
-		Data:      data,
+		Data:      callData,
 	})
 
 	// AirGap
@@ -522,7 +504,7 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxApproveToken(ctx *types.RPCContext, spender string, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	chainId, err := e.getChainId(ctx)
 
 	if err != nil {
@@ -540,26 +522,14 @@ func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value string, tok
 		return ``, err
 	}
 
-	transferFnSignature := []byte("approve(address,uint256)")
-	hash := sha3.NewLegacyKeccak256()
-	hash.Write(transferFnSignature)
-	methodID := hash.Sum(nil)[:4]
-
-	addrTo := common.HexToAddress(to)
-	paddedAddress := common.LeftPadBytes(addrTo.Bytes(), 32)
-
-	weiValue, err := strToWei(value)
+	addrSpender := common.HexToAddress(spender)
+	weiAmount, err := strToWei(value)
 
 	if err != nil {
 		return 0, err
 	}
 
-	paddedAmount := common.LeftPadBytes(weiValue.Bytes(), 32)
-
-	var data []byte
-	data = append(data, methodID...)
-	data = append(data, paddedAddress...)
-	data = append(data, paddedAmount...)
+	callData := gasCalcPrepared("approve", addrSpender, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -570,7 +540,7 @@ func (e *EVM) TxApproveToken(ctx *types.RPCContext, to string, value string, tok
 		Gas:       gas,
 		Nonce:     nonce,
 		To:        &tokenContract,
-		Data:      data,
+		Data:      callData,
 	})
 
 	// AirGap

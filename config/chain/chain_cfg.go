@@ -29,13 +29,13 @@ var (
 	EthereumChain     = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x1`)
 	PolygonChain      = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x89`)
 	Moonbeam          = mhda.NewChain(mhda.EthereumVM, mhda.GLMR, `0x504`)
+	AvalancheCChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa86a`)
 
 	// L2
-	OptimismChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa`)
-	ArbitrumChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa4b1`)
-	AvalancheCChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa86a`)
-	BaseChain       = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x2105`)
-	MantleChain     = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x1388`)
+	OptimismChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa`)
+	ArbitrumChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa4b1`)
+	BaseChain     = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x2105`)
+	MantleChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x1388`)
 
 	// ZK
 	ZkPolygon = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x44d`)

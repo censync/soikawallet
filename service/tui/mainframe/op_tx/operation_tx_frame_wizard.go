@@ -117,13 +117,18 @@ func (f *frameOperationWizard) Layout() *tview.Flex {
 }
 
 func (f *frameOperationWizard) actionCheckAndStart() {
-	if f.actionCheckAllowancePermission() {
+	// TODO: Add balance checking
+
+	f.actionConfigureGas()
+	// Skip allowance checking
+	/*if f.actionCheckAllowancePermission() {
 		f.actionConfigureGas()
 	} else {
 		f.actionConfigureAllowance()
-	}
+	}*/
 }
 
+// Deprecated
 func (f *frameOperationWizard) actionCheckAllowancePermission() bool {
 	// TODO: Remove magic 1 == TokenBase
 	if f.selectedToken.Standard == `Base` {

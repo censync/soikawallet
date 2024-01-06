@@ -35,12 +35,12 @@ var (
 		//  TODO: Add gas calculator for L2 chains
 		`Mantle`:   chain.MantleChain,
 		`Optimism`: chain.OptimismChain,
-		`Arbitrum`: chain.ArbitrumChain,
-		`Base`:     chain.BaseChain,
+		// `Arbitrum`: chain.ArbitrumChain,
+		`Base`: chain.BaseChain,
 
 		// ZK
-		`zkEVM`:  chain.ZkPolygon,
-		`zkSync`: chain.ZkSyncEra,
+		// `zkEVM`:  chain.ZkPolygon,
+		// `zkSync`: chain.ZkSyncEra,
 	}
 
 	registeredNetworksIndexes    = map[*mhda.Chain]string{}

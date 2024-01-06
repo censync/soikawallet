@@ -83,6 +83,6 @@ func (b *Bitcoin) GetTokenBalance(ctx *types.RPCContext, contract string, decima
 	return nil, nil
 }
 
-func (b *Bitcoin) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[string]uint64, error) {
+func (b *Bitcoin) GetGasConfig(ctx *types.RPCContext, txType uint8, args ...interface{}) (map[string]uint64, error) {
 	return nil, nil
 }

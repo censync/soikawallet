@@ -25,6 +25,7 @@ import (
 	"github.com/censync/soikawallet/api/dto"
 	resp "github.com/censync/soikawallet/api/responses"
 	"github.com/censync/soikawallet/config/chain"
+	"github.com/censync/soikawallet/service/core/internal/clients/evm"
 	"github.com/censync/soikawallet/service/core/internal/types"
 	"strings"
 )
@@ -209,13 +210,13 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 		return nil, err
 	}
 
-	if types.TokenStandard(dto.Standard) == types.TokenBase {
-		isLegacy := false
-		switch addr.MHDA().Chain().Key() {
-		case chain.BinanceSmartChain.Key(), chain.ArbitrumChain.Key(), chain.OptimismChain.Key():
-			isLegacy = true
-		}
+	txFlag, err := txTypeByChainKey(addr.MHDA().Chain().Key())
 
+	if err != nil {
+		return nil, err
+	}
+
+	if types.TokenStandard(dto.Standard) == types.TokenBase {
 		return provider.TxSendBase(
 			ctx,
 			dto.To,
@@ -223,7 +224,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 			dto.Gas,
 			dto.GasTipCap,
 			dto.GasFeeCap,
-			isLegacy,
+			txFlag,
 			key,
 		)
 
@@ -237,7 +238,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 		if tokenConfig.Standard() != types.TokenStandard(dto.Standard) {
 			return nil, errTokenIncorrectType
 		}
-
+		// TODO: Add txFlag
 		return provider.TxSendToken(
 			ctx,
 			dto.To,
@@ -249,4 +250,20 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 			key,
 		)
 	}
+}
+
+func txTypeByChainKey(chainKey mhda.ChainKey) (uint8, error) {
+	txFlag := uint8(0)
+	switch chainKey {
+	case chain.EthereumChain.Key(), chain.PolygonChain.Key(), chain.Moonbeam.Key(), chain.AvalancheCChain.Key():
+		txFlag = evm.TxFlagDynamic
+	case chain.BinanceSmartChain.Key():
+		txFlag = evm.TxFlagLegacy
+	case chain.OptimismChain.Key(), chain.MantleChain.Key(), chain.ZkSyncEra.Key(): // chain.BaseChain.Key() test
+		txFlag = evm.TxFlagL2
+	// case chain.ArbitrumChain.Key(): implement
+	default:
+		return 0, errors.New("tx type not set for chain")
+	}
+	return txFlag, nil
 }
