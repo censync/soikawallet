@@ -45,6 +45,12 @@ const (
 	gasMinLimit = 21000
 )
 
+var abiMap = map[string]string{
+	"approve":      `[{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`,
+	"transfer":     `[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`,
+	"transferFrom": `[{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`,
+}
+
 type EVM struct {
 	*types.BaseNetwork
 	clients map[uint32]*ethclient.Client
@@ -269,100 +275,13 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 	return result, nil
 }
 
-func gasCalcPreparedApprove(spender string, amount float64) []byte {
-	contractABI := `[{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`
-	parsedABI, err := abi.JSON(strings.NewReader(contractABI))
-
-	if err != nil {
-		panic(err)
-	}
-
-	method, ok := parsedABI.Methods["approve"]
+func gasCalcPrepared(methodName string, args ...interface{}) []byte {
+	contractABI, ok := abiMap[methodName]
 
 	if !ok {
-		panic("method not found")
+		panic("method not defined in prepared ABI")
 	}
 
-	addrTo := common.HexToAddress(spender)
-	weiValue := floatToWei(amount)
-
-	data, err := method.Inputs.Pack(addrTo, weiValue)
-
-	if err != nil {
-		panic(err)
-	}
-	methodID := crypto.Keccak256Hash([]byte(method.Sig)).Bytes()[:4]
-
-	callData := append(methodID, data...)
-
-	return callData
-}
-
-func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
-	preparedData := gasCalcPreparedApprove(to, value)
-
-	tokenContract := common.HexToAddress(token.Contract())
-
-	addrFrom := common.HexToAddress(ctx.CurrentAccount())
-
-	dataTx := ethereum.CallMsg{
-		From: addrFrom,
-		To:   &tokenContract,
-		Data: preparedData,
-	}
-
-	gas, err := e.getGasEstimate(ctx, &dataTx)
-	return gas, err
-}
-
-func gasCalcPreparedTransfer(to string, amount float64) []byte {
-	contractABI := `[{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`
-	parsedABI, err := abi.JSON(strings.NewReader(contractABI))
-
-	if err != nil {
-		panic(err)
-	}
-
-	method, ok := parsedABI.Methods["transfer"]
-
-	if !ok {
-		panic("method not found")
-	}
-
-	addrTo := common.HexToAddress(to)
-	weiValue := floatToWei(amount)
-
-	data, err := method.Inputs.Pack(addrTo, weiValue)
-
-	if err != nil {
-		panic(err)
-	}
-	methodID := crypto.Keccak256Hash([]byte(method.Sig)).Bytes()[:4]
-
-	callData := append(methodID, data...)
-
-	return callData
-}
-
-func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
-	preparedData := gasCalcPreparedTransfer(to, value)
-
-	tokenContract := common.HexToAddress(token.Contract())
-
-	addrFrom := common.HexToAddress(ctx.CurrentAccount())
-
-	dataTx := ethereum.CallMsg{
-		From: addrFrom,
-		To:   &tokenContract,
-		Data: preparedData,
-	}
-
-	gas, err := e.getGasEstimate(ctx, &dataTx)
-	return gas, err
-}
-
-func gasCalcPreparedTransferFrom(from, to string, amount float64) []byte {
-	contractABI := `[{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]`
 	parsedABI, err := abi.JSON(strings.NewReader(contractABI))
 
 	if err != nil {
@@ -375,11 +294,7 @@ func gasCalcPreparedTransferFrom(from, to string, amount float64) []byte {
 		panic("method not found")
 	}
 
-	addrFrom := common.HexToAddress(from)
-	addrTo := common.HexToAddress(to)
-	weiValue := floatToWei(amount)
-
-	data, err := method.Inputs.Pack(addrFrom, addrTo, weiValue)
+	data, err := method.Inputs.Pack(args)
 
 	if err != nil {
 		panic(err)
@@ -391,12 +306,54 @@ func gasCalcPreparedTransferFrom(from, to string, amount float64) []byte {
 	return callData
 }
 
-func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, value float64, token *types.TokenConfig) (uint64, error) {
-	preparedData := gasCalcPreparedTransferFrom(ctx.CurrentAccount(), to, value)
+func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, spender string, amount float64, token *types.TokenConfig) (uint64, error) {
+	addrSpender := common.HexToAddress(spender)
+	weiAmount := floatToWei(amount)
+
+	preparedData := gasCalcPrepared("approve", addrSpender, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
 	addrFrom := common.HexToAddress(ctx.CurrentAccount())
+
+	dataTx := ethereum.CallMsg{
+		From: addrFrom,
+		To:   &tokenContract,
+		Data: preparedData,
+	}
+
+	gas, err := e.getGasEstimate(ctx, &dataTx)
+	return gas, err
+}
+
+func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to string, amount float64, token *types.TokenConfig) (uint64, error) {
+	addrTo := common.HexToAddress(to)
+	weiAmount := floatToWei(amount)
+
+	preparedData := gasCalcPrepared("transfer", addrTo, weiAmount)
+
+	tokenContract := common.HexToAddress(token.Contract())
+
+	addrFrom := common.HexToAddress(ctx.CurrentAccount())
+
+	dataTx := ethereum.CallMsg{
+		From: addrFrom,
+		To:   &tokenContract,
+		Data: preparedData,
+	}
+
+	gas, err := e.getGasEstimate(ctx, &dataTx)
+	return gas, err
+}
+
+func (e *EVM) gasEstimateTransferFrom(ctx *types.RPCContext, to string, amount float64, token *types.TokenConfig) (uint64, error) {
+	addrFrom := common.HexToAddress(ctx.CurrentAccount())
+	addrTo := common.HexToAddress(to)
+	weiAmount := floatToWei(amount)
+
+	preparedData := gasCalcPrepared("transferFrom", addrFrom, addrTo, weiAmount)
+
+	tokenContract := common.HexToAddress(token.Contract())
 
 	dataTx := ethereum.CallMsg{
 		From: addrFrom,
