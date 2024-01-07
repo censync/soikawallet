@@ -42,11 +42,6 @@ const (
 	wei         = uint64(1e18)
 	gwei        = uint64(1e9)
 	gasMinLimit = 21000
-
-	TxFlagDynamic = uint8(1)
-	TxFlagLegacy  = uint8(2)
-	TxFlagL2      = uint8(3)
-	//TxFlagL2_Mnt  = uint8(4)
 )
 
 var abiMap = map[string]string{
@@ -63,7 +58,7 @@ func NewEVM(baseNetwork *types.BaseNetwork) *EVM {
 	return &EVM{BaseNetwork: baseNetwork, clients: map[uint32]*ethclient.Client{}}
 }
 
-func (e *EVM) getClient(nodeId uint32) (*ethclient.Client, error) {
+func (e *EVM) GetClient(nodeId uint32) (*ethclient.Client, error) {
 	var err error
 	if e.clients[nodeId] != nil {
 		return e.clients[nodeId], nil
@@ -77,16 +72,16 @@ func (e *EVM) Address(pub *ecdsa.PublicKey) string {
 	return crypto.PubkeyToAddress(*pub).Hex()
 }
 
-func (e *EVM) getHeight(ctx *types.RPCContext) (uint64, error) {
-	client, err := e.getClient(ctx.NodeId())
+func (e *EVM) GetHeight(ctx *types.RPCContext) (uint64, error) {
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return 0, err
 	}
 	return client.BlockNumber(ctx)
 }
 
-func (e *EVM) getBlock(ctx *types.RPCContext, blockNumber uint64) (*ethTypes.Block, error) {
-	client, err := e.getClient(ctx.NodeId())
+func (e *EVM) GetBlock(ctx *types.RPCContext, blockNumber uint64) (*ethTypes.Block, error) {
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +89,7 @@ func (e *EVM) getBlock(ctx *types.RPCContext, blockNumber uint64) (*ethTypes.Blo
 }
 
 func (e *EVM) GetBalance(ctx *types.RPCContext) (float64, error) {
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return 0, err
 	}
@@ -106,7 +101,7 @@ func (e *EVM) GetBalance(ctx *types.RPCContext) (float64, error) {
 }
 
 func (e *EVM) GetTokenBalance(ctx *types.RPCContext, contract string, decimals int) (*big.Float, error) {
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +124,7 @@ func (e *EVM) GetTokenBalance(ctx *types.RPCContext, contract string, decimals i
 }
 
 func (e *EVM) GetToken(ctx *types.RPCContext, contract string) (*types.TokenConfig, error) {
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +151,7 @@ func (e *EVM) GetToken(ctx *types.RPCContext, contract string) (*types.TokenConf
 }
 
 func (e *EVM) GetTokenAllowance(ctx *types.RPCContext, contract, to string) (uint64, error) {
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return 0, err
 	}
@@ -174,8 +169,8 @@ func (e *EVM) GetTokenAllowance(ctx *types.RPCContext, contract, to string) (uin
 	return allowance.Uint64(), nil
 }
 
-func (e *EVM) getGasPrice(ctx *types.RPCContext) (*big.Int, error) {
-	client, err := e.getClient(ctx.NodeId())
+func (e *EVM) GetGasPrice(ctx *types.RPCContext) (*big.Int, error) {
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
 	}
@@ -183,8 +178,8 @@ func (e *EVM) getGasPrice(ctx *types.RPCContext) (*big.Int, error) {
 	return client.SuggestGasPrice(ctx)
 }
 
-func (e *EVM) getNonce(ctx *types.RPCContext) (uint64, error) {
-	client, err := e.getClient(ctx.NodeId())
+func (e *EVM) GetPendingNonce(ctx *types.RPCContext) (uint64, error) {
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return 0, err
 	}
@@ -192,8 +187,8 @@ func (e *EVM) getNonce(ctx *types.RPCContext) (uint64, error) {
 	return client.PendingNonceAt(ctx, common.HexToAddress(ctx.CurrentAccount()))
 }
 
-func (e *EVM) getChainId(ctx *types.RPCContext) (*big.Int, error) {
-	client, err := e.getClient(ctx.NodeId())
+func (e *EVM) GetChainId(ctx *types.RPCContext) (*big.Int, error) {
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
 	}
@@ -201,8 +196,8 @@ func (e *EVM) getChainId(ctx *types.RPCContext) (*big.Int, error) {
 	return client.ChainID(ctx)
 }
 
-func (e *EVM) getGasTipCap(ctx *types.RPCContext) (*big.Int, error) {
-	client, err := e.getClient(ctx.NodeId())
+func (e *EVM) GetGasTipCap(ctx *types.RPCContext) (*big.Int, error) {
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
 	}
@@ -212,8 +207,8 @@ func (e *EVM) getGasTipCap(ctx *types.RPCContext) (*big.Int, error) {
 
 // Gas operations
 
-func (e *EVM) getGasEstimate(ctx *types.RPCContext, msg *ethereum.CallMsg) (uint64, error) {
-	client, err := e.getClient(ctx.NodeId())
+func (e *EVM) GetGasEstimate(ctx *types.RPCContext, msg *ethereum.CallMsg) (uint64, error) {
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return 0, err
 	}
@@ -221,7 +216,7 @@ func (e *EVM) getGasEstimate(ctx *types.RPCContext, msg *ethereum.CallMsg) (uint
 	return client.EstimateGas(ctx, *msg)
 }
 
-func (e *EVM) GetGasConfig(ctx *types.RPCContext, txType uint8, args ...interface{}) (map[string]uint64, error) {
+func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[string]uint64, error) {
 	result := map[string]uint64{
 		"base_fee":     0,
 		"priority_fee": 0,
@@ -230,55 +225,55 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, txType uint8, args ...interfac
 		"gas_used":     0,
 	}
 
-	height, err := e.getHeight(ctx)
+	height, err := e.GetHeight(ctx)
 
 	if err != nil {
 		return result, err
 	}
 
 	// Not working for L2
-	if txType != TxFlagL2 {
-		block, err := e.getBlock(ctx, height)
 
-		if err != nil {
-			return result, err
-		}
+	block, err := e.GetBlock(ctx, height)
 
-		result["gas_used"] = block.GasUsed()
+	if err != nil {
+		return result, err
+	}
 
-		gasLimit := block.GasLimit()
-		result["gas_limit"] = gasLimit
+	result["gas_used"] = block.GasUsed()
 
-		baseFee := block.BaseFee()
-		if baseFee != nil {
-			result["base_fee"] = baseFee.Uint64()
-		}
+	gasLimit := block.GasLimit()
+	result["gas_limit"] = gasLimit
 
-		gasTipCap, err := e.getGasTipCap(ctx)
-		if err != nil {
-			return result, err
-		}
-		if gasTipCap != nil {
-			result["priority_fee"] = gasTipCap.Uint64()
-		}
+	baseFee := block.BaseFee()
+	if baseFee != nil {
+		result["base_fee"] = baseFee.Uint64()
+	}
 
-	} else {
-		gasPrice, err := e.getGasPrice(ctx)
+	gasTipCap, err := e.GetGasTipCap(ctx)
+	if err != nil {
+		return result, err
+	}
+	if gasTipCap != nil {
+		result["priority_fee"] = gasTipCap.Uint64()
+	}
+
+	/*
+		gasPrice, err := e.GetGasPrice(ctx)
 
 		if err != nil {
 			return nil, err
 		}
 
 		// gas_price
-		result["base_fee"] = gasPrice.Uint64() + 1000000
-	}
+		result["base_fee"] = gasPrice.Uint64()
+	*/
 
 	if len(args) > 0 {
 		switch args[0].(string) {
 		case "approve":
-			result["units"], err = e.gasEstimateApprove(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
+			result["units"], err = e.GasEstimateApprove(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
 		case "transfer":
-			result["units"], err = e.gasEstimateTransfer(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
+			result["units"], err = e.GasEstimateTransfer(ctx, args[1].(string), args[2].(string), args[3].(*types.TokenConfig))
 		default:
 			return nil, fmt.Errorf("wrong methond: %s", args[0])
 		}
@@ -289,7 +284,7 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, txType uint8, args ...interfac
 	return result, nil
 }
 
-func gasCalcPrepared(methodName string, args ...interface{}) []byte {
+func GasCalcPrepared(methodName string, args ...interface{}) []byte {
 	contractABI, ok := abiMap[methodName]
 
 	if !ok {
@@ -320,15 +315,15 @@ func gasCalcPrepared(methodName string, args ...interface{}) []byte {
 	return callData
 }
 
-func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, spender, value string, token *types.TokenConfig) (uint64, error) {
+func (e *EVM) GasEstimateApprove(ctx *types.RPCContext, spender, value string, token *types.TokenConfig) (uint64, error) {
 	addrSpender := common.HexToAddress(spender)
-	weiAmount, err := strToWei(value)
+	weiAmount, err := StrToWei(value)
 
 	if err != nil {
 		return 0, err
 	}
 
-	callData := gasCalcPrepared("approve", addrSpender, weiAmount)
+	callData := GasCalcPrepared("approve", addrSpender, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -340,19 +335,19 @@ func (e *EVM) gasEstimateApprove(ctx *types.RPCContext, spender, value string, t
 		Data: callData,
 	}
 
-	gas, err := e.getGasEstimate(ctx, &dataTx)
+	gas, err := e.GetGasEstimate(ctx, &dataTx)
 	return gas, err
 }
 
-func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to, value string, token *types.TokenConfig) (uint64, error) {
+func (e *EVM) GasEstimateTransfer(ctx *types.RPCContext, to, value string, token *types.TokenConfig) (uint64, error) {
 	addrTo := common.HexToAddress(to)
-	weiAmount, err := strToWei(value)
+	weiAmount, err := StrToWei(value)
 
 	if err != nil {
 		return 0, err
 	}
 
-	callData := gasCalcPrepared("transfer", addrTo, weiAmount)
+	callData := GasCalcPrepared("transfer", addrTo, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -364,67 +359,56 @@ func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to, value string, token
 		Data: callData,
 	}
 
-	gas, err := e.getGasEstimate(ctx, &dataTx)
+	gas, err := e.GetGasEstimate(ctx, &dataTx)
 	return gas, err
 }
 
 // Transactions
 
-func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, gasFeeCap uint64, txFlag uint8, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	var txData ethTypes.TxData
-	chainId, err := e.getChainId(ctx)
+	chainId, err := e.GetChainId(ctx)
 
 	if err != nil {
 		return "", err
 	}
 
-	nonce, err := e.getNonce(ctx)
+	nonce, err := e.GetPendingNonce(ctx)
 
 	if err != nil {
 		return "", err
 	}
 
 	addrTo := common.HexToAddress(to)
-	weiValue, err := strToWei(value)
+	weiValue, err := StrToWei(value)
 
 	if err != nil {
 		return 0, err
 	}
 
-	if txFlag == TxFlagDynamic {
-		txData = &ethTypes.DynamicFeeTx{
-			ChainID:   chainId,
-			GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
-			GasFeeCap: new(big.Int).SetUint64(gasFeeCap), // a.k.a. maxFeePerGas limit commission gasFeeCap = gasTipCap + pendingHeader.BaseFee * 2
-			Gas:       gas,                               // units
-			Nonce:     nonce,
-			To:        &addrTo,
-			Value:     weiValue,
-			Data:      nil,
-		}
-	} else if txFlag == TxFlagLegacy {
-		txData = &ethTypes.LegacyTx{
-			GasPrice: new(big.Int).SetUint64(gasTipCap),
-			Gas:      gas,
-			Nonce:    nonce,
-			To:       &addrTo,
-			Value:    weiValue,
-			Data:     nil,
-		}
-	} else if txFlag == TxFlagL2 {
-		// Optimism
-		txData = &ethTypes.LegacyTx{
-			GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
-			Gas:      gas,
-			Nonce:    nonce,
-			To:       &addrTo,
-			Value:    weiValue,
-			Data:     nil,
-		}
-
-	} else {
-		return nil, errors.New("undefined tx flag")
+	txData = &ethTypes.DynamicFeeTx{
+		ChainID:   chainId,
+		GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
+		GasFeeCap: new(big.Int).SetUint64(gasFeeCap), // a.k.a. maxFeePerGas limit commission gasFeeCap = gasTipCap + pendingHeader.BaseFee * 2
+		Gas:       gas,                               // units
+		Nonce:     nonce,
+		To:        &addrTo,
+		Value:     weiValue,
+		Data:      nil,
 	}
+
+	/*
+
+		} else if txFlag == TxFlagL2_Arb {
+			// Arbitrum
+			txData = &ethTypes.LegacyTx{
+				GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
+				Gas:      gas,
+				Nonce:    nonce,
+				To:       &addrTo,
+				Value:    weiValue,
+				Data:     nil,
+			}*/
 
 	tx := ethTypes.NewTx(txData)
 
@@ -439,7 +423,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 		return ``, nil
 	}
 
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return ``, err
 	}
@@ -449,67 +433,45 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, txType uint8, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	var txData ethTypes.TxData
 
-	chainId, err := e.getChainId(ctx)
+	chainId, err := e.GetChainId(ctx)
 
 	if err != nil {
 		return "", err
 	}
 
-	nonce, err := e.getNonce(ctx)
+	nonce, err := e.GetPendingNonce(ctx)
 
 	if err != nil {
 		return "", err
 	}
 
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return ``, err
 	}
 
 	addrTo := common.HexToAddress(to)
-	weiAmount, err := strToWei(value)
+	weiAmount, err := StrToWei(value)
 
 	if err != nil {
 		return 0, err
 	}
 
-	callData := gasCalcPrepared("transfer", addrTo, weiAmount)
+	callData := GasCalcPrepared("transfer", addrTo, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
-	if txType == TxFlagDynamic {
-		txData = &ethTypes.DynamicFeeTx{
-			ChainID:   chainId,
-			GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
-			GasFeeCap: new(big.Int).SetUint64(gasFeeCap),
-			Gas:       gas,
-			Nonce:     nonce,
-			To:        &tokenContract,
-			Data:      callData,
-		}
-	} else if txType == TxFlagLegacy {
-		txData = &ethTypes.LegacyTx{
-			GasPrice: new(big.Int).SetUint64(gasTipCap),
-			Gas:      gas,
-			Nonce:    nonce,
-			To:       &addrTo,
-			Data:     callData,
-		}
-	} else if txType == TxFlagL2 {
-		// Optimism
-		txData = &ethTypes.LegacyTx{
-			GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
-			Gas:      gas,
-			Nonce:    nonce,
-			To:       &addrTo,
-			Data:     callData,
-		}
-
-	} else {
-		return nil, errors.New("undefined tx flag")
+	txData = &ethTypes.DynamicFeeTx{
+		ChainID:   chainId,
+		GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
+		GasFeeCap: new(big.Int).SetUint64(gasFeeCap),
+		Gas:       gas,
+		Nonce:     nonce,
+		To:        &tokenContract,
+		Data:      callData,
 	}
 
 	tx := ethTypes.NewTx(txData)
@@ -531,31 +493,31 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.
 }
 
 func (e *EVM) TxApproveToken(ctx *types.RPCContext, spender string, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
-	chainId, err := e.getChainId(ctx)
+	chainId, err := e.GetChainId(ctx)
 
 	if err != nil {
 		return "", err
 	}
 
-	nonce, err := e.getNonce(ctx)
+	nonce, err := e.GetPendingNonce(ctx)
 
 	if err != nil {
 		return "", err
 	}
 
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return ``, err
 	}
 
 	addrSpender := common.HexToAddress(spender)
-	weiAmount, err := strToWei(value)
+	weiAmount, err := StrToWei(value)
 
 	if err != nil {
 		return 0, err
 	}
 
-	callData := gasCalcPrepared("approve", addrSpender, weiAmount)
+	callData := GasCalcPrepared("approve", addrSpender, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -593,7 +555,7 @@ func (e *EVM) TxSendPrepared(ctx *types.RPCContext, tx []byte) (string, error) {
 		return "", errors.New("cannot unmarshal")
 	}
 
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return ``, err
 	}
@@ -606,7 +568,7 @@ func (e *EVM) TxSendPrepared(ctx *types.RPCContext, tx []byte) (string, error) {
 // TX receipt operations
 
 func (e *EVM) TxGetReceipt(ctx *types.RPCContext, tx string) (map[string]interface{}, error) {
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return nil, err
 	}
@@ -634,13 +596,13 @@ func (e *EVM) GetRPCInfo(ctx *types.RPCContext) (map[string]interface{}, error) 
 		"errors": "",
 	}
 
-	height, err := e.getHeight(ctx)
+	height, err := e.GetHeight(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	block, err := e.getBlock(ctx, height)
+	block, err := e.GetBlock(ctx, height)
 
 	block.BaseFee()
 
@@ -648,12 +610,12 @@ func (e *EVM) GetRPCInfo(ctx *types.RPCContext) (map[string]interface{}, error) 
 		return nil, err
 	}
 
-	gasTipCap, err := e.getGasTipCap(ctx)
+	gasTipCap, err := e.GetGasTipCap(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	gasPrice, err := e.getGasPrice(ctx)
+	gasPrice, err := e.GetGasPrice(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -672,7 +634,7 @@ func (e *EVM) GetRPCInfo(ctx *types.RPCContext) (map[string]interface{}, error) 
 
 	result["name"] = e.Name()
 	result["currency"] = e.Currency()
-	result["chain_id"], _ = e.getChainId(ctx)
+	result["chain_id"], _ = e.GetChainId(ctx)
 	result["last_block"] = fmt.Sprintf("%d", height)
 	result["gas_limit"] = fmt.Sprintf("%d", block.GasLimit())
 	result["gas_tip_cap"] = fmt.Sprintf("%.20f", float64(gasTipCap.Uint64())/float64(gwei))
@@ -698,7 +660,7 @@ func (e *EVM) GetRPCInfo(ctx *types.RPCContext) (map[string]interface{}, error) 
 }
 
 func (e *EVM) IsContractAddr(ctx *types.RPCContext, addr string) (bool, error) {
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return false, err
 	}
@@ -712,7 +674,7 @@ func (e *EVM) IsContractAddr(ctx *types.RPCContext, addr string) (bool, error) {
 
 // GetPrice Deprecated
 func (e *EVM) GetPrice(ctx *types.RPCContext, contract string) (float64, error) {
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return 0, err
 	}
@@ -744,7 +706,7 @@ func (e *EVM) GetPrice(ctx *types.RPCContext, contract string) (float64, error) 
 }
 
 func (e *EVM) ChainLinkGetPrice(ctx *types.RPCContext, contract string) (uint64, uint8, error) {
-	client, err := e.getClient(ctx.NodeId())
+	client, err := e.GetClient(ctx.NodeId())
 	if err != nil {
 		return 0, 0, err
 	}
@@ -766,8 +728,8 @@ func (e *EVM) ChainLinkGetPrice(ctx *types.RPCContext, contract string) (uint64,
 	return roundData.Answer.Uint64(), decimals, nil
 }
 
-func (e *EVM) GetBlock(ctx *types.RPCContext, blockNumber uint64) ([]byte, error) {
-	block, err := e.getBlock(ctx, blockNumber)
+func (e *EVM) GetBlockJson(ctx *types.RPCContext, blockNumber uint64) ([]byte, error) {
+	block, err := e.GetBlock(ctx, blockNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -791,7 +753,7 @@ func uint64Pow(base, exp uint64) uint64 {
 	return result
 }
 
-func strToWei(value string) (*big.Int, error) {
+func StrToWei(value string) (*big.Int, error) {
 	dotIndex := strings.Index(value, `.`)
 	weiResult := new(big.Int)
 	weiMod := wei

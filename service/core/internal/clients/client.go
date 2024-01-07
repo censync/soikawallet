@@ -22,6 +22,8 @@ import (
 	"github.com/censync/soikawallet/config/chain"
 	"github.com/censync/soikawallet/service/core/internal/clients/btc"
 	"github.com/censync/soikawallet/service/core/internal/clients/evm"
+	"github.com/censync/soikawallet/service/core/internal/clients/evm_legacy"
+	"github.com/censync/soikawallet/service/core/internal/clients/evm_optimism"
 	"github.com/censync/soikawallet/service/core/internal/clients/tron"
 	"github.com/censync/soikawallet/service/core/internal/config/networks"
 	"github.com/censync/soikawallet/service/core/internal/types"
@@ -49,15 +51,15 @@ var (
 var networkProviders = &Provider{
 	networks: map[mhda.ChainKey]types.NetworkAdapter{
 		chain.BitcoinChain.Key():      btc.NewBTC(networks.Bitcoin),
-		chain.EthereumChain.Key():     evm.NewEVM(networks.Ethereum),
+		chain.EthereumChain.Key():     evm_legacy.NewEVMLegacy(networks.Ethereum),
 		chain.TronChain.Key():         tron.NewTron(networks.Tron),
 		chain.PolygonChain.Key():      evm.NewEVM(networks.Polygon),
 		chain.BinanceSmartChain.Key(): evm.NewEVM(networks.BSC),
 		chain.AvalancheCChain.Key():   evm.NewEVM(networks.AvalancheC),
-		chain.OptimismChain.Key():     evm.NewEVM(networks.Optimism),
-		// chain.ArbitrumChain.Key():     evm.NewEVM(networks.ArbitrumOne),
-		chain.Moonbeam.Key():  evm.NewEVM(networks.Moonbeam),
-		chain.BaseChain.Key(): evm.NewEVM(networks.Base),
+		chain.OptimismChain.Key():     evm_optimism.NewEVMOptimism(networks.Optimism),
+		chain.ArbitrumChain.Key():     evm.NewEVM(networks.ArbitrumOne),
+		chain.Moonbeam.Key():          evm.NewEVM(networks.Moonbeam),
+		chain.BaseChain.Key():         evm.NewEVM(networks.Base),
 		// chain.ZkPolygon.Key():         evm.NewEVM(networks.ZkEVMPolygon),
 		// chain.ZkSyncEra.Key():         evm.NewEVM(networks.ZkSyncEra),
 		chain.MantleChain.Key(): evm.NewEVM(networks.Mantle),

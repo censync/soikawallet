@@ -61,8 +61,6 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 		fiatCurrency = fiatPair.Value()
 	}
 
-	txFlag, err := txTypeByChainKey(addr.MHDA().Chain().Key())
-
 	if err != nil {
 		return nil, err
 	}
@@ -70,14 +68,14 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 	// TODO: Optimize method
 	if dto.Operation == "transfer" {
 		if types.TokenStandard(dto.Standard) == types.TokenBase {
-			gasConfig, err = provider.GetGasConfig(ctx, txFlag)
+			gasConfig, err = provider.GetGasConfig(ctx)
 		} else {
 			tokenConfig := provider.GetTokenConfig(dto.Contract)
 
 			if tokenConfig == nil {
 				return nil, errTokenNotConfigured
 			}
-			gasConfig, err = provider.GetGasConfig(ctx, txFlag, "transfer", dto.To, dto.Value, tokenConfig)
+			gasConfig, err = provider.GetGasConfig(ctx, "transfer", dto.To, dto.Value, tokenConfig)
 		}
 	} else if dto.Operation == "approve" {
 		if types.TokenStandard(dto.Standard) != types.TokenBase {
@@ -87,7 +85,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 				return nil, errTokenNotConfigured
 			}
 
-			gasConfig, err = provider.GetGasConfig(ctx, txFlag, "approve", dto.To, dto.Value, tokenConfig)
+			gasConfig, err = provider.GetGasConfig(ctx, "approve", dto.To, dto.Value, tokenConfig)
 		} else {
 			return nil, errTokenAllowanceApproveBase
 		}

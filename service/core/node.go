@@ -410,5 +410,5 @@ func (s *Wallet) ExecuteRPC(dto *dto.ExecuteRPCRequestDTO) ([]byte, error) {
 		return nil, err
 	}
 
-	return provider.GetBlock(ctx, 0)
+	return provider.GetBlockJson(ctx, 0)
 }

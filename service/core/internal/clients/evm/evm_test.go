@@ -34,7 +34,7 @@ var (
 
 func TestEVM_strToWei(t *testing.T) {
 	for index := range testAmountStrValues {
-		result, err := strToWei(testAmountStrValues[index])
+		result, err := StrToWei(testAmountStrValues[index])
 
 		if err != nil {
 			t.Fatal(err)
