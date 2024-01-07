@@ -92,11 +92,11 @@ func (p *pageTokenAdd) FuncOnShow() {
 func (p *pageTokenAdd) uiTokenAddForm() *tview.Form {
 	layoutForm := tview.NewForm().
 		SetHorizontal(false)
-	layoutForm.SetBorder(true)
 
 	inputContractAddr := tview.NewInputField().
 		SetLabel(`Contract address`).
-		SetText("0x8A953CfE442c5E8855cc6c61b1293FA648BAE472") // debug
+		SetText("0x8A953CfE442c5E8855cc6c61b1293FA648BAE472").
+		SetFieldWidth(64) // debug
 
 	inputSelectTokenStandard := tview.NewDropDown().
 		SetLabel("Type").
@@ -163,4 +163,10 @@ func (p *pageTokenAdd) uiTokenConfirmForm(tokenConfig *resp.TokenConfig) *tview.
 			}
 		})
 	return layoutForm
+}
+
+func (p *pageTokenAdd) FuncOnHide() {
+	p.layoutTokenAdd.Clear()
+	p.paramSelectedChainKey = nil
+	p.BaseLayout().Clear()
 }

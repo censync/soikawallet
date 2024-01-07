@@ -247,6 +247,7 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 			dto.Gas,
 			dto.GasTipCap,
 			dto.GasFeeCap,
+			txFlag,
 			key,
 		)
 	}

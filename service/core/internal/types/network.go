@@ -229,7 +229,7 @@ type NetworkAdapter interface {
 	GetTokenAllowance(ctx *RPCContext, contract, to string) (uint64, error)
 	GetGasConfig(ctx *RPCContext, txType uint8, args ...interface{}) (map[string]uint64, error)
 	TxSendBase(ctx *RPCContext, to string, value string, gas, gasTipCap, gasFeeCap uint64, txFlag uint8, key *ecdsa.PrivateKey) (interface{}, error)
-	TxSendToken(ctx *RPCContext, to string, value string, token *TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error)
+	TxSendToken(ctx *RPCContext, to string, value string, token *TokenConfig, gas, gasTipCap, gasFeeCap uint64, txFlag uint8, key *ecdsa.PrivateKey) (interface{}, error)
 	TxApproveToken(ctx *RPCContext, to string, value string, token *TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error)
 	TxGetReceipt(ctx *RPCContext, tx string) (map[string]interface{}, error)
 

@@ -183,13 +183,13 @@ func (e *EVM) getGasPrice(ctx *types.RPCContext) (*big.Int, error) {
 	return client.SuggestGasPrice(ctx)
 }
 
-func (e *EVM) getNonce(ctx *types.RPCContext, account string) (uint64, error) {
+func (e *EVM) getNonce(ctx *types.RPCContext) (uint64, error) {
 	client, err := e.getClient(ctx.NodeId())
 	if err != nil {
 		return 0, err
 	}
-
-	return client.PendingNonceAt(ctx, common.HexToAddress(account))
+	// Known issue: Optimisms pending transactions returns error "replacement transaction underpriced"
+	return client.PendingNonceAt(ctx, common.HexToAddress(ctx.CurrentAccount()))
 }
 
 func (e *EVM) getChainId(ctx *types.RPCContext) (*big.Int, error) {
@@ -270,7 +270,7 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, txType uint8, args ...interfac
 		}
 
 		// gas_price
-		result["base_fee"] = gasPrice.Uint64()
+		result["base_fee"] = gasPrice.Uint64() + 1000000
 	}
 
 	if len(args) > 0 {
@@ -370,7 +370,7 @@ func (e *EVM) gasEstimateTransfer(ctx *types.RPCContext, to, value string, token
 
 // Transactions
 
-func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, gasFeeCap uint64, txType uint8, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, gasFeeCap uint64, txFlag uint8, key *ecdsa.PrivateKey) (interface{}, error) {
 	var txData ethTypes.TxData
 	chainId, err := e.getChainId(ctx)
 
@@ -378,7 +378,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 		return "", err
 	}
 
-	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
+	nonce, err := e.getNonce(ctx)
 
 	if err != nil {
 		return "", err
@@ -391,7 +391,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 		return 0, err
 	}
 
-	if txType == TxFlagDynamic {
+	if txFlag == TxFlagDynamic {
 		txData = &ethTypes.DynamicFeeTx{
 			ChainID:   chainId,
 			GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
@@ -402,7 +402,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 			Value:     weiValue,
 			Data:      nil,
 		}
-	} else if txType == TxFlagLegacy {
+	} else if txFlag == TxFlagLegacy {
 		txData = &ethTypes.LegacyTx{
 			GasPrice: new(big.Int).SetUint64(gasTipCap),
 			Gas:      gas,
@@ -411,7 +411,7 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 			Value:    weiValue,
 			Data:     nil,
 		}
-	} else if txType == TxFlagL2 {
+	} else if txFlag == TxFlagL2 {
 		// Optimism
 		txData = &ethTypes.LegacyTx{
 			GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
@@ -449,14 +449,16 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.TokenConfig, gas, gasTipCap, gasFeeCap uint64, txType uint8, key *ecdsa.PrivateKey) (interface{}, error) {
+	var txData ethTypes.TxData
+
 	chainId, err := e.getChainId(ctx)
 
 	if err != nil {
 		return "", err
 	}
 
-	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
+	nonce, err := e.getNonce(ctx)
 
 	if err != nil {
 		return "", err
@@ -478,15 +480,39 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.
 
 	tokenContract := common.HexToAddress(token.Contract())
 
-	tx := ethTypes.NewTx(&ethTypes.DynamicFeeTx{
-		ChainID:   chainId,
-		GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
-		GasFeeCap: new(big.Int).SetUint64(gasFeeCap),
-		Gas:       gas,
-		Nonce:     nonce,
-		To:        &tokenContract,
-		Data:      callData,
-	})
+	if txType == TxFlagDynamic {
+		txData = &ethTypes.DynamicFeeTx{
+			ChainID:   chainId,
+			GasTipCap: new(big.Int).SetUint64(gasTipCap), // gasTipCap = (priorityFee)  maxPriorityFeePerGas
+			GasFeeCap: new(big.Int).SetUint64(gasFeeCap),
+			Gas:       gas,
+			Nonce:     nonce,
+			To:        &tokenContract,
+			Data:      callData,
+		}
+	} else if txType == TxFlagLegacy {
+		txData = &ethTypes.LegacyTx{
+			GasPrice: new(big.Int).SetUint64(gasTipCap),
+			Gas:      gas,
+			Nonce:    nonce,
+			To:       &addrTo,
+			Data:     callData,
+		}
+	} else if txType == TxFlagL2 {
+		// Optimism
+		txData = &ethTypes.LegacyTx{
+			GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
+			Gas:      gas,
+			Nonce:    nonce,
+			To:       &addrTo,
+			Data:     callData,
+		}
+
+	} else {
+		return nil, errors.New("undefined tx flag")
+	}
+
+	tx := ethTypes.NewTx(txData)
 
 	// AirGap
 	if key == nil {
@@ -511,7 +537,7 @@ func (e *EVM) TxApproveToken(ctx *types.RPCContext, spender string, value string
 		return "", err
 	}
 
-	nonce, err := e.getNonce(ctx, ctx.CurrentAccount())
+	nonce, err := e.getNonce(ctx)
 
 	if err != nil {
 		return "", err
