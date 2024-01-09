@@ -21,7 +21,7 @@ import (
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/config/chain"
 	"github.com/censync/soikawallet/service/core/internal/clients/btc"
-	"github.com/censync/soikawallet/service/core/internal/clients/evm"
+	"github.com/censync/soikawallet/service/core/internal/clients/evm_base"
 	"github.com/censync/soikawallet/service/core/internal/clients/evm_legacy"
 	"github.com/censync/soikawallet/service/core/internal/clients/evm_optimism"
 	"github.com/censync/soikawallet/service/core/internal/clients/tron"
@@ -53,16 +53,16 @@ var networkProviders = &Provider{
 		chain.BitcoinChain.Key():      btc.NewBTC(networks.Bitcoin),
 		chain.EthereumChain.Key():     evm_legacy.NewEVMLegacy(networks.Ethereum),
 		chain.TronChain.Key():         tron.NewTron(networks.Tron),
-		chain.PolygonChain.Key():      evm.NewEVM(networks.Polygon),
-		chain.BinanceSmartChain.Key(): evm.NewEVM(networks.BSC),
-		chain.AvalancheCChain.Key():   evm.NewEVM(networks.AvalancheC),
+		chain.PolygonChain.Key():      evm_base.NewEVM(networks.Polygon),
+		chain.BinanceSmartChain.Key(): evm_base.NewEVM(networks.BSC),
+		chain.AvalancheCChain.Key():   evm_base.NewEVM(networks.AvalancheC),
 		chain.OptimismChain.Key():     evm_optimism.NewEVMOptimism(networks.Optimism),
-		chain.ArbitrumChain.Key():     evm.NewEVM(networks.ArbitrumOne),
-		chain.Moonbeam.Key():          evm.NewEVM(networks.Moonbeam),
-		chain.BaseChain.Key():         evm.NewEVM(networks.Base),
+		chain.ArbitrumChain.Key():     evm_base.NewEVM(networks.ArbitrumOne),
+		chain.Moonbeam.Key():          evm_base.NewEVM(networks.Moonbeam),
+		chain.BaseChain.Key():         evm_base.NewEVM(networks.Base),
 		// chain.ZkPolygon.Key():         evm.NewEVM(networks.ZkEVMPolygon),
 		// chain.ZkSyncEra.Key():         evm.NewEVM(networks.ZkSyncEra),
-		chain.MantleChain.Key(): evm.NewEVM(networks.Mantle),
+		chain.MantleChain.Key(): evm_base.NewEVM(networks.Mantle),
 	},
 	defaultCurrency: `USD`,
 }

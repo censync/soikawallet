@@ -18,7 +18,7 @@ package evm_legacy
 
 import (
 	"crypto/ecdsa"
-	"github.com/censync/soikawallet/service/core/internal/clients/evm"
+	"github.com/censync/soikawallet/service/core/internal/clients/evm_base"
 	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
@@ -26,11 +26,11 @@ import (
 )
 
 type EVMLegacy struct {
-	*evm.EVM
+	*evm_base.EVM
 }
 
 func NewEVMLegacy(baseNetwork *types.BaseNetwork) *EVMLegacy {
-	return &EVMLegacy{EVM: evm.NewEVM(baseNetwork)}
+	return &EVMLegacy{EVM: evm_base.NewEVM(baseNetwork)}
 }
 
 func (e *EVMLegacy) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, _ uint64, key *ecdsa.PrivateKey) (interface{}, error) {
@@ -48,7 +48,7 @@ func (e *EVMLegacy) TxSendBase(ctx *types.RPCContext, to string, value string, g
 	}
 
 	addrTo := common.HexToAddress(to)
-	weiValue, err := evm.StrToWei(value)
+	weiValue, err := evm_base.StrToWei(value)
 
 	if err != nil {
 		return 0, err
@@ -107,13 +107,13 @@ func (e *EVMLegacy) TxSendToken(ctx *types.RPCContext, to, value string, _ *type
 	}
 
 	addrTo := common.HexToAddress(to)
-	weiAmount, err := evm.StrToWei(value)
+	weiAmount, err := evm_base.StrToWei(value)
 
 	if err != nil {
 		return 0, err
 	}
 
-	callData := evm.GasCalcPrepared("transfer", addrTo, weiAmount)
+	callData := evm_base.GasCalcPrepared("transfer", addrTo, weiAmount)
 
 	txData = &ethTypes.LegacyTx{
 		GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
