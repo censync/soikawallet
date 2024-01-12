@@ -33,7 +33,7 @@ func NewEVMLegacy(baseNetwork *types.BaseNetwork) *EVMLegacy {
 	return &EVMLegacy{EVM: evm_base.NewEVM(baseNetwork)}
 }
 
-func (e *EVMLegacy) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasFeeCap, _ uint64, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVMLegacy) TxSendBase(ctx *types.RPCContext, to string, value string, gas, _, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	var txData ethTypes.TxData
 	chainId, err := e.GetChainId(ctx)
 
