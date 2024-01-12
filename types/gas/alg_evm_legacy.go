@@ -48,11 +48,11 @@ func (c CalcEVMLegacyV1) SuggestSlow() uint64 {
 }
 
 func (c CalcEVMLegacyV1) SuggestRegular() uint64 {
-	return uint64(float64(c.GasPrice) * 1.45) // suggest tip 45%
+	return uint64(float64(c.GasPrice) * 1.2) // suggest tip 20%
 }
 
 func (c CalcEVMLegacyV1) SuggestPriority() uint64 {
-	return uint64(float64(c.GasPrice) * 1.3) // max tip 170%
+	return uint64(float64(c.GasPrice) * 1.45) // max tip 45%
 }
 
 func (c CalcEVMLegacyV1) LimitMax() uint64 {
