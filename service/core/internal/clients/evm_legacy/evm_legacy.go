@@ -33,7 +33,7 @@ func NewEVMLegacy(baseNetwork *types.BaseNetwork) *EVMLegacy {
 	return &EVMLegacy{EVM: evm_base.NewEVM(baseNetwork)}
 }
 
-func (e *EVMLegacy) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasTipCap, _ uint64, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVMLegacy) TxSendBase(ctx *types.RPCContext, to string, value string, gas, gasFeeCap, _ uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	var txData ethTypes.TxData
 	chainId, err := e.GetChainId(ctx)
 
@@ -55,7 +55,7 @@ func (e *EVMLegacy) TxSendBase(ctx *types.RPCContext, to string, value string, g
 	}
 
 	txData = &ethTypes.LegacyTx{
-		GasPrice: new(big.Int).SetUint64(gasTipCap),
+		GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
 		Gas:      gas,
 		Nonce:    nonce,
 		To:       &addrTo,
@@ -86,7 +86,7 @@ func (e *EVMLegacy) TxSendBase(ctx *types.RPCContext, to string, value string, g
 	return signedTX.Hash().Hex(), err
 }
 
-func (e *EVMLegacy) TxSendToken(ctx *types.RPCContext, to, value string, _ *types.TokenConfig, gas, _, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
+func (e *EVMLegacy) TxSendToken(ctx *types.RPCContext, to, value string, token *types.TokenConfig, gas, _, gasFeeCap uint64, key *ecdsa.PrivateKey) (interface{}, error) {
 	var txData ethTypes.TxData
 
 	chainId, err := e.GetChainId(ctx)
@@ -115,11 +115,13 @@ func (e *EVMLegacy) TxSendToken(ctx *types.RPCContext, to, value string, _ *type
 
 	callData := evm_base.GasCalcPrepared("transfer", addrTo, weiAmount)
 
+	tokenContract := common.HexToAddress(token.Contract())
+
 	txData = &ethTypes.LegacyTx{
 		GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
 		Gas:      gas,
 		Nonce:    nonce,
-		To:       &addrTo,
+		To:       &tokenContract,
 		Data:     callData,
 	}
 
