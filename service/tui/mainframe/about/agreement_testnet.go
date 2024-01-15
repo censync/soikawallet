@@ -23,6 +23,7 @@ import (
 	"github.com/censync/soikawallet/service/tui/pages"
 	"github.com/censync/soikawallet/service/tui/state"
 	"github.com/censync/tview"
+	"github.com/censync/twidget/twoframes"
 	"github.com/gdamore/tcell/v2"
 	"os"
 	"strings"

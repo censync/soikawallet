@@ -23,7 +23,7 @@ func (e *EVMArbitrum) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (
 		"gas_used":     0,
 	}
 
-	gasTipCap, err := e.GetGasTipCap(ctx)
+	gasTipCap, err := e.GetGasTipCap(ctx) // Fix to client.EstimateGas * client.SuggestGasPrice
 	if err != nil {
 		return result, err
 	}

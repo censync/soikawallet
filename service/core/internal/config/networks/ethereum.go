@@ -36,7 +36,7 @@ var Ethereum = types.NewNetwork(
 	},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/eth`,
-	`https://etherscan.io/`, // /block/ /address/ /tx/
+	`https://eth.blockscout.com/`, // `https://etherscan.io/`, // /block/ /address/ /tx/
 ).SetBuiltinToken(
 	types.TokenERC20,
 	`Tether USD`,

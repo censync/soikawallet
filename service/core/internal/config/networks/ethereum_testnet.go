@@ -36,7 +36,7 @@ var Ethereum = types.NewNetwork(
 	},
 ).SetDefaultRPC(
 	`https://rpc.soikawallet.app:8431/eth_testnet`,
-	`https://sepolia.etherscan.io/`, // /block/ /address/ /tx/
+	`https://eth-sepolia.blockscout.com/`, // `https://sepolia.etherscan.io/`, // /block/ /address/ /tx/
 ).SetBuiltinToken(
 	types.TokenERC20,
 	`CenTest Claimable Token v4`,
