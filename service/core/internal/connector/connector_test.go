@@ -26,12 +26,12 @@ import (
 )
 
 var testChains = map[mhda.ChainKey][]string{
-	"ethereum": {"wss://ethereum.publicnode.com"},
-	"bsc":      {"wss://bsc.publicnode.com"},           // public node has sub problems "wss://bsc.publicnode.com"
-	"polygon":  {"wss://polygon.gateway.tenderly.com"}, // public node has sub problems "wss://polygon-bor.publicnode.com"
-	"moonbeam": {"wss://moonbeam.public.blastapi.io", "wss://moonbeam-rpc.dwellir.com", "wss://moonbeam.unitedbloc.com"},
-	"op":       {"wss://optimism.gateway.tenderly.co"},
-	"gnosis":   {"wss://rpc.gnosischain.com/wss"},
+	"ethereum": {"wss://go.getblock.io/1b671020cedb4ce9aec4d6c7cfcdbd21"},
+	// "bsc":      {"wss://bsc.publicnode.com"},           // public node has sub problems "wss://bsc.publicnode.com"
+	// "polygon":  {"wss://polygon.gateway.tenderly.com"}, // public node has sub problems "wss://polygon-bor.publicnode.com"
+	// "moonbeam": {"wss://moonbeam.public.blastapi.io", "wss://moonbeam-rpc.dwellir.com", "wss://moonbeam.unitedbloc.com"},
+	// "op":       {"wss://optimism.gateway.tenderly.co"},
+	// "gnosis":   {"wss://rpc.gnosischain.com/wss"},
 }
 
 func Test_Connector(t *testing.T) {

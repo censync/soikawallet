@@ -17,18 +17,15 @@
 package evm
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/censync/soikawallet/service/core/internal/connector/client"
 	"github.com/censync/soikawallet/service/core/internal/connector/client/evm"
 	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/censync/soikawallet/types/utils"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/mitchellh/mapstructure"
 	"math/big"
 )
 
@@ -96,19 +93,23 @@ type rpcBlock struct {
 
 func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 	formattedBlockNum := utils.EncodeUint64(blockNumber)
-	result, err := e.client.Call(e.ctx.Context, "eth_getBlockByNumber", []interface{}{formattedBlockNum})
-	if err != nil {
-		return nil, err
-	}
 
-	var raw json.RawMessage
+	response, err := e.client.Call(e.ctx.Context, "eth_getBlockByNumber", []interface{}{formattedBlockNum, true})
 	if err != nil {
 		return nil, err
 	}
 
 	// Decode header and transactions.
 	var head *ethTypes.Header
-	if err := json.Unmarshal(raw, &head); err != nil {
+	cfgHead := &mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   &head,
+		TagName:  "json",
+	}
+	decoderHead, _ := mapstructure.NewDecoder(cfgHead)
+	err = decoderHead.Decode(response.(map[string]interface{}))
+
+	if err != nil {
 		return nil, err
 	}
 	// When the block is not found, the API returns JSON null.
@@ -117,9 +118,19 @@ func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 	}
 
 	var body rpcBlock
-	if err := json.Unmarshal(raw, &body); err != nil {
+
+	cfgBody := &mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   &body,
+		TagName:  "json",
+	}
+	decoderBody, _ := mapstructure.NewDecoder(cfgBody)
+	err = decoderBody.Decode(response.(map[string]interface{}))
+
+	if err != nil {
 		return nil, err
 	}
+
 	// Quick-verify transaction and uncle lists. This mostly helps with debugging the server.
 	if head.UncleHash == ethTypes.EmptyUncleHash && len(body.UncleHashes) > 0 {
 		return nil, errors.New("server returned non-empty uncle list but block header indicates no uncles")
@@ -134,7 +145,7 @@ func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 		return nil, errors.New("server returned empty transaction list but block header indicates transactions")
 	}
 	// Load uncles because they are not included in the block response.
-	var uncles []*ethTypes.Header
+	/*var uncles []*ethTypes.Header
 	if len(body.UncleHashes) > 0 {
 		uncles = make([]*ethTypes.Header, len(body.UncleHashes))
 		reqs := make([]rpc.BatchElem, len(body.UncleHashes))
@@ -165,5 +176,6 @@ func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 		}
 		txs[i] = tx.tx
 	}
-	return ethTypes.NewBlockWithHeader(head).WithBody(txs, uncles).WithWithdrawals(body.Withdrawals), nil
+	return ethTypes.NewBlockWithHeader(head).WithBody(txs, uncles).WithWithdrawals(body.Withdrawals), nil*/
+	return nil, err
 }

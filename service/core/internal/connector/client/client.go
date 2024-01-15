@@ -16,13 +16,18 @@
 
 package client
 
-import "context"
+import (
+	"context"
+	"github.com/censync/soikawallet/service/core/internal/connector/types/callopts"
+)
 
 type Client interface {
 	Index() uint32
 	Dial() error
 	StartSubscription(string, []interface{}) (<-chan interface{}, <-chan struct{}, error)
-	Call(ctx context.Context, method string, params []interface{}) (interface{}, error)
+	Call(context.Context, string, []interface{}) (interface{}, error)
+	CallOpts(context.Context, *callopts.CallOpts) (interface{}, error)
+	CallBatch(context.Context, []*callopts.CallOpts) (interface{}, error)
 	IsReady() bool
 	Stop()
 	Disconnect()

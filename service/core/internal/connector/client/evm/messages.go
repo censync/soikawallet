@@ -38,6 +38,8 @@ type jsonRPCRawResponse struct {
 	Error *jsonRPCError
 }
 
+type jsonRPCRawBatchResponse []jsonRPCRawResponse
+
 func (r *jsonRPCRawResponse) isCallResponse() bool {
 	return r.Result != nil || r.Error != nil
 }
@@ -57,13 +59,20 @@ type jsonRPCError struct {
 }
 
 type responsesPool struct {
-	mu        sync.RWMutex
-	responses chan *jsonRPCRawResponse
+	// Mutex requests
+	mur sync.RWMutex
+	// Mutex batch requests
+	mub sync.RWMutex
+	// Mutex subscriptions
+	mus            sync.RWMutex
+	responses      chan *jsonRPCRawResponse
+	batchResponses chan *jsonRPCRawBatchResponse
 
-	requests map[string]*awaitRequest
-	subs     map[string]*awaitRequest
-	connErr  chan struct{}
-	log      *logrus.Entry
+	requests      map[string]*awaitRequest
+	batchRequests map[string]*awaitRequest
+	subs          map[string]*awaitRequest
+	connErr       chan struct{}
+	log           *logrus.Entry
 }
 
 type awaitRequest struct {
@@ -77,19 +86,32 @@ func newResponsesPool(logger *logrus.Entry) *responsesPool {
 		"sub_module": "responses_pool",
 	})
 	return &responsesPool{
-		requests:  map[string]*awaitRequest{},
-		responses: make(chan *jsonRPCRawResponse),
-		subs:      map[string]*awaitRequest{},
-		connErr:   make(chan struct{}),
-		log:       logger,
+		requests:       map[string]*awaitRequest{},
+		batchRequests:  map[string]*awaitRequest{},
+		responses:      make(chan *jsonRPCRawResponse),
+		batchResponses: make(chan *jsonRPCRawBatchResponse),
+		subs:           map[string]*awaitRequest{},
+		connErr:        make(chan struct{}),
+		log:            logger,
 	}
 }
 
 func (m *responsesPool) registerRequest(requestId string) {
 	m.log.Debugf("Register request %s", requestId)
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mur.Lock()
+	defer m.mur.Unlock()
 	m.requests[requestId] = &awaitRequest{
+		respCh:   make(chan interface{}),
+		errCh:    make(chan *jsonRPCError),
+		cancelCh: make(chan struct{}),
+	}
+}
+
+func (m *responsesPool) registerBatchRequest(requestId string) {
+	m.log.Debugf("Register batch request %s", requestId)
+	m.mub.Lock()
+	defer m.mub.Unlock()
+	m.batchRequests[requestId] = &awaitRequest{
 		respCh:   make(chan interface{}),
 		errCh:    make(chan *jsonRPCError),
 		cancelCh: make(chan struct{}),
@@ -98,18 +120,28 @@ func (m *responsesPool) registerRequest(requestId string) {
 
 func (m *responsesPool) unregisterRequest(requestId string) {
 	m.log.Debugf("Unregister request %s", requestId)
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mur.Lock()
+	defer m.mur.Unlock()
 	close(m.requests[requestId].respCh)
 	close(m.requests[requestId].errCh)
 	close(m.requests[requestId].cancelCh)
 	delete(m.requests, requestId)
 }
 
+func (m *responsesPool) unregisterBatchRequest(requestId string) {
+	m.log.Debugf("Unregister batch request %s", requestId)
+	m.mub.Lock()
+	defer m.mub.Unlock()
+	close(m.batchRequests[requestId].respCh)
+	close(m.batchRequests[requestId].errCh)
+	close(m.batchRequests[requestId].cancelCh)
+	delete(m.batchRequests, requestId)
+}
+
 func (m *responsesPool) registerSubscription(subId string) (<-chan interface{}, <-chan struct{}) {
 	m.log.Debugf("Register subscription %s", subId)
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mus.Lock()
+	defer m.mus.Unlock()
 
 	respCh := make(chan interface{})
 	cancelCh := make(chan struct{})
@@ -124,8 +156,8 @@ func (m *responsesPool) registerSubscription(subId string) (<-chan interface{}, 
 
 func (m *responsesPool) unregisterSubscription(subId string) {
 	m.log.Debugf("Unregister subscription %s", subId)
-	m.mu.Lock()
-	defer m.mu.Unlock()
+	m.mus.Lock()
+	defer m.mus.Unlock()
 	m.subs[subId].cancelCh <- struct{}{}
 	close(m.subs[subId].respCh)
 	close(m.subs[subId].cancelCh)
@@ -161,14 +193,22 @@ func (c *ClientEVM) connListener() {
 
 		err = json.Unmarshal(data, &resp)
 
-		if err != nil {
-			c.log.Errorf("Connection unmarshal %s", err)
-			// cannot unmarshal response
-			c.rPool.connErr <- struct{}{}
-			c.log.Debug("Stopping connListener with unmarshal error")
-			return
+		if err == nil {
+			c.rPool.responses <- resp
+		} else {
+			respBatch := &jsonRPCRawBatchResponse{}
+
+			err = json.Unmarshal(data, &respBatch)
+
+			if err != nil {
+				c.log.Errorf("Connection unmarshal %s", err)
+				// cannot unmarshal response
+				c.rPool.connErr <- struct{}{}
+				c.log.Debug("Stopping connListener with unmarshal error")
+				return
+			}
+			c.rPool.batchResponses <- respBatch
 		}
-		c.rPool.responses <- resp
 	}
 }
 
@@ -185,27 +225,29 @@ func (m *responsesPool) requestHandler() {
 			return
 		// m.isReady = false
 		// log.Println("Connection closed. Pool size", m.size())
-		case result := <-m.responses:
-			if result.isCallResponse() {
+		case response := <-m.responses:
+			if response.isCallResponse() {
 				// time.Sleep(2 * time.Second)
-				if callResponse, ok := m.requests[result.Id]; ok {
-					if result.Error == nil {
-						callResponse.respCh <- result.Result
+				if callResponse, ok := m.requests[response.Id]; ok {
+					if response.Error == nil {
+						callResponse.respCh <- response.Result
 					} else {
-						callResponse.errCh <- result.Error
+						callResponse.errCh <- response.Error
 					}
 				} else {
-					m.log.Warnf("Undefined request id: %v", result)
+					m.log.Warnf("Undefined request id: %v", response)
 				}
-			} else if result.isSubResponse() {
-				if subResponse, ok := m.subs[result.Params.Subscription]; ok {
-					subResponse.respCh <- result.Params.Result
+			} else if response.isSubResponse() {
+				if subResponse, ok := m.subs[response.Params.Subscription]; ok {
+					subResponse.respCh <- response.Params.Result
 				} else {
-					m.log.Warnf("Subscription undefined request id: %v", result.Params.Subscription)
+					m.log.Warnf("Subscription undefined request id: %v", response.Params.Subscription)
 				}
 			} else {
-				m.log.Warnf("Undefined response  %v", result)
+				m.log.Warnf("Undefined response  %v", response)
 			}
+		case batchResponse := <-m.batchResponses:
+			m.log.Infof("Batch response %v", batchResponse)
 		}
 	}
 }

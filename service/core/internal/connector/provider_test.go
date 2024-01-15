@@ -41,10 +41,10 @@ func Test_Provider(t *testing.T) {
 				))
 			indexRPC++
 		}
-
 	}
 	logrus.SetLevel(logrus.InfoLevel)
 	rpcConnector, err := NewConnector(preparedRPCs)
+	defer rpcConnector.Shutdown()
 
 	if err != nil {
 		t.Fatal(err)
@@ -52,6 +52,12 @@ func Test_Provider(t *testing.T) {
 
 	ctx := types.NewRPCContext("ethereum", 0)
 	provider, err := rpcConnector.GetProvider(ctx)
-	lastBlock, err := provider.GetHeight()
-	t.Log(lastBlock, err)
+	// lastBlock, err := provider.GetHeight()
+
+	block, err := provider.GetBlock(100000)
+
+	t.Log("GetHeight", block, err)
+
+	//time.Sleep(3 * time.Second)
+
 }

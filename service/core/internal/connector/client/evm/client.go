@@ -17,9 +17,13 @@
 package evm
 
 import (
+	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/censync/soikawallet/service/core/internal/connector/client/metrics"
+	"github.com/censync/soikawallet/service/core/internal/connector/types/callopts"
 	"github.com/ethereum/go-ethereum/log"
 	ws "github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -28,6 +32,8 @@ import (
 	"net/http"
 	"time"
 )
+
+const maxBatchParamsCount = 20
 
 type ClientEVM struct {
 	isWs        bool
@@ -92,19 +98,86 @@ func (c *ClientEVM) Index() uint32 {
 	return c.index
 }
 
+func (c *ClientEVM) CallBatch(ctx context.Context, opts []*callopts.CallOpts) (interface{}, error) {
+	paramsCount := len(opts)
+
+	if paramsCount == 0 {
+		return nil, errors.New("empty batch params")
+	}
+
+	if paramsCount > maxBatchParamsCount {
+		return nil, errors.New("to many batch params")
+	}
+
+	batchReqRPC := make([]*jsonRPCRequest, paramsCount)
+
+	reqIdSum := bytes.NewBuffer([]byte{})
+
+	for i := 0; i < paramsCount; i++ {
+		reqId := fmt.Sprintf("0x%x", c.r.Uint64())
+		reqIdSum.WriteString(reqId)
+
+		batchReqRPC = append(batchReqRPC, &jsonRPCRequest{
+			Version: "2.0",
+			Id:      reqId,
+			Method:  opts[i].Method(),
+			Params:  opts[i].Params(),
+		})
+	}
+
+	reqIdSumHash := md5.Sum(reqIdSum.Bytes())
+	reqIdSumHashStr := hex.EncodeToString(reqIdSumHash[:])
+
+	c.rPool.registerBatchRequest(reqIdSumHashStr)
+	defer c.rPool.unregisterBatchRequest(reqIdSumHashStr)
+
+	reqIdSum.Reset()
+
+	err := c.conn.WriteJSON(batchReqRPC)
+	if err != nil {
+		// <-  failed rpc resp
+		c.rPool.unregisterBatchRequest(reqIdSumHashStr)
+		c.rPool.connErr <- struct{}{}
+		return nil, err
+	}
+
+	select {
+	// Cancelled
+	case <-c.rPool.batchRequests[reqIdSumHashStr].cancelCh:
+		c.log.Warnf("Conn error %s", reqIdSumHashStr)
+		return nil, errors.New("conn error")
+	// Deadline
+	case <-ctx.Done():
+		c.log.Infof("CallBatch finished with deadline %s", reqIdSumHashStr)
+		return nil, errors.New("deadline")
+	// Response
+	case result := <-c.rPool.batchRequests[reqIdSumHashStr].respCh:
+		c.log.Infof("CallBatch response received: %s, %s", reqIdSumHashStr, result)
+		return result, nil
+	// Response (error)
+	case resultErr := <-c.rPool.batchRequests[reqIdSumHashStr].errCh:
+		c.log.Infof("CallBatch response with error received: %s, %s", reqIdSumHashStr, resultErr)
+		return resultErr, nil
+	}
+}
+
 func (c *ClientEVM) Call(ctx context.Context, method string, params []interface{}) (interface{}, error) {
-	if c.stopping && method != "eth_unsubscribe" {
+	return c.CallOpts(ctx, callopts.NewCallOpts(method, params))
+}
+
+func (c *ClientEVM) CallOpts(ctx context.Context, opts *callopts.CallOpts) (interface{}, error) {
+	if c.stopping && opts.Method() != "eth_unsubscribe" {
 		return nil, errors.New("client stopping")
 	}
 
-	c.log.Debugf("Starting call method %s [%v]", method, params)
+	c.log.Debugf("Starting call method %s [%v]", opts.Method(), opts.Params())
 
 	reqId := fmt.Sprintf("0x%x", c.r.Uint64())
-	reqRPC := jsonRPCRequest{
+	reqRPC := &jsonRPCRequest{
 		Version: "2.0",
 		Id:      reqId,
-		Method:  method,
-		Params:  params,
+		Method:  opts.Method(),
+		Params:  opts.Params(),
 	}
 
 	c.rPool.registerRequest(reqId)
@@ -145,6 +218,7 @@ func (c *ClientEVM) StartSubscription(method string, params []interface{}) (<-ch
 	c.log.Debugf("StartSubscription %s %v", method, params)
 
 	ctx, _ := context.WithDeadline(context.Background(), time.Now().Add(2000*time.Millisecond))
+
 	resp, err := c.Call(ctx, method, params)
 
 	if err != nil {
@@ -168,6 +242,7 @@ func (c *ClientEVM) StartSubscription(method string, params []interface{}) (<-ch
 func (c *ClientEVM) cancelSubscriptions() {
 	for subId := range c.rPool.subs {
 		ctx, _ := context.WithDeadline(context.Background(), time.Now().Add(1000*time.Millisecond))
+
 		resp, err := c.Call(ctx, "eth_unsubscribe", []interface{}{subId})
 
 		if err != nil {
