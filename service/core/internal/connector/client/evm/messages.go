@@ -17,9 +17,10 @@
 package evm
 
 import (
+	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
-	"errors"
-	ws "github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"sync"
 )
@@ -29,7 +30,7 @@ type jsonRPCRawResponse struct {
 	Id      string `json:"id,omitempty"`
 
 	// Call response
-	Result interface{} `json:"result,omitempty"`
+	Result json.RawMessage `json:"result,omitempty"`
 
 	// Subscription response
 	Method string         `json:"method,omitempty"`
@@ -38,14 +39,18 @@ type jsonRPCRawResponse struct {
 	Error *jsonRPCError
 }
 
-type jsonRPCRawBatchResponse []jsonRPCRawResponse
-
 func (r *jsonRPCRawResponse) isCallResponse() bool {
 	return r.Result != nil || r.Error != nil
 }
 
 func (r *jsonRPCRawResponse) isSubResponse() bool {
 	return r.Method == "eth_subscription" && r.Params != nil
+}
+
+type jsonRPCRawBatchResponse []jsonRPCRawResponse
+
+func (br *jsonRPCRawBatchResponse) IsEmpty() bool {
+	return br == nil || len(*br) > 0
 }
 
 type jsonRPCParams struct {
@@ -59,26 +64,16 @@ type jsonRPCError struct {
 }
 
 type responsesPool struct {
-	// Mutex requests
-	mur sync.RWMutex
-	// Mutex batch requests
-	mub sync.RWMutex
 	// Mutex subscriptions
 	mus            sync.RWMutex
 	responses      chan *jsonRPCRawResponse
 	batchResponses chan *jsonRPCRawBatchResponse
 
-	requests      map[string]*awaitRequest
-	batchRequests map[string]*awaitRequest
+	requests      *awaitRequestsPool
+	batchRequests *awaitRequestsPool
 	subs          map[string]*awaitRequest
 	connErr       chan struct{}
 	log           *logrus.Entry
-}
-
-type awaitRequest struct {
-	respCh   chan interface{}
-	errCh    chan *jsonRPCError
-	cancelCh chan struct{}
 }
 
 func newResponsesPool(logger *logrus.Entry) *responsesPool {
@@ -86,8 +81,8 @@ func newResponsesPool(logger *logrus.Entry) *responsesPool {
 		"sub_module": "responses_pool",
 	})
 	return &responsesPool{
-		requests:       map[string]*awaitRequest{},
-		batchRequests:  map[string]*awaitRequest{},
+		requests:       newAwaitRequestsPool(),
+		batchRequests:  newAwaitRequestsPool(),
 		responses:      make(chan *jsonRPCRawResponse),
 		batchResponses: make(chan *jsonRPCRawBatchResponse),
 		subs:           map[string]*awaitRequest{},
@@ -96,48 +91,74 @@ func newResponsesPool(logger *logrus.Entry) *responsesPool {
 	}
 }
 
-func (m *responsesPool) registerRequest(requestId string) {
-	m.log.Debugf("Register request %s", requestId)
-	m.mur.Lock()
-	defer m.mur.Unlock()
-	m.requests[requestId] = &awaitRequest{
+type awaitRequest struct {
+	// respCh - responses handling channel for ws request
+	respCh chan interface{}
+	// errCh - errors handling channel for ws request
+	errCh chan *jsonRPCError
+	// cancelCh - cancellation operations handling channel for request
+	cancelCh chan struct{}
+}
+
+type awaitRequestsPool struct {
+	mu       sync.Mutex
+	requests map[string]*awaitRequest
+}
+
+func (rp *awaitRequestsPool) Get(requestId string) *awaitRequest {
+	return rp.requests[requestId]
+}
+
+func (rp *awaitRequestsPool) SetRequests(requests map[string]*awaitRequest) {
+	rp.requests = requests
+}
+
+func newAwaitRequestsPool() *awaitRequestsPool {
+	return &awaitRequestsPool{requests: map[string]*awaitRequest{}}
+}
+
+func (rp *awaitRequestsPool) register(requestId string) {
+	rp.mu.Lock()
+	defer rp.mu.Unlock()
+	rp.requests[requestId] = &awaitRequest{
 		respCh:   make(chan interface{}),
 		errCh:    make(chan *jsonRPCError),
 		cancelCh: make(chan struct{}),
 	}
 }
 
-func (m *responsesPool) registerBatchRequest(requestId string) {
-	m.log.Debugf("Register batch request %s", requestId)
-	m.mub.Lock()
-	defer m.mub.Unlock()
-	m.batchRequests[requestId] = &awaitRequest{
-		respCh:   make(chan interface{}),
-		errCh:    make(chan *jsonRPCError),
-		cancelCh: make(chan struct{}),
-	}
+func (rp *awaitRequestsPool) unregister(requestId string) {
+	rp.mu.Lock()
+	defer rp.mu.Unlock()
+	close(rp.requests[requestId].respCh)
+	close(rp.requests[requestId].errCh)
+	close(rp.requests[requestId].cancelCh)
+	delete(rp.requests, requestId)
+}
+
+// Call await requests helpers
+func (m *responsesPool) registerRequest(requestId string) {
+	m.log.Debugf("Register request %s", requestId)
+	m.requests.register(requestId)
 }
 
 func (m *responsesPool) unregisterRequest(requestId string) {
 	m.log.Debugf("Unregister request %s", requestId)
-	m.mur.Lock()
-	defer m.mur.Unlock()
-	close(m.requests[requestId].respCh)
-	close(m.requests[requestId].errCh)
-	close(m.requests[requestId].cancelCh)
-	delete(m.requests, requestId)
+	m.requests.unregister(requestId)
+}
+
+// Batch call await requests helpers
+func (m *responsesPool) registerBatchRequest(requestId string) {
+	m.log.Debugf("Register batch request %s", requestId)
+	m.batchRequests.register(requestId)
 }
 
 func (m *responsesPool) unregisterBatchRequest(requestId string) {
 	m.log.Debugf("Unregister batch request %s", requestId)
-	m.mub.Lock()
-	defer m.mub.Unlock()
-	close(m.batchRequests[requestId].respCh)
-	close(m.batchRequests[requestId].errCh)
-	close(m.batchRequests[requestId].cancelCh)
-	delete(m.batchRequests, requestId)
+	m.batchRequests.unregister(requestId)
 }
 
+// Subscription await requests helpers
 func (m *responsesPool) registerSubscription(subId string) (<-chan interface{}, <-chan struct{}) {
 	m.log.Debugf("Register subscription %s", subId)
 	m.mus.Lock()
@@ -164,54 +185,6 @@ func (m *responsesPool) unregisterSubscription(subId string) {
 	delete(m.subs, subId)
 }
 
-func (c *ClientEVM) connListener() {
-	c.log.Debug("Starting conn listener")
-	for {
-		_, data, err := c.conn.ReadMessage()
-		// c.log.Debug(string(data))
-		if err != nil {
-			// conn error
-			if errors.Is(err, ws.ErrCloseSent) {
-				c.log.Info("Connection closed gracefully")
-			} else {
-				var closeMessage *ws.CloseError
-				ok := errors.As(err, &closeMessage)
-				if ok {
-					c.log.Warnf("Connection closed CloseError: %d %s", closeMessage.Code, closeMessage.Text)
-				} else {
-					c.log.Warnf("Connection closed with unexpected error: %s", err)
-				}
-			}
-
-			c.isConnected = false
-			c.rPool.connErr <- struct{}{} // based on error type, should apply or not to reconnect action
-			c.log.Debug("Stopping connListener with conn closing")
-			return
-		}
-
-		resp := &jsonRPCRawResponse{}
-
-		err = json.Unmarshal(data, &resp)
-
-		if err == nil {
-			c.rPool.responses <- resp
-		} else {
-			respBatch := &jsonRPCRawBatchResponse{}
-
-			err = json.Unmarshal(data, &respBatch)
-
-			if err != nil {
-				c.log.Errorf("Connection unmarshal %s", err)
-				// cannot unmarshal response
-				c.rPool.connErr <- struct{}{}
-				c.log.Debug("Stopping connListener with unmarshal error")
-				return
-			}
-			c.rPool.batchResponses <- respBatch
-		}
-	}
-}
-
 func (m *responsesPool) requestHandler() {
 	m.log.Debugf("Starting response pool")
 	for {
@@ -228,14 +201,14 @@ func (m *responsesPool) requestHandler() {
 		case response := <-m.responses:
 			if response.isCallResponse() {
 				// time.Sleep(2 * time.Second)
-				if callResponse, ok := m.requests[response.Id]; ok {
+				if registeredResponse := m.requests.Get(response.Id); registeredResponse != nil {
 					if response.Error == nil {
-						callResponse.respCh <- response.Result
+						registeredResponse.respCh <- response.Result
 					} else {
-						callResponse.errCh <- response.Error
+						registeredResponse.errCh <- response.Error
 					}
 				} else {
-					m.log.Warnf("Undefined request id: %v", response)
+					m.log.Warnf("Undefined call request id: %v", response)
 				}
 			} else if response.isSubResponse() {
 				if subResponse, ok := m.subs[response.Params.Subscription]; ok {
@@ -248,6 +221,26 @@ func (m *responsesPool) requestHandler() {
 			}
 		case batchResponse := <-m.batchResponses:
 			m.log.Infof("Batch response %v", batchResponse)
+
+			if !batchResponse.IsEmpty() {
+				reqIdSum := bytes.NewBuffer([]byte{})
+
+				for index := range *batchResponse {
+					reqIdSum.WriteString((*batchResponse)[index].Id)
+				}
+
+				reqIdSumHash := md5.Sum(reqIdSum.Bytes())
+				reqIdSumHashStr := hex.EncodeToString(reqIdSumHash[:])
+
+				if registeredBatchResponse := m.batchRequests.Get(reqIdSumHashStr); registeredBatchResponse != nil {
+					registeredBatchResponse.respCh <- batchResponse
+				} else {
+					m.log.Warnf("Undefined batch request id: %v", reqIdSumHashStr)
+				}
+
+			} else {
+				m.log.Warnf("Batch response is empty")
+			}
 		}
 	}
 }

@@ -54,7 +54,7 @@ func Test_Provider(t *testing.T) {
 	provider, err := rpcConnector.GetProvider(ctx)
 	// lastBlock, err := provider.GetHeight()
 
-	block, err := provider.GetBlock(100000)
+	block, err := provider.GetBlock(19026186)
 
 	t.Log("GetHeight", block, err)
 

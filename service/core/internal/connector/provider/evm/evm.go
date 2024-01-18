@@ -17,15 +17,18 @@
 package evm
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/censync/soikawallet/service/core/internal/connector/client"
 	"github.com/censync/soikawallet/service/core/internal/connector/client/evm"
+	"github.com/censync/soikawallet/service/core/internal/connector/types/callopts"
 	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/censync/soikawallet/types/utils"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethTypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/mitchellh/mapstructure"
 	"math/big"
 )
 
@@ -101,15 +104,7 @@ func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 
 	// Decode header and transactions.
 	var head *ethTypes.Header
-	cfgHead := &mapstructure.DecoderConfig{
-		Metadata: nil,
-		Result:   &head,
-		TagName:  "json",
-	}
-	decoderHead, _ := mapstructure.NewDecoder(cfgHead)
-	err = decoderHead.Decode(response.(map[string]interface{}))
-
-	if err != nil {
+	if err := json.Unmarshal(response.(json.RawMessage), &head); err != nil {
 		return nil, err
 	}
 	// When the block is not found, the API returns JSON null.
@@ -118,16 +113,7 @@ func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 	}
 
 	var body rpcBlock
-
-	cfgBody := &mapstructure.DecoderConfig{
-		Metadata: nil,
-		Result:   &body,
-		TagName:  "json",
-	}
-	decoderBody, _ := mapstructure.NewDecoder(cfgBody)
-	err = decoderBody.Decode(response.(map[string]interface{}))
-
-	if err != nil {
+	if err := json.Unmarshal(response.(json.RawMessage), &body); err != nil {
 		return nil, err
 	}
 
@@ -145,24 +131,27 @@ func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 		return nil, errors.New("server returned empty transaction list but block header indicates transactions")
 	}
 	// Load uncles because they are not included in the block response.
-	/*var uncles []*ethTypes.Header
+	var uncles []*ethTypes.Header
 	if len(body.UncleHashes) > 0 {
 		uncles = make([]*ethTypes.Header, len(body.UncleHashes))
-		reqs := make([]rpc.BatchElem, len(body.UncleHashes))
-		for i := range reqs {
-			reqs[i] = rpc.BatchElem{
-				Method: "eth_getUncleByBlockHashAndIndex",
-				Args:   []interface{}{body.Hash, hexutil.EncodeUint64(uint64(i))},
-				Result: &uncles[i],
-			}
+		opts := make([]*callopts.CallOpts, len(body.UncleHashes))
+		for i := range opts {
+			opts[i] = callopts.NewCallOpts(
+				"eth_getUncleByBlockHashAndIndex",
+				[]interface{}{body.Hash, hexutil.EncodeUint64(uint64(i))},
+			)
 		}
-		if err := ec.c.BatchCallContext(ctx, reqs); err != nil {
+
+		batchResp, err := e.client.CallBatch(e.ctx.Context, opts)
+
+		if err != nil {
 			return nil, err
 		}
-		for i := range reqs {
-			if reqs[i].Error != nil {
+
+		for i := range batchResp.([]interface{}) {
+			/*if reqs[i].Error != nil {
 				return nil, reqs[i].Error
-			}
+			}*/
 			if uncles[i] == nil {
 				return nil, fmt.Errorf("got null header for uncle %d of block %x", i, body.Hash[:])
 			}
@@ -170,12 +159,11 @@ func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 	}
 	// Fill the sender cache of transactions in the block.
 	txs := make([]*ethTypes.Transaction, len(body.Transactions))
-	for i, tx := range body.Transactions {
+	/*for i, tx := range body.Transactions {
 		if tx.From != nil {
 			setSenderFromServer(tx.tx, *tx.From, body.Hash)
 		}
 		txs[i] = tx.tx
-	}
-	return ethTypes.NewBlockWithHeader(head).WithBody(txs, uncles).WithWithdrawals(body.Withdrawals), nil*/
-	return nil, err
+	}*/
+	return ethTypes.NewBlockWithHeader(head).WithBody(txs, uncles).WithWithdrawals(body.Withdrawals), nil
 }

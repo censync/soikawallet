@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/censync/soikawallet/service/core/internal/connector/client/metrics"
@@ -33,7 +34,9 @@ import (
 	"time"
 )
 
-const maxBatchParamsCount = 20
+const (
+	maxBatchCallParamsCount = 20
+)
 
 type ClientEVM struct {
 	isWs        bool
@@ -105,7 +108,7 @@ func (c *ClientEVM) CallBatch(ctx context.Context, opts []*callopts.CallOpts) (i
 		return nil, errors.New("empty batch params")
 	}
 
-	if paramsCount > maxBatchParamsCount {
+	if paramsCount > maxBatchCallParamsCount {
 		return nil, errors.New("to many batch params")
 	}
 
@@ -133,6 +136,7 @@ func (c *ClientEVM) CallBatch(ctx context.Context, opts []*callopts.CallOpts) (i
 
 	reqIdSum.Reset()
 
+	// https://www.jsonrpc.org/specification#batch
 	err := c.conn.WriteJSON(batchReqRPC)
 	if err != nil {
 		// <-  failed rpc resp
@@ -143,7 +147,7 @@ func (c *ClientEVM) CallBatch(ctx context.Context, opts []*callopts.CallOpts) (i
 
 	select {
 	// Cancelled
-	case <-c.rPool.batchRequests[reqIdSumHashStr].cancelCh:
+	case <-c.rPool.batchRequests.Get(reqIdSumHashStr).cancelCh:
 		c.log.Warnf("Conn error %s", reqIdSumHashStr)
 		return nil, errors.New("conn error")
 	// Deadline
@@ -151,11 +155,11 @@ func (c *ClientEVM) CallBatch(ctx context.Context, opts []*callopts.CallOpts) (i
 		c.log.Infof("CallBatch finished with deadline %s", reqIdSumHashStr)
 		return nil, errors.New("deadline")
 	// Response
-	case result := <-c.rPool.batchRequests[reqIdSumHashStr].respCh:
+	case result := <-c.rPool.batchRequests.Get(reqIdSumHashStr).respCh:
 		c.log.Infof("CallBatch response received: %s, %s", reqIdSumHashStr, result)
 		return result, nil
 	// Response (error)
-	case resultErr := <-c.rPool.batchRequests[reqIdSumHashStr].errCh:
+	case resultErr := <-c.rPool.batchRequests.Get(reqIdSumHashStr).errCh:
 		c.log.Infof("CallBatch response with error received: %s, %s", reqIdSumHashStr, resultErr)
 		return resultErr, nil
 	}
@@ -193,7 +197,7 @@ func (c *ClientEVM) CallOpts(ctx context.Context, opts *callopts.CallOpts) (inte
 
 	select {
 	// Cancelled
-	case <-c.rPool.requests[reqId].cancelCh:
+	case <-c.rPool.requests.Get(reqId).cancelCh:
 		c.log.Warnf("Conn error %s", reqId)
 		return nil, errors.New("conn error")
 	// Deadline
@@ -201,11 +205,11 @@ func (c *ClientEVM) CallOpts(ctx context.Context, opts *callopts.CallOpts) (inte
 		c.log.Infof("Call finished with deadline %s", reqId)
 		return nil, errors.New("deadline")
 	// Response
-	case result := <-c.rPool.requests[reqId].respCh:
+	case result := <-c.rPool.requests.Get(reqId).respCh:
 		c.log.Infof("Response received: %s, %s", reqId, result)
 		return result, nil
 	// Response (error)
-	case resultErr := <-c.rPool.requests[reqId].errCh:
+	case resultErr := <-c.rPool.requests.Get(reqId).errCh:
 		c.log.Infof("Response with error received: %s, %s", reqId, resultErr)
 		return resultErr, nil
 	}
@@ -252,6 +256,54 @@ func (c *ClientEVM) cancelSubscriptions() {
 		c.log.Debugf("Subscription succesfully unsubscribed: %s", resp)
 
 		c.rPool.unregisterSubscription(subId)
+	}
+}
+
+func (c *ClientEVM) connListener() {
+	c.log.Debug("Starting conn listener")
+	for {
+		_, data, err := c.conn.ReadMessage()
+		// c.log.Debug(string(data))
+		if err != nil {
+			// conn error
+			if errors.Is(err, ws.ErrCloseSent) {
+				c.log.Info("Connection closed gracefully")
+			} else {
+				var closeMessage *ws.CloseError
+				ok := errors.As(err, &closeMessage)
+				if ok {
+					c.log.Warnf("Connection closed CloseError: %d %s", closeMessage.Code, closeMessage.Text)
+				} else {
+					c.log.Warnf("Connection closed with unexpected error: %s", err)
+				}
+			}
+
+			c.isConnected = false
+			c.rPool.connErr <- struct{}{} // based on error type, should apply or not to reconnect action
+			c.log.Debug("Stopping connListener with conn closing")
+			return
+		}
+
+		resp := &jsonRPCRawResponse{}
+
+		err = json.Unmarshal(data, &resp)
+
+		if err == nil {
+			c.rPool.responses <- resp
+		} else {
+			respBatch := &jsonRPCRawBatchResponse{}
+
+			err = json.Unmarshal(data, &respBatch)
+
+			if err != nil {
+				c.log.Errorf("Connection unmarshal %s", err)
+				// cannot unmarshal response
+				c.rPool.connErr <- struct{}{}
+				c.log.Debug("Stopping connListener with unmarshal error")
+				return
+			}
+			c.rPool.batchResponses <- respBatch
+		}
 	}
 }
 
