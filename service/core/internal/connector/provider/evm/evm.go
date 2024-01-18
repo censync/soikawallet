@@ -17,13 +17,13 @@
 package evm
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/censync/soikawallet/service/core/internal/connector/client"
 	"github.com/censync/soikawallet/service/core/internal/connector/client/evm"
 	"github.com/censync/soikawallet/service/core/internal/connector/types/callopts"
-	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/censync/soikawallet/types/utils"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -40,7 +40,6 @@ const (
 )
 
 type EVM struct {
-	ctx    *types.RPCContext
 	client *evm.ClientEVM
 }
 
@@ -52,15 +51,14 @@ func (e *EVM) GetType() string {
 	return ProviderTypeEVM
 }
 
-func (e *EVM) WithClient(ctx *types.RPCContext, evmClient client.Client) (*EVM, error) {
+func (e *EVM) WithClient(evmClient client.Client) (*EVM, error) {
 	// panic for sa
 	e.client = evmClient.(*evm.ClientEVM)
-	e.ctx = ctx
 	return e, nil
 }
 
-func (e *EVM) GetHeight() (uint64, error) {
-	result, err := e.client.Call(e.ctx.Context, "eth_blockNumber", []interface{}{})
+func (e *EVM) GetHeight(ctx context.Context) (uint64, error) {
+	result, err := e.client.Call(ctx, "eth_blockNumber", []interface{}{})
 	if err != nil {
 		return 0, err
 	}
@@ -72,7 +70,7 @@ func (e *EVM) GetHeight() (uint64, error) {
 	return blockNumber, nil
 }
 
-func (e *EVM) GetChainId() (*big.Int, error) {
+func (e *EVM) GetChainId(ctx context.Context) (*big.Int, error) {
 	return nil, nil
 }
 
@@ -94,10 +92,10 @@ type rpcBlock struct {
 	Withdrawals  []*ethTypes.Withdrawal `json:"withdrawals,omitempty"`
 }
 
-func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
+func (e *EVM) GetBlock(ctx context.Context, blockNumber uint64) (*ethTypes.Block, error) {
 	formattedBlockNum := utils.EncodeUint64(blockNumber)
 
-	response, err := e.client.Call(e.ctx.Context, "eth_getBlockByNumber", []interface{}{formattedBlockNum, true})
+	response, err := e.client.Call(ctx, "eth_getBlockByNumber", []interface{}{formattedBlockNum, true})
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +140,7 @@ func (e *EVM) GetBlock(blockNumber uint64) (*ethTypes.Block, error) {
 			)
 		}
 
-		batchResp, err := e.client.CallBatch(e.ctx.Context, opts)
+		batchResp, err := e.client.CallBatch(ctx, opts)
 
 		if err != nil {
 			return nil, err

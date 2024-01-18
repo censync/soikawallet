@@ -135,9 +135,9 @@ func (c *Connector) GetProvider(ctx *types.RPCContext) (provider.Provider, error
 
 	switch adapter.GetType() {
 	case evmWrapper.ProviderTypeEVM:
-		return adapter.(*evmWrapper.EVM).WithClient(ctx, connClient)
+		return adapter.(*evmWrapper.EVM).WithClient(connClient)
 	case tronWrapper.ProviderTypeTron:
-		return adapter.(*tronWrapper.Tron).WithClient(ctx, connClient)
+		return adapter.(*tronWrapper.Tron).WithClient(connClient)
 	default:
 		return nil, errors.New("undefined adapter")
 	}

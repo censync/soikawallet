@@ -17,6 +17,7 @@
 package tron
 
 import (
+	"context"
 	"github.com/censync/soikawallet/service/core/internal/connector/client"
 	"github.com/censync/soikawallet/service/core/internal/connector/client/evm"
 	"github.com/censync/soikawallet/service/core/internal/types"
@@ -40,17 +41,16 @@ func (t *Tron) GetType() string {
 	return ProviderTypeTron
 }
 
-func (t *Tron) WithClient(ctx *types.RPCContext, tronClient client.Client) (*Tron, error) {
+func (t *Tron) WithClient(tronClient client.Client) (*Tron, error) {
 	// panic for safe
 	t.client = tronClient.(*evm.ClientEVM)
-	t.ctx = ctx
 	return t, nil
 }
 
-func (t *Tron) GetHeight() (uint64, error) {
+func (t *Tron) GetHeight(ctx context.Context) (uint64, error) {
 	return 0, nil
 }
 
-func (t *Tron) GetBlock(uint64) (*ethTypes.Block, error) {
+func (t *Tron) GetBlock(ctx context.Context, _ uint64) (*ethTypes.Block, error) {
 	return nil, nil
 }
