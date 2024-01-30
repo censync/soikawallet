@@ -14,50 +14,27 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the  soikawallet library. If not, see <http://www.gnu.org/licenses/>.
 
-package connector
+//go:build testnet
+
+package networks
 
 import (
-	"fmt"
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/service/core/internal/types"
-	"github.com/sirupsen/logrus"
-	"testing"
 )
 
-func Test_Provider(t *testing.T) {
-	preparedRPCs := map[mhda.ChainKey][]*types.RPC{}
-
-	indexRPC := uint32(1)
-
-	for chainKey, rpcs := range testChains {
-		for _, rpc := range rpcs {
-			preparedRPCs[chainKey] = append(
-				preparedRPCs[chainKey],
-				types.NewRPC(
-					indexRPC,
-					fmt.Sprintf("Node %d", indexRPC),
-					rpc,
-					false,
-				))
-			indexRPC++
-		}
-	}
-	logrus.SetLevel(logrus.InfoLevel)
-	rpcConnector, err := NewConnector(preparedRPCs)
-	defer rpcConnector.Shutdown()
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	ctx := types.NewRPCContext("ethereum", 0)
-	provider, err := rpcConnector.GetProvider(ctx)
-	// lastBlock, err := provider.GetHeight()
-
-	block, err := provider.GetHeight(ctx)
-
-	t.Log("GetHeight", block, err)
-
-	//time.Sleep(3 * time.Second)
-
-}
+var Linea = types.NewNetwork(
+	mhda.ETH,
+	`Linea`,
+	`ETH`,
+	18,
+	1e9,
+	"gwei",
+	true,
+	&types.EVMConfig{
+		ChainId: 0xe704,
+	},
+).SetDefaultRPC(
+	`https://rpc.goerli.linea.build`,
+	`https://testnet.lineascan.build/`, // /block/ /address/ /tx/
+)

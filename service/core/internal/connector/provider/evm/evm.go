@@ -63,15 +63,30 @@ func (e *EVM) GetHeight(ctx context.Context) (uint64, error) {
 		return 0, err
 	}
 
-	blockNumber, ok := result.(uint64)
-	if !ok {
+	blockNumber := hexutil.Uint64(0)
+	err = json.Unmarshal(result.(json.RawMessage), &blockNumber)
+
+	if err != nil {
 		return 0, errors.New("cannot parse block number")
 	}
-	return blockNumber, nil
+	return uint64(blockNumber), nil
 }
 
-func (e *EVM) GetChainId(ctx context.Context) (*big.Int, error) {
-	return nil, nil
+func (e *EVM) ChainID(ctx context.Context) (uint64, error) {
+	result, err := e.client.Call(ctx, "eth_chainId", []interface{}{})
+	if err != nil {
+		return 0, err
+	}
+
+	chainId := hexutil.Uint64(0)
+	err = json.Unmarshal(result.(json.RawMessage), &chainId)
+
+	if err != nil {
+		return 0, errors.New("cannot parse chainId")
+	}
+	return uint64(chainId), nil
+}
+
 }
 
 type rpcTransaction struct {

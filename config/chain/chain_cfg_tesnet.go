@@ -42,4 +42,5 @@ var (
 	// ZK
 	ZkPolygon = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x5a2`)
 	ZkSyncEra = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x118`)
+	Linea     = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xe704`)
 )
