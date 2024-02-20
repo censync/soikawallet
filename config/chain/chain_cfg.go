@@ -2,7 +2,7 @@
 // This file is part of the soikawallet library.
 //
 // The soikawallet library is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
+// it under the terms of the GNU Lesser General Public License as pu	blished by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
@@ -36,6 +36,7 @@ var (
 	ArbitrumChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa4b1`)
 	BaseChain     = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x2105`)
 	MantleChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x1388`)
+	Blast         = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa0c71fd`)
 
 	// ZK
 	ZkPolygon = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x44d`)

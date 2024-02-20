@@ -397,19 +397,6 @@ func (e *EVM) TxSendBase(ctx *types.RPCContext, to string, value string, gas, ga
 		Data:      nil,
 	}
 
-	/*
-
-		} else if txFlag == TxFlagL2_Arb {
-			// Arbitrum
-			txData = &ethTypes.LegacyTx{
-				GasPrice: new(big.Int).SetUint64(gasFeeCap), // base price
-				Gas:      gas,
-				Nonce:    nonce,
-				To:       &addrTo,
-				Value:    weiValue,
-				Data:     nil,
-			}*/
-
 	tx := ethTypes.NewTx(txData)
 
 	// AirGap

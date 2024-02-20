@@ -23,42 +23,18 @@ import (
 	"github.com/censync/soikawallet/service/core/internal/types"
 )
 
-var Polygon = types.NewNetwork(
-	mhda.MATIC,
-	`Polygon`,
-	`MATIC`,
+var Blast = types.NewNetwork(
+	mhda.ETH,
+	`Blast Testnet`,
+	`ETH`,
 	18,
 	1e9,
 	"gwei",
 	true,
 	&types.EVMConfig{
-		ChainId: 0x89,
+		ChainId: 0xa0c71fd,
 	},
 ).SetDefaultRPC(
-	`https://go.getblock.io/5f4893ee174043e0b212442edd3b4b18`, // https://polygon-rpc.com
-	`https://polygonscan.com/`,                                // /block/ /address/ /tx/
-).SetBuiltinToken(
-	types.TokenERC20,
-	`(PoS) Tether USD`,
-	`USDT`,
-	`0xc2132d05d31c914a87c6611c10748aeb04b58e8f`,
-	6,
-).SetBuiltinToken(
-	types.TokenERC20,
-	`USD network (PoS)`,
-	`USDC`,
-	`0x2791bca1f2de4661ed88a30c99a7a9449aa84174`,
-	6,
-).SetBuiltinToken(
-	types.TokenERC20,
-	`(PoS) Binance USD`,
-	`BUSD`,
-	`0xdAb529f40E671A1D4bF91361c21bf9f0C9712ab7`,
-	18,
-).SetBuiltinToken(
-	types.TokenERC20,
-	`(PoS) Dai Stablecoin`,
-	`DAI`,
-	`0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063`,
-	18,
+	`https://sepolia.blast.io`,
+	`https://testnet.blastscan.io./`, // /block/ /address/ /tx/  https://testnet.lineascan.build/
 )

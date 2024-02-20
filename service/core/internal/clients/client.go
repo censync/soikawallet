@@ -65,6 +65,7 @@ var networkProviders = &Provider{
 		// chain.ZkSyncEra.Key():         evm_base.NewEVM(networks.ZkSyncEra),
 		chain.Linea.Key():       evm_base.NewEVM(networks.Linea),
 		chain.MantleChain.Key(): evm_base.NewEVM(networks.Mantle),
+		chain.Blast.Key():       evm_base.NewEVM(networks.Blast),
 	},
 	defaultCurrency: `USD`,
 }
