@@ -27,6 +27,7 @@ import (
 	"github.com/censync/soikawallet/service/core/internal/types"
 	"github.com/censync/soikawallet/service/core/internal/types/protected_key"
 	"github.com/censync/soikawallet/service/core/meta"
+	"sort"
 )
 
 const (
@@ -341,6 +342,7 @@ func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*res
 				Label:        s.meta.GetAddressLabel(addr.MHDA().NSS()),
 				IsW3:         addr.IsW3(),
 			})
+			sort.Sort(resp.AddressResponseSlice(addresses))
 		}
 	}
 

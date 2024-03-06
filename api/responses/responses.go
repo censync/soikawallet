@@ -33,6 +33,25 @@ type AddressResponse struct {
 	IsKeyDelivered bool
 }
 
+type AddressResponseSlice []*AddressResponse
+
+func (x AddressResponseSlice) Len() int {
+	return len(x)
+}
+
+func (x AddressResponseSlice) Less(i, j int) bool {
+	/* if x[i].AddressIndex.IsHardened && x[j].AddressIndex.IsHardened {
+		return x[i].AddressIndex.Index < x[j].AddressIndex.Index
+	}
+	return !x[i].AddressIndex.IsHardened
+	*/
+	return x[i].AddressIndex.Index < x[j].AddressIndex.Index
+}
+
+func (x AddressResponseSlice) Swap(i, j int) {
+	x[i], x[j] = x[j], x[i]
+}
+
 type AccountResponse struct {
 	// Path        string
 	ChainKey mhda.ChainKey

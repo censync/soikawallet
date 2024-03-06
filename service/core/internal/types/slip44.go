@@ -39,10 +39,10 @@ var (
 		`Base`:     chain.BaseChain,
 
 		// ZK
-		// `zkEVM`:  chain.ZkPolygon,
-		// `zkSync`: chain.ZkSyncEra,
-		`Linea`: chain.Linea,
-		`Blast`: chain.Blast,
+		`zkEVM`:  chain.ZkPolygon,
+		`zkSync`: chain.ZkSyncEra,
+		`Linea`:  chain.Linea,
+		`Blast`:  chain.Blast,
 	}
 
 	registeredNetworksIndexes    = map[*mhda.Chain]string{}

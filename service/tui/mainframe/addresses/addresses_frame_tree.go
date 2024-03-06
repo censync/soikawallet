@@ -90,10 +90,10 @@ func (p *pageAddresses) actionUpdateAddresses() {
 				})
 
 				for _, address := range addrByAccount {
-					addrIndexFormat := "%d - %s"
+					addrIndexFormat := "%4d  - %s"
 
 					if address.AddressIndex.IsHardened {
-						addrIndexFormat = "%d' - %s"
+						addrIndexFormat = "%4d' - %s"
 					}
 
 					addressNode := tview.NewTreeNode(fmt.Sprintf(
@@ -136,7 +136,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 						})
 
 						balancesStr := ""
-						addrIndexFormat := "%d - %s | %s"
+						addrIndexFormat := "%4d  - %s | %s"
 						if err == nil {
 
 							for key, value := range balances {
@@ -144,7 +144,7 @@ func (p *pageAddresses) actionUpdateBalances() {
 							}
 
 							if addrView.addr.AddressIndex.IsHardened {
-								addrIndexFormat = "%d' - %s | %s"
+								addrIndexFormat = "%4d' - %s | %s"
 							}
 
 						} else {
@@ -180,10 +180,10 @@ func (p *pageAddresses) actionTreeSpinnersUpdate(frame string) {
 						isSpinnable = true
 						// TODO: mutex or duplicate view required
 
-						addrIndexFormat := "%d - %s | %s"
+						addrIndexFormat := "%4d  - %s | %s"
 
 						if addrView.addr.AddressIndex.IsHardened {
-							addrIndexFormat = "%d' - %s | %s"
+							addrIndexFormat = "%4d' - %s | %s"
 						}
 
 						addrTree.SetText(fmt.Sprintf(
