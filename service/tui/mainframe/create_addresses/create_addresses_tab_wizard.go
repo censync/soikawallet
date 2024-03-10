@@ -106,6 +106,7 @@ func (p *pageCreateAddr) uiGlobalSettingsForm() *tview.Form {
 
 	p.inputUseHardenedAddresses = tview.NewCheckbox().
 		SetLabel(p.Tr().T("ui.label", "use_hardened")).
+		SetChecked(p.selectedUseHardened).
 		SetChangedFunc(func(checked bool) {
 			p.selectedUseHardened = checked // fix checkbox for return to page
 		})

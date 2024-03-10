@@ -40,7 +40,7 @@ type frameAddressesDetailsAddr struct {
 
 	// vars
 	selectedAddress *resp.AddressResponse
-	isQrIsShown     bool
+	isQrShown       bool
 }
 
 func newFrameAddressesDetailsAddr(state *state.State, selectedAddress *resp.AddressResponse) *frameAddressesDetailsAddr {
@@ -131,6 +131,19 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 				f.Emit(events.EventLogError, fmt.Sprintf("Cannot paste: %s", err))
 			} else {
 				f.Emit(events.EventLogSuccess, pasteData)
+			}
+		}).
+		AddButton("Remove", func() {
+			if f.selectedAddress != nil {
+				err := f.API().SetAddressForgotten(&dto.SetAddressW3DTO{
+					MhdaPath: f.selectedAddress.Path,
+				})
+				if err != nil {
+					f.Emit(events.EventLogError, fmt.Sprintf("Cannot remove address: %s", err))
+				} else {
+					f.Emit(events.EventLogSuccess, "Address removed")
+				}
+				// TODO: Update tree
 			}
 		}).
 		AddButton("set W3", func() {
@@ -235,15 +248,15 @@ func (f *frameAddressesDetailsAddr) Layout() *tview.Flex {
 
 func (f *frameAddressesDetailsAddr) showAddrQR() {
 	if f.selectedAddress != nil {
-		if !f.isQrIsShown {
+		if !f.isQrShown {
 			// Show
-			f.isQrIsShown = true
+			f.isQrShown = true
 			f.labelQR.SetTextColor(tcell.ColorBlack).
 				SetBackgroundColor(tcell.ColorLightGray)
 			f.labelQR.SetText(qrview.NewQrViewText(f.selectedAddress.Address))
 		} else {
 			// Hide
-			f.isQrIsShown = false
+			f.isQrShown = false
 			f.labelQR.Clear()
 			f.labelQR.SetTextColor(tcell.ColorDefault).
 				SetBackgroundColor(tcell.ColorDefault)

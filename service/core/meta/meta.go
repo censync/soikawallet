@@ -18,6 +18,7 @@ package meta
 
 import (
 	"encoding/json"
+	"errors"
 	mhda "github.com/censync/go-mhda"
 	"github.com/censync/soikawallet/service/core/internal/types"
 	"sync/atomic"
@@ -88,6 +89,16 @@ func (m *Meta) GetAddress(nssKey string) *Address {
 
 func (m *Meta) SetAddress(nssKey string, address *Address) {
 	m.addresses[nssKey] = address
+}
+
+func (m *Meta) RemoveAddress(nssKey string) error {
+	if _, ok := m.addresses[nssKey]; !ok {
+		return errors.New("address not exists")
+
+	}
+	m.addresses[nssKey].key.Free()
+	delete(m.addresses, nssKey)
+	return nil
 }
 
 // Nodes operations

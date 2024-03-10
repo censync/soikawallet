@@ -28,10 +28,13 @@ import (
 	"github.com/censync/soikawallet/service/core/internal/types/protected_key"
 	"github.com/censync/soikawallet/service/core/meta"
 	"sort"
+	"time"
 )
 
 const (
 	hardenedKeyStart = uint32(0x80000000) // 2^31
+	rpcAttempts      = 5
+	rpcAttemptDelay  = 5 * time.Second
 )
 
 var (
@@ -367,6 +370,7 @@ func (s *Wallet) getAllAddresses() []*resp.AddressResponse {
 }
 
 func (s *Wallet) GetTokensBalancesByAddress(dto *dto.GetAddressTokensByPathDTO) (tokens map[string]float64, err error) {
+	var balance float64
 	result := map[string]float64{}
 
 	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
@@ -387,7 +391,13 @@ func (s *Wallet) GetTokensBalancesByAddress(dto *dto.GetAddressTokensByPathDTO) 
 		return nil, err
 	}
 
-	balance, err := provider.GetBalance(ctx)
+	for attempts := rpcAttemptDelay; attempts > 0; attempts-- {
+		balance, err = provider.GetBalance(ctx)
+		if err == nil {
+			break
+		}
+		time.Sleep(rpcAttemptDelay)
+	}
 
 	if err != nil {
 		return nil, err
@@ -399,21 +409,35 @@ func (s *Wallet) GetTokensBalancesByAddress(dto *dto.GetAddressTokensByPathDTO) 
 
 	if len(addressLinkedTokenConfigs) > 0 {
 		for _, tokenConfig := range addressLinkedTokenConfigs {
-			humanBalance, err := provider.GetTokenBalance(ctx, tokenConfig.Contract(), tokenConfig.Decimals())
+			for attempts := rpcAttemptDelay; attempts > 0; attempts-- {
+				humanBalance, err := provider.GetTokenBalance(ctx, tokenConfig.Contract(), tokenConfig.Decimals())
+				if err == nil {
+					floatBalance, _ := humanBalance.Float64()
+					result[tokenConfig.Symbol()] = floatBalance
+					// Show only non-zero balances
+					/* if floatBalance != 0 {
+						result[tokenConfig.Symbol()] = floatBalance
+					}*/
+					break
+				}
+				time.Sleep(rpcAttemptDelay)
+			}
 			if err != nil {
 				return nil, err
 			}
-			floatBalance, _ := humanBalance.Float64()
-
-			result[tokenConfig.Symbol()] = floatBalance
-			// Show only non-zero balances
-			/* if floatBalance != 0 {
-				result[tokenConfig.Symbol()] = floatBalance
-			}*/
 		}
 	}
 
 	return result, nil
+}
+
+func (s *Wallet) SetAddressForgotten(dto *dto.SetAddressW3DTO) error {
+	addrPath, err := mhda.ParseNSS(dto.MhdaPath)
+	if err != nil {
+		return err
+	}
+
+	return s.meta.RemoveAddress(addrPath.NSS())
 }
 
 // SetAddressW3 Mark address as available for web3 iterations with WebExtension

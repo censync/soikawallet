@@ -48,6 +48,7 @@ type Core interface {
 
 type Address interface {
 	SetAddressW3(dto *dto.SetAddressW3DTO) error
+	SetAddressForgotten(dto *dto.SetAddressW3DTO) error
 	UnsetAddressW3(dto *dto.SetAddressW3DTO) error
 	AddAddresses(dto *dto.AddAddressesDTO) ([]*resp.AddressResponse, error)
 	GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*resp.AddressResponse
