@@ -284,7 +284,7 @@ func (e *EVM) GetGasConfig(ctx *types.RPCContext, args ...interface{}) (map[stri
 	return result, nil
 }
 
-func GasCalcPrepared(methodName string, args ...interface{}) []byte {
+func CallDataPrepared(methodName string, args ...interface{}) []byte {
 	contractABI, ok := abiMap[methodName]
 
 	if !ok {
@@ -323,7 +323,7 @@ func (e *EVM) GasEstimateApprove(ctx *types.RPCContext, spender, value string, t
 		return 0, err
 	}
 
-	callData := GasCalcPrepared("approve", addrSpender, weiAmount)
+	callData := CallDataPrepared("approve", addrSpender, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -347,7 +347,7 @@ func (e *EVM) GasEstimateTransfer(ctx *types.RPCContext, to, value string, token
 		return 0, err
 	}
 
-	callData := GasCalcPrepared("transfer", addrTo, weiAmount)
+	callData := CallDataPrepared("transfer", addrTo, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -447,7 +447,7 @@ func (e *EVM) TxSendToken(ctx *types.RPCContext, to, value string, token *types.
 		return 0, err
 	}
 
-	callData := GasCalcPrepared("transfer", addrTo, weiAmount)
+	callData := CallDataPrepared("transfer", addrTo, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 
@@ -504,7 +504,7 @@ func (e *EVM) TxApproveToken(ctx *types.RPCContext, spender string, value string
 		return 0, err
 	}
 
-	callData := GasCalcPrepared("approve", addrSpender, weiAmount)
+	callData := CallDataPrepared("approve", addrSpender, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 

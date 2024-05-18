@@ -208,10 +208,6 @@ func (s *Wallet) sendTokensProcess(dto *dto.SendTokensDTO, isAirGap bool) (inter
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	if types.TokenStandard(dto.Standard) == types.TokenBase {
 		return provider.TxSendBase(
 			ctx,

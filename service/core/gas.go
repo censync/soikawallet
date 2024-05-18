@@ -99,7 +99,7 @@ func (s *Wallet) GetGasCalculatorConfig(dto *dto.GetGasCalculatorConfigDTO) (*re
 	}
 
 	switch addr.MHDA().Chain().Key() {
-	case chain.EthereumChain.Key(), chain.PolygonChain.Key(), chain.Moonbeam.Key(), chain.MantleChain.Key(), chain.Blast.Key():
+	case chain.EthereumChain.Key(), chain.PolygonChain.Key(), chain.Moonbeam.Key(), chain.Gnosis.Key(), chain.MantleChain.Key(), chain.Blast.Key():
 
 		gasCalculator = gas.NewCalcEVML1V1(&gas.CalcEVML1V1{
 			CalcOpts: &gas.CalcOpts{

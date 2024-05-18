@@ -335,8 +335,9 @@ func (s *Wallet) GetAddressesByAccount(dto *dto.GetAddressesByAccountDTO) []*res
 	for _, addr := range s.meta.Addresses() {
 		if (addr.MHDA().Chain().Key() == dto.ChainKey) &&
 			addr.DerivationPath().Account() == mhda.AccountIndex(dto.AccountIndex) {
+
 			addresses = append(addresses, &resp.AddressResponse{
-				Address:      addr.Address(),
+				Address:      addr.Address(), // k := addr.Key().Get() fmt.Sprintf("%s -> %x", addr.Address(), crypto.FromECDSA(k)),
 				Path:         addr.MHDA().NSS(),
 				IsExternal:   addr.IsExternal(),
 				AddressIndex: addr.AddressIndex(),

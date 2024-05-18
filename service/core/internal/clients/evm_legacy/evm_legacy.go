@@ -113,7 +113,7 @@ func (e *EVMLegacy) TxSendToken(ctx *types.RPCContext, to, value string, token *
 		return 0, err
 	}
 
-	callData := evm_base.GasCalcPrepared("transfer", addrTo, weiAmount)
+	callData := evm_base.CallDataPrepared("transfer", addrTo, weiAmount)
 
 	tokenContract := common.HexToAddress(token.Contract())
 

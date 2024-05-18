@@ -29,6 +29,7 @@ var (
 		`BSC`:         chain.BinanceSmartChain,
 		`Avalanche C`: chain.AvalancheCChain,
 		`Moonbeam`:    chain.Moonbeam,
+		`Gnosis`:      chain.Gnosis,
 		`Bitcoin`:     chain.BitcoinChain,
 		`Tron`:        chain.TronChain,
 

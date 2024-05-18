@@ -30,6 +30,7 @@ var (
 	PolygonChain      = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x89`)
 	Moonbeam          = mhda.NewChain(mhda.EthereumVM, mhda.GLMR, `0x504`)
 	AvalancheCChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa86a`)
+	Gnosis            = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x64`)
 
 	// L2
 	OptimismChain = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa`)

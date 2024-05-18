@@ -66,6 +66,7 @@ var networkProviders = &Provider{
 		chain.Linea.Key():             evm_base.NewEVM(networks.Linea),
 		chain.MantleChain.Key():       evm_base.NewEVM(networks.Mantle),
 		chain.Blast.Key():             evm_base.NewEVM(networks.Blast),
+		chain.Gnosis.Key():            evm_base.NewEVM(networks.Gnosis),
 	},
 	defaultCurrency: `USD`,
 }

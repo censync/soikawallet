@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the  soikawallet library. If not, see <http://www.gnu.org/licenses/>.
 
-//go:build testnet
+//go:build !testnet
 
 package networks
 
@@ -23,19 +23,18 @@ import (
 	"github.com/censync/soikawallet/service/core/internal/types"
 )
 
-// https://docs.base.org/network-information
-var Base = types.NewNetwork(
+var Gnosis = types.NewNetwork(
 	mhda.ETH,
-	`Base Goerli`,
-	`ETH`,
+	`Gnosis`,
+	`xDAI	`,
 	18,
 	1e9,
 	"gwei",
 	true,
 	&types.EVMConfig{
-		ChainId: 0x14a33,
+		ChainId: 0x64,
 	},
 ).SetDefaultRPC(
-	`https://sepolia.base.org`,
-	`https://sepolia.basescan.org`, // /block/ /address/ /tx/
+	`https://rpc.gnosis.gateway.fm`,
+	`https://gnosisscan.io/`, // /block/ /address/ /tx/
 )

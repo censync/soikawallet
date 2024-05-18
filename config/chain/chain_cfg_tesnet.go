@@ -30,6 +30,7 @@ var (
 	PolygonChain      = mhda.NewChain(mhda.EthereumVM, mhda.MATIC, `0x13881`)
 	Moonbeam          = mhda.NewChain(mhda.EthereumVM, mhda.GLMR, `0x507`)
 	AvalancheCChain   = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0xa869`)
+	Gnosis            = mhda.NewChain(mhda.EthereumVM, mhda.ETH, `0x27d8`)
 
 	// L2
 	// https://community.optimism.io/docs/useful-tools/networks/#op-sepolia
